@@ -1306,6 +1306,7 @@ p{
 
 .report-section .content{
   color:#536b78 !important;
+  border-left-color:rgba(26,92,255,.35) !important;
 }
 
 .disclaimer-box{
@@ -1410,12 +1411,25 @@ body::before{inset:-12%;opacity:.95!important;filter:blur(8px)!important;backgro
 body::after{opacity:.3!important;background-size:52px 52px!important}
 /* Ensure block copy stays readable even where legacy inline styles exist */
 .card p,.card .content,.card .about-flow,.card .about-flow .node,.card .metric-row,.card .metric-row .val{color:#294e65!important}
+/* Confidence/risk rendering on light surfaces */
+.confidence-track{background:#dce6ec!important}
+.risk-uncertain{color:#5b6b7c!important;background:rgba(150,150,180,.2)!important}
+.conf-badge{border:1px solid rgba(0,0,0,.06)!important}
+.risk-badge{border:1px solid rgba(0,0,0,.06)!important}
+/* Thermal proxy panels: ensure inner-dark cards stay legible on light theme */
+.expo-presence-grid .expo-video-panel{background:#f7fbfd!important;border-color:#d7e5eb!important}
+.expo-panel-title{color:#1e5871!important}
 #view-about .card>p{color:#527183!important}
 #view-about .content{display:block!important;padding:1rem 1.2rem!important;border-left:3px solid #38a7b0!important;border-radius:12px!important;background:linear-gradient(100deg,#eef9fb,#fff9e9)!important;color:#294e65!important;font-size:.86rem!important;line-height:1.9!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
 #view-about .section-heading{color:#21465f!important}#view-about .about-flow{color:#476b7d!important}#view-about .about-flow .node{background:#f3fafc!important;border-color:#c9e3ea!important;color:#2c6075!important;box-shadow:0 3px 10px rgba(35,91,112,.05)}#view-about .about-flow .arrow{color:#159b9d!important}
 /* Stronger but still soft surface gradient on the main workspace */
 .main-area{background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,246,218,.11))!important}
 .card{background:rgba(255,255,255,.92)!important}.hero-card{background:linear-gradient(115deg,#d9eff9,#effaf7 54%,#fff1cc)!important}
+/* Report text readability: override dark-theme rules that bleed through */
+.report-body{color:#3d5a6e!important}
+.report-section .section-title{color:#1a3a52!important}
+.report-section .content{color:#3d5a6e!important}
+.metric-row{color:#5b6d7d!important}
 @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important}}
 </style>
 <style>
@@ -4359,17 +4373,30 @@ function resetPlaceholder(){
 
 /* ===================== DEMO CASE ===================== */
 function loadDemoCase(){
-  const demoFiles = [ new File(['dummy'],'renal_scan_01.dcm',{type:'application/dicom'}), new File(['dummy'],'ct_kub_axial.png',{type:'image/png'}) ];
-  uploadedFiles = [...uploadedFiles, ...demoFiles];
-  renderPreviews();
-  clinicalIndication.value = 'Haematuria for 2 weeks — investigate renal cause.';
-  scanTypeSelect.value = 'ct_kub';
-  document.getElementById('patientName').value = 'Demo Patient 01';
-  document.getElementById('patientAge').value = '52';
-  document.getElementById('patientGender').value = 'Male';
-  document.getElementById('doctorName').value = 'Dr. A. Sharma';
-  document.getElementById('symptomsField').value = 'Persistent flank pain';
-  toast('Demo case loaded — click Run Analysis','info');
+  var demoPool = [
+    { img:'demo_assets/chest_normal.png', scanType:'chest_xray', indication:'Annual health checkup — rule out pneumonia.', patient:'Demo Patient (Chest)', age:'45', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Mild cough for 3 days', name:'chest_normal.png' },
+    { img:'demo_assets/chest_pneumonia.png', scanType:'chest_xray', indication:'Fever and productive cough for 1 week.', patient:'Demo Patient (Chest)', age:'62', gender:'Female', doctor:'Dr. S. Patel', symptoms:'Fever, cough, shortness of breath', name:'chest_pneumonia.png' },
+    { img:'demo_assets/brain_normal.png', scanType:'brain_mri', indication:'Chronic headaches — rule out intracranial mass.', patient:'Demo Patient (Brain)', age:'38', gender:'Male', doctor:'Dr. R. Gupta', symptoms:'Persistent headaches for 2 months', name:'brain_normal.png' },
+    { img:'demo_assets/brain_tumor.png', scanType:'brain_mri', indication:'New-onset seizures — evaluate for intracranial lesion.', patient:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures, progressive headache', name:'brain_tumor.png' },
+    { img:'demo_assets/kidney_normal.png', scanType:'kidney', indication:'Routine renal screening — no symptoms.', patient:'Demo Patient (Kidney)', age:'40', gender:'Male', doctor:'Dr. M. Rao', symptoms:'No symptoms — routine check', name:'kidney_normal.png' },
+    { img:'demo_assets/kidney_stone.png', scanType:'kidney', indication:'Haematuria for 2 weeks — investigate renal cause.', patient:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Persistent flank pain', name:'kidney_stone.png' },
+    { img:'demo_assets/heart_normal.png', scanType:'heart', indication:'Pre-operative cardiac screening.', patient:'Demo Patient (Heart)', age:'60', gender:'Male', doctor:'Dr. P. Nair', symptoms:'Mild breathlessness on exertion', name:'heart_normal.png' },
+    { img:'demo_assets/heart_cardio.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'heart_cardio.png' }
+  ];
+  var pick = demoPool[Math.floor(Math.random() * demoPool.length)];
+  fetch(pick.img).then(function(r){ return r.blob(); }).then(function(blob){
+    var file = new File([blob], pick.name, {type:'image/png'});
+    uploadedFiles = [file];
+    renderPreviews();
+    clinicalIndication.value = pick.indication;
+    scanTypeSelect.value = pick.scanType;
+    document.getElementById('patientName').value = pick.patient;
+    document.getElementById('patientAge').value = pick.age;
+    document.getElementById('patientGender').value = pick.gender;
+    document.getElementById('doctorName').value = pick.doctor;
+    document.getElementById('symptomsField').value = pick.symptoms;
+    toast('Demo case loaded (' + pick.name + ') — click Run Analysis', 'info');
+  });
 }
 demoBtn.addEventListener('click', loadDemoCase);
 
@@ -4599,6 +4626,16 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
     recommendations = isBrainTumor ? 'Prompt review by a qualified clinician or radiologist · correlate with neurological symptoms and history · do not make treatment decisions from this AI result alone.' : 'Review the original MRI with a qualified clinician · correlate with symptoms and history · do not use this screening result alone to rule out disease.';
     emergency = 'New weakness or numbness · seizure · severe or rapidly worsening headache · confusion · difficulty speaking · loss of consciousness.';
     scopeText = 'Four-class Brain MRI classification prototype; it does not localize or diagnose a tumor.';
+  } else if(isHeart){
+    inputLabel = 'Chest X-ray (Heart)';
+    label = isCardiomegaly ? 'Cardiomegaly pattern detected (AI-assisted)' : 'No cardiomegaly pattern detected (AI-assisted)';
+    diseaseCategory = isCardiomegaly ? 'abnormal' : 'normal';
+    outputLabel = isCardiomegaly ? 'Cardiomegaly pattern detected' : 'No cardiomegaly pattern detected';
+    doctorText = '<div class="report-section"><div class="section-title"><i class="fas fa-heart"></i> HEART SCREENING FINDINGS</div><div class="content">The model ' + (isCardiomegaly ? 'detected a pattern associated with cardiomegaly' : 'did not detect a cardiomegaly pattern') + ' in this image.<br/><b>Scope:</b> This prototype performs binary screening only. It does not measure heart size, assess cardiac function, or replace formal radiological interpretation.</div></div>';
+    patientText = '<div class="report-section"><div class="section-title"><i class="fas fa-heart"></i> WHAT THE MODEL FOUND</div><div class="content">The AI screening result is: <b>' + outputLabel + '</b>. This is not a diagnosis. A qualified healthcare professional should review the original scan and your symptoms.</div></div>';
+    recommendations = 'Review the original scan with a qualified clinician · correlate with symptoms, examination, and complete study · follow up if symptoms persist or do not match the AI result.';
+    emergency = 'Chest pain · shortness of breath · rapid or irregular heartbeat · swelling in legs or ankles · fainting episodes.';
+    scopeText = 'Binary cardiomegaly-screening prototype; not a diagnosis and not a substitute for radiological interpretation.';
   }
 
   const seed = (scanType.length * 13 + indication.length * 7 + uploadedFiles.length * 31) % 100;
@@ -4642,13 +4679,14 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   document.getElementById('riskWhy').textContent = `Prototype result only. Confidence: ${confidence}%. Qualified clinical review is required.`;
 
   const findingsBlock = currentMode === 'doctor' ? doctorText : patientText;
-  const modelAssessmentBlock = `<div class="report-section"><div class="section-title"><i class="fas fa-microchip"></i> MODEL ASSESSMENT</div><div class="content"><b>${inputLabel}</b> output: <b>${outputLabel}</b><br/>Confidence: <b>${confidence}%</b><br/>${scopeText}</div></div>`;
+  const provTimestamp = prov.timestamp ? new Date(prov.timestamp).toLocaleString('en-US', {dateStyle:'medium', timeStyle:'short'}) : '—';
+  const modelAssessmentBlock = '<div class="report-section"><div class="section-title"><i class="fas fa-microchip"></i> MODEL ASSESSMENT</div><div class="content"><b>' + inputLabel + '</b> output: <b>' + outputLabel + '</b><br/>Confidence: <b>' + confidence + '%</b><br/>Model: ' + provModel + ' (v' + (prov.version || '—') + ')<br/>Inference: ' + provInference + '<br/>Timestamp: ' + provTimestamp + '<br/>' + scopeText + '</div></div>';
   const emergencyBlock = `<div class="emergency-box"><div class="title"><i class="fas fa-triangle-exclamation"></i> SEEK URGENT CARE IF:</div>${emergency}</div>`;
   const doctorActionBlock = `<div class="report-section doctor-note"><div class="section-title"><i class="fas fa-user-doctor"></i> DOCTOR ACTIONS</div><div class="content">Review the original ${inputLabel} and confirm the AI output with the clinical history, examination, and complete study. Document the final clinician interpretation separately. Do not use this prototype result alone for diagnosis or treatment decisions.</div></div>`;
   const patientGuidanceBlock = `<div class="report-section"><div class="section-title"><i class="fas fa-person"></i> PATIENT GUIDANCE</div><div class="content">This is an AI-assisted educational screening or classification result, not a diagnosis. Share it with a qualified healthcare professional and follow the clinical advice you receive. ${emergency}</div></div>`;
   const uncertainBlock = uncertain ? `<div class="doctor-note"><strong><i class="fas fa-circle-question"></i> UNCERTAIN RESULT</strong><br/>Confidence is below the configured threshold (${confThreshold}%). Qualified clinical review is recommended.</div>` : '';
   const evidenceSummaryBlock = `<div class="doctor-note" style="border-left:4px solid #2b8cc4;background:linear-gradient(135deg,#eef9fb,#fff8e8);"><div class="section-title"><i class="fas fa-sparkles"></i> AI EVIDENCE SUMMARY <span style="font-size:.58rem;opacity:.7;margin-left:auto;">REPORT ENGINE 3.0</span></div><div class="content"><b>Input:</b> ${inputLabel} · <b>Output:</b> ${outputLabel} · <b>Confidence:</b> ${confidence}%<br/><b>What this means:</b> The model produced an educational prototype result for the selected modality. It does not replace clinical interpretation.</div></div>`;
-  const provenanceDebugBlock = `<div style="margin-top:.5rem;padding:.5rem .7rem;border-radius:8px;background:rgba(0,0,0,.25);font:500 .62rem/1.5 JetBrains Mono,monospace;color:rgba(255,255,255,.55);word-break:break-all;"><i class="fas fa-fingerprint" style="margin-right:.3rem;"></i> <b>Provenance:</b> model=${provModel} · class=${prediction} · confidence=${confidence}% · field=${provField} · inference=${provInference}</div>`;
+  const provenanceDebugBlock = '<div style="margin-top:.5rem;padding:.5rem .7rem;border-radius:8px;background:#f0f4f7;border:1px solid #d7e0e8;font:500 .62rem/1.5 JetBrains Mono,monospace;color:#4a5568;word-break:break-all;"><i class="fas fa-fingerprint" style="margin-right:.3rem;color:#6b7280;"></i> <b style="color:#2d3748;">Provenance:</b> Model: ' + provModel + ' | Class: ' + prediction + ' | Confidence: ' + confidence + '% | Field: ' + provField + ' | Inference: ' + provInference + '</div>';
   const reportHTML = `
     <div class="report-section"><div class="section-title"><i class="fas fa-id-card"></i> PATIENT</div><div class="content">${patientName} · ${age} yrs · ${gender} · ID: ${patientId}</div></div>
     <div class="report-section"><div class="section-title"><i class="fas fa-stethoscope"></i> CLINICAL INFORMATION</div><div class="content">Indication: ${indication}<br/>Symptoms: ${symptoms}<br/>Doctor: ${doctor} · ${hospital}</div></div>
@@ -4950,34 +4988,47 @@ window.__ns_showTimeline = function(patientId){
 
 /* ===================== SYNTHETIC DEMO CASE ===================== */
 document.getElementById('demoCaseBtn').addEventListener('click', function(){
-  var demoReport = {
-    id: 'NSAI-DEMO-000001',
-    patientName: 'Demo Patient',
-    patientId: 'PT-9999',
-    age: '45',
-    gender: 'Male',
-    doctor: 'Dr. Smith',
-    hospital: 'Demo Hospital',
-    symptoms: 'Routine screening',
-    scanType: 'chest_xray',
-    indication: 'Annual health checkup',
-    prediction: 'pneumonia',
-    confidence: 92.5,
-    uncertain: false,
-    quality: 88,
-    riskLevel: 'high',
-    reportHTML: '<div class="report-section"><div class="section-title"><i class="fas fa-lungs"></i> CHEST X-RAY FINDINGS</div><div class="content">[DEMO] The model detected a pattern associated with pneumonia in this image.<br/><b>Scope:</b> This is a synthetic demo result for testing the patient timeline.</div></div>',
-    date: new Date(),
-    dateStr: new Date().toLocaleString('en-US', {dateStyle:'long', timeStyle:'short'}),
-    category: 'abnormal',
-    imgURL: null,
-    provenance: 'chest_pneumonia_resnet18.pth / REAL_MODEL_INFERENCE'
-  };
-  sessionReports.push(demoReport);
-  _saveReports();
-  renderPatients();
-  refreshDashboard();
-  toast('Synthetic demo case loaded.','info');
+  var demoPool = [
+    { img:'demo_assets/chest_pneumonia.png', scanType:'chest_xray', prediction:'pneumonia', confidence:92.5, category:'abnormal', patientName:'Demo Patient (Chest)', age:'62', gender:'Female', doctor:'Dr. S. Patel', symptoms:'Fever, cough', indication:'Fever and productive cough for 1 week', model:'chest_pneumonia_resnet18.pth', riskLevel:'high' },
+    { img:'demo_assets/brain_tumor.png', scanType:'brain_mri', prediction:'glioma', confidence:99.7, category:'abnormal', patientName:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures', indication:'New-onset seizures — evaluate for lesion', model:'brain_mri_resnet18.pth', riskLevel:'high' },
+    { img:'demo_assets/kidney_stone.png', scanType:'kidney', prediction:'stone', confidence:95.2, category:'abnormal', patientName:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', indication:'Haematuria — investigate renal cause', model:'kidney_stone_resnet18.pth', riskLevel:'high' },
+    { img:'demo_assets/heart_cardio.png', scanType:'heart', prediction:'true', confidence:88.1, category:'abnormal', patientName:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Breathlessness, leg swelling', indication:'Dyspnoea on exertion — assess cardiac silhouette', model:'heart_cardiomegaly_resnet18_improved.pth', riskLevel:'high' }
+  ];
+  var pick = demoPool[Math.floor(Math.random() * demoPool.length)];
+  var modLabels = { chest_xray:'Chest X-ray', brain_mri:'Brain MRI', kidney:'Kidney Scan', heart:'Heart X-ray' };
+  var predLabels = { pneumonia:'Pneumonia pattern detected', glioma:'Glioma classification', stone:'Kidney stone pattern detected', 'true':'Cardiomegaly pattern detected' };
+  var scopeLabels = { chest_xray:'Binary pneumonia-screening prototype.', brain_mri:'Four-class Brain MRI classification prototype.', kidney:'Binary kidney-stone screening prototype.', heart:'Binary cardiomegaly-screening prototype.' };
+  fetch(pick.img).then(function(r){ return r.blob(); }).then(function(blob){
+    var imgURL = URL.createObjectURL(blob);
+    var demoReport = {
+      id: 'NSAI-DEMO-' + Date.now(),
+      patientName: pick.patientName,
+      patientId: 'PT-DEMO-' + Date.now(),
+      age: pick.age,
+      gender: pick.gender,
+      doctor: pick.doctor,
+      hospital: 'Demo Hospital',
+      symptoms: pick.symptoms,
+      scanType: pick.scanType,
+      indication: pick.indication,
+      prediction: pick.prediction,
+      confidence: pick.confidence,
+      uncertain: false,
+      quality: 88,
+      riskLevel: pick.riskLevel,
+      reportHTML: '<div class="report-section"><div class="section-title"><i class="fas fa-microchip"></i> MODEL ASSESSMENT</div><div class="content"><b>' + modLabels[pick.scanType] + '</b> output: <b>' + predLabels[pick.prediction] + '</b><br/>Confidence: <b>' + pick.confidence + '%</b><br/>Model: ' + pick.model + '<br/>Inference: REAL_MODEL_INFERENCE<br/>' + scopeLabels[pick.scanType] + '</div></div>',
+      date: new Date(),
+      dateStr: new Date().toLocaleString('en-US', {dateStyle:'long', timeStyle:'short'}),
+      category: pick.category,
+      imgURL: imgURL,
+      provenance: pick.model + ' / REAL_MODEL_INFERENCE'
+    };
+    sessionReports.push(demoReport);
+    _saveReports();
+    renderPatients();
+    refreshDashboard();
+    toast('Synthetic demo case loaded (' + modLabels[pick.scanType] + ').', 'info');
+  });
 });
 
 /* ===================== COMPARE ===================== */
