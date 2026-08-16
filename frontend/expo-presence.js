@@ -1,27 +1,48 @@
 /**
- * NephroScan AI — Expo Human Presence Module
+ * NephroScan AI — Software Thermal Proxy Dashboard
  *
- * Browser-local camera pipeline with canvas thermal proxy, presence detection,
- * Judge Mode overlays, diagnostics, session log, and export.
+ * Browser-local camera pipeline with Inferno-style thermal colormap,
+ * temporal smoothing, rolling chart, ROI reticle, and tracking table.
  * Educational prototype only. Not a medical device.
  */
 (function () {
   'use strict';
 
   /* ===================== DOM REFS ===================== */
-  var startBtn    = document.getElementById('presenceStartBtn');
-  var stopBtn     = document.getElementById('presenceStopBtn');
-  var clearBtn    = document.getElementById('presenceClearBtn');
-  var video       = document.getElementById('presenceVideo');
-  var rgbCanvas   = document.getElementById('presenceRgbCanvas');
-  var thermCanvas = document.getElementById('presenceThermalCanvas');
-  var placeholder = document.getElementById('presencePlaceholder');
-  var statusEl    = document.getElementById('presenceStatus');
-  var logBody     = document.getElementById('presenceLogBody');
+  var startBtn       = document.getElementById('presenceStartBtn');
+  var stopBtn        = document.getElementById('presenceStopBtn');
+  var clearBtn       = document.getElementById('presenceClearBtn');
+  var video          = document.getElementById('presenceVideo');
+  var rgbCanvas      = document.getElementById('presenceRgbCanvas');
+  var thermCanvas    = document.getElementById('presenceThermalCanvas');
+  var placeholder    = document.getElementById('presencePlaceholder');
+  var statusEl       = document.getElementById('presenceStatus');
+  var logBody        = document.getElementById('presenceLogBody');
+  var indexValEl     = document.getElementById('thermalIndexVal');
+  var chartCanvas    = document.getElementById('thermalChartCanvas');
 
   if (!startBtn || !stopBtn || !video || !rgbCanvas || !thermCanvas) {
     console.warn('Expo presence: required DOM elements not found — module disabled.');
     return;
+  }
+
+  /* ===================== INFERNO COLORMAP ===================== */
+  var INFERNO = [
+    [0,0,4],[28,16,68],[76,12,107],[120,28,109],[162,44,96],
+    [194,69,76],[222,108,46],[243,155,10],[247,209,58],[252,255,164]
+  ];
+
+  function infernoColor(t) {
+    t = Math.max(0, Math.min(1, t));
+    var idx = t * (INFERNO.length - 1);
+    var lo = Math.floor(idx);
+    var hi = Math.min(lo + 1, INFERNO.length - 1);
+    var f = idx - lo;
+    return [
+      Math.round(INFERNO[lo][0] + (INFERNO[hi][0] - INFERNO[lo][0]) * f),
+      Math.round(INFERNO[lo][1] + (INFERNO[hi][1] - INFERNO[lo][1]) * f),
+      Math.round(INFERNO[lo][2] + (INFERNO[hi][2] - INFERNO[lo][2]) * f)
+    ];
   }
 
   /* ===================== STATE ===================== */
@@ -32,11 +53,15 @@
   var presenceCounter = 1;
   var lastLogTime     = 0;
   var prevFrameData   = null;
+  var smoothedIntensity = 0.5;
   var sessionStart    = null;
   var sessionLog      = [];
+  var chartHistory    = [];
+  var CHART_MAX       = 60;
 
-  var LOG_THROTTLE_MS = 2500;
-  var MOTION_STEP     = 12;
+  var LOG_THROTTLE_MS = 2000;
+  var SMOOTH_ALPHA    = 0.15;
+  var MOTION_STEP     = 10;
 
   /* ===================== HELPERS ===================== */
 
@@ -46,60 +71,84 @@
 
   function resetLog() {
     if (logBody) {
-      logBody.innerHTML =
-        '<tr><td colspan="6" class="expo-empty-log">No presence events yet.</td></tr>';
+      logBody.innerHTML = '<tr><td colspan="5" class="expo-empty-log">No data yet. Start the camera to begin.</td></tr>';
     }
     presenceCounter = 1;
     sessionLog = [];
+    chartHistory = [];
+    if (indexValEl) indexValEl.textContent = '\u2014';
   }
 
-  function addPresenceLogEntry(confidence, tempLabel, channel) {
-    var now = new Date();
-    var ts = now.toLocaleTimeString('en-US', { hour12: false });
-    var id = 'P-' + String(presenceCounter++).padStart(3, '0');
-    var row = document.createElement('tr');
-    row.innerHTML =
-      '<td>' + ts + '</td>' +
-      '<td>' + id + '</td>' +
-      '<td><span style="color:#168a5b">MOTION DETECTED</span></td>' +
-      '<td>' + confidence + '%</td>' +
-      '<td>' + tempLabel + '</td>' +
-      '<td>' + channel + '</td>';
-    if (logBody) {
-      if (logBody.querySelector('.expo-empty-log')) logBody.innerHTML = '';
-      logBody.prepend(row);
-      while (logBody.rows.length > 20) logBody.deleteRow(-1);
-    }
-    sessionLog.push({ time: ts, id: id, confidence: confidence, temp: tempLabel, channel: channel });
-  }
+  /* ===================== THERMAL CANVAS (INFERNO COLORMAP) ===================== */
 
-  /* ===================== THERMAL PROXY ===================== */
-
-  function drawThermalProxy(srcCanvas, tgtCanvas) {
+  function drawThermal(srcCanvas, tgtCanvas) {
     if (!thermCtx) thermCtx = tgtCanvas.getContext('2d');
     thermCtx.drawImage(srcCanvas, 0, 0, tgtCanvas.width, tgtCanvas.height);
     var imageData = thermCtx.getImageData(0, 0, tgtCanvas.width, tgtCanvas.height);
     var d = imageData.data;
     for (var i = 0; i < d.length; i += 4) {
-      var lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-      var n = lum / 255;
-      d[i]     = Math.min(255, Math.floor(n * 320));
-      d[i + 1] = Math.max(0, Math.floor((1 - n) * 200));
-      d[i + 2] = Math.floor((1 - n) * 180);
-      d[i + 3] = 255;
+      var lum = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255;
+      var c = infernoColor(lum);
+      d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
     }
     thermCtx.putImageData(imageData, 0, 0);
   }
 
-  /* ===================== MOTION / PRESENCE HEURISTIC ===================== */
+  /* ===================== ROI RETICLE ===================== */
 
-  function computeMotion(frameData, width, height) {
+  function drawReticle(ctx, w, h) {
+    var cx = w / 2, cy = h / 2;
+    var r = Math.min(w, h) * 0.18;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,111,60,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(cx - r - 8, cy); ctx.lineTo(cx + r + 8, cy);
+    ctx.moveTo(cx, cy - r - 8); ctx.lineTo(cx, cy + r + 8);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /* ===================== ROLLING CHART ===================== */
+
+  function drawChart() {
+    if (!chartCanvas) return;
+    var ctx = chartCanvas.getContext('2d');
+    var W = chartCanvas.width, H = chartCanvas.height;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d1b2a';
+    ctx.fillRect(0, 0, W, H);
+    if (chartHistory.length < 2) return;
+    var step = W / (CHART_MAX - 1);
+    ctx.beginPath();
+    ctx.strokeStyle = '#ff6f3c';
+    ctx.lineWidth = 1.5;
+    for (var i = 0; i < chartHistory.length; i++) {
+      var x = i * step;
+      var y = H - chartHistory[i] * (H - 8) - 4;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.lineTo((chartHistory.length - 1) * step, H);
+    ctx.lineTo(0, H);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,111,60,0.1)';
+    ctx.fill();
+  }
+
+  /* ===================== MOTION / INTENSITY ===================== */
+
+  function computeIntensity(frameData) {
     if (!prevFrameData) {
       prevFrameData = new Uint8ClampedArray(frameData);
-      return 0;
+      return 0.5;
     }
-    var diffSum = 0;
-    var count = 0;
+    var diffSum = 0, count = 0;
     for (var i = 0; i < frameData.length; i += MOTION_STEP * 4) {
       var dr = Math.abs(frameData[i] - prevFrameData[i]);
       var dg = Math.abs(frameData[i + 1] - prevFrameData[i + 1]);
@@ -108,30 +157,15 @@
       count++;
     }
     for (var j = 0; j < frameData.length; j++) prevFrameData[j] = frameData[j];
-    if (count === 0) return 0;
-    var avgDiff = diffSum / count;
-    return Math.min(100, Math.round(avgDiff * 2.5));
-  }
-
-  /* ===================== JUDGE MODE (bounding box overlay) ===================== */
-
-  function drawJudgeOverlay(ctx, w, h, motionPct) {
-    if (motionPct < 15) return;
-    var cx = w / 2, cy = h / 2;
-    var bw = w * 0.45, bh = h * 0.65;
-    var bx = cx - bw / 2, by = cy - bh / 2;
-    ctx.save();
-    ctx.strokeStyle = '#ff9900';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6, 4]);
-    ctx.strokeRect(bx, by, bw, bh);
-    ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(0,0,0,0.72)';
-    ctx.fillRect(bx, by - 22, 260, 18);
-    ctx.fillStyle = '#ff9900';
-    ctx.font = 'bold 10px JetBrains Mono, monospace';
-    ctx.fillText('JUDGE MODE: MOTION DETECTED — ' + motionPct + '%', bx + 6, by - 8);
-    ctx.restore();
+    var motion = count > 0 ? Math.min(1, (diffSum / count) / 40) : 0;
+    var brightness = 0;
+    for (var k = 0; k < frameData.length; k += MOTION_STEP * 4) {
+      brightness += (frameData[k] + frameData[k + 1] + frameData[k + 2]) / 3;
+    }
+    brightness = count > 0 ? brightness / count / 255 : 0.5;
+    var combined = motion * 0.6 + brightness * 0.4;
+    smoothedIntensity = smoothedIntensity * (1 - SMOOTH_ALPHA) + combined * SMOOTH_ALPHA;
+    return smoothedIntensity;
   }
 
   /* ===================== DETECTION LOOP ===================== */
@@ -148,22 +182,49 @@
         thermCtx = thermCanvas.getContext('2d');
       }
 
+      /* Mirrored optical view */
+      rgbCtx.save();
+      rgbCtx.translate(rgbCanvas.width, 0);
+      rgbCtx.scale(-1, 1);
       rgbCtx.drawImage(video, 0, 0, rgbCanvas.width, rgbCanvas.height);
-      drawThermalProxy(rgbCanvas, thermCanvas);
+      rgbCtx.restore();
 
+      /* Thermal proxy */
+      drawThermal(rgbCanvas, thermCanvas);
+      drawReticle(thermCtx, thermCanvas.width, thermCanvas.height);
+
+      /* Intensity calculation */
       var frameData = rgbCtx.getImageData(0, 0, rgbCanvas.width, rgbCanvas.height).data;
-      var motionPct = computeMotion(frameData, rgbCanvas.width, rgbCanvas.height);
+      var intensity = computeIntensity(frameData);
 
-      drawJudgeOverlay(rgbCtx, rgbCanvas.width, rgbCanvas.height, motionPct);
+      /* Update emulated index display */
+      var displayIndex = (intensity * 100).toFixed(1);
+      if (indexValEl) indexValEl.textContent = displayIndex;
 
+      /* Rolling chart */
+      chartHistory.push(intensity);
+      if (chartHistory.length > CHART_MAX) chartHistory.shift();
+      drawChart();
+
+      /* Log entry */
       var now = Date.now();
-      if (motionPct > 12 && now - lastLogTime > LOG_THROTTLE_MS) {
+      if (now - lastLogTime > LOG_THROTTLE_MS) {
         lastLogTime = now;
-        var tempVal = (35.2 + Math.random() * 1.6).toFixed(1);
-        addPresenceLogEntry(Math.min(98, 40 + motionPct), 'Software Thermal Proxy — Not an Infrared Measurement', 'OPTICAL SIM');
-        setStatus('MOTION / PRESENCE DETECTED \u2014 CONFIDENCE ' + Math.min(98, 40 + motionPct) + '%');
-      } else if (motionPct <= 12) {
-        setStatus('SCANNING \u2014 NO PRESENCE DETECTED');
+        var trend = chartHistory.length >= 2 ?
+          (chartHistory[chartHistory.length - 1] > chartHistory[chartHistory.length - 2] ? 'Rising' :
+           chartHistory[chartHistory.length - 1] < chartHistory[chartHistory.length - 2] ? 'Falling' : 'Stable') : '\u2014';
+        var status = intensity > 0.6 ? 'Active Region' : intensity > 0.3 ? 'Moderate' : 'Low';
+        var ts = new Date().toLocaleTimeString('en-US', { hour12: false });
+        var id = 'T-' + String(presenceCounter++).padStart(3, '0');
+        sessionLog.push({ time: ts, id: id, index: displayIndex, trend: trend, status: status });
+        if (logBody) {
+          if (logBody.querySelector('.expo-empty-log')) logBody.innerHTML = '';
+          var row = document.createElement('tr');
+          row.innerHTML = '<td>' + ts + '</td><td>' + id + '</td><td>' + displayIndex + '</td><td>' + trend + '</td><td>' + status + '</td>';
+          logBody.prepend(row);
+          while (logBody.rows.length > 25) logBody.deleteRow(-1);
+        }
+        setStatus('THERMAL PROXY ACTIVE \u2014 EMULATED INDEX ' + displayIndex);
       }
     }
     animFrame = requestAnimationFrame(detectionLoop);
@@ -188,7 +249,7 @@
       stopBtn.disabled = false;
       if (placeholder) placeholder.style.display = 'none';
       sessionStart = new Date();
-      setStatus('CAMERA ACTIVE \u2014 LOCAL HUMAN-PRESENCE DEMO');
+      setStatus('CAMERA ACTIVE \u2014 SOFTWARE THERMAL PROXY RUNNING');
       video.addEventListener('loadeddata', function onLoaded() {
         video.removeEventListener('loadeddata', onLoaded);
         rgbCanvas.width = video.videoWidth;
@@ -227,50 +288,31 @@
     setStatus('CAMERA STOPPED');
   }
 
-  /* ===================== EXPORT DEMO REPORT ===================== */
+  /* ===================== EXPORT ===================== */
 
   function exportDemoReport() {
     var lines = [
-      'NephroScan AI — Expo Presence Session Report',
-      '=============================================',
-      'Session start: ' + (sessionStart ? sessionStart.toLocaleString() : 'N/A'),
-      'Session end:   ' + new Date().toLocaleString(),
-      'Total events:  ' + sessionLog.length,
+      'NephroScan AI — Software Thermal Proxy Session',
+      '==============================================',
+      'Session: ' + (sessionStart ? sessionStart.toLocaleString() : 'N/A') + ' to ' + new Date().toLocaleString(),
+      'Total readings: ' + sessionLog.length,
       '',
-      'Time,Tracking ID,Status,Confidence,Temperature,Thermal Channel'
+      'Time,ID,Proxy Index,Trend,Status'
     ];
     sessionLog.forEach(function (e) {
-      lines.push([e.time, e.id, 'MOTION DETECTED', e.confidence + '%', e.temp, e.channel].join(','));
+      lines.push([e.time, e.id, e.index, e.trend, e.status].join(','));
     });
-    lines.push('', 'Disclaimer: Educational prototype only. Not a medical device.');
-    lines.push('Thermal values are software-generated proxies, not infrared measurements.');
-
+    lines.push('', 'Labels: SOFTWARE THERMAL PROXY, EMULATED INDEX, NOT AN INFRARED MEASUREMENT');
+    lines.push('Disclaimer: Educational prototype only. Not a medical device.');
     var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'nephroscan-presence-' + Date.now() + '.csv';
+    a.download = 'nephroscan-thermal-' + Date.now() + '.csv';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }
-
-  /* ===================== DIAGNOSTICS ===================== */
-
-  function runDiagnostics() {
-    var info = { camera: false, secure: location.protocol === 'https:' || location.hostname === 'localhost', userAgent: navigator.userAgent };
-    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-      navigator.mediaDevices.enumerateDevices().then(function (devices) {
-        info.devices = devices.filter(function (d) { return d.kind === 'videoinput'; }).map(function (d) { return d.label || d.deviceId; });
-        info.camera = info.devices.length > 0;
-        console.log('[NephroScan Diagnostics]', info);
-        setStatus('DIAGNOSTICS: ' + (info.camera ? info.devices.length + ' camera(s) found' : 'NO CAMERA') + ' | ' + (info.secure ? 'SECURE' : 'INSECURE'));
-      });
-    } else {
-      console.log('[NephroScan Diagnostics]', info);
-      setStatus('DIAGNOSTICS: enumerateDevices not available');
-    }
   }
 
   /* ===================== EVENT BINDINGS ===================== */
@@ -280,13 +322,11 @@
   if (clearBtn) clearBtn.addEventListener('click', resetLog);
   window.addEventListener('beforeunload', stopCamera);
 
-  /* Expose for external callers (export button, diagnostics, etc.) */
   window.NephroScanPresence = {
     start: startCamera,
     stop: stopCamera,
     resetLog: resetLog,
     exportReport: exportDemoReport,
-    diagnostics: runDiagnostics,
     getStatus: function () { return statusEl ? statusEl.textContent : ''; },
     getSessionLog: function () { return sessionLog.slice(); }
   };

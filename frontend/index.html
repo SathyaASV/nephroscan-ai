@@ -2111,7 +2111,8 @@ body::after{opacity:.3!important;background-size:52px 52px!important}
     <!-- ===================== PATIENTS VIEW ===================== -->
     <section class="view" id="view-patients">
       <div class="card">
-        <div class="section-heading"><i class="fas fa-user-injured"></i> Patients <span style="font-size:.62rem;color:rgba(255,255,255,.3);font-weight:400;">(from this session's reports)</span></div>
+        <div class="section-heading"><i class="fas fa-user-injured"></i> Patients <span class="tag-sample">SESSION DATA</span></div>
+        <div style="margin-bottom:.8rem;"><button class="btn btn-secondary" id="demoCaseBtn" style="font-size:.72rem;"><i class="fas fa-vial"></i> SYNTHETIC DEMO CASE</button></div>
         <div id="patientsWrap"></div>
       </div>
       <div class="card" id="patientTimelineCard" style="display:none;">
@@ -2175,8 +2176,8 @@ body::after{opacity:.3!important;background-size:52px 52px!important}
     <!-- ===================== EXPO HUMAN-PRESENCE VIEW ===================== -->
     <section class="view" id="view-expo-presence">
       <div class="card expo-presence-card">
-        <div class="section-heading"><i class="fas fa-camera"></i> AI Dual-Spectrum Human-Presence &amp; Radiometric Visualization Engine</div>
-        <p class="expo-presence-lead">Real-time human-presence and thermal-visualization demonstration using a standard optical webcam. The second channel is an emulated visual proxy, not an infrared measurement or fever diagnosis.</p>
+        <div class="section-heading"><i class="fas fa-fire"></i> Software Thermal Proxy Dashboard</div>
+        <p class="expo-presence-lead">Real-time thermal-style visualization from a standard optical webcam. This is a <strong>Software Thermal Proxy — Not an Infrared Measurement</strong>. The webcam does not measure body temperature or detect fever.</p>
         <div class="expo-presence-actions">
           <button class="btn btn-primary" id="presenceStartBtn"><i class="fas fa-video"></i> Start Camera</button>
           <button class="btn btn-secondary" id="presenceStopBtn" disabled><i class="fas fa-video-slash"></i> Stop Camera</button>
@@ -2192,20 +2193,44 @@ body::after{opacity:.3!important;background-size:52px 52px!important}
             </div>
           </div>
           <div class="expo-video-panel">
-            <div class="expo-panel-title"><i class="fas fa-temperature-half"></i> Visual Thermal-Style Proxy</div>
+            <div class="expo-panel-title"><i class="fas fa-temperature-half"></i> Software Thermal Proxy</div>
             <div class="expo-video-frame">
               <canvas id="presenceThermalCanvas"></canvas>
-              <div class="expo-thermal-label">VISUAL SIMULATION</div>
+              <div class="expo-thermal-label">SOFTWARE THERMAL PROXY</div>
             </div>
           </div>
         </div>
-        <div class="expo-status-row"><span id="presenceStatus">STATUS: CAMERA NOT STARTED</span><span>HARDWARE INTERFACE: STANDARD OPTICAL DEVICE / SENSOR SIMULATION ACTIVE</span></div>
-        <div class="expo-disclaimer"><i class="fas fa-circle-info"></i> <strong>Scientific boundary:</strong> the webcam does not measure body temperature. All thermal values are <strong>Software Thermal Proxy — Not an Infrared Measurement</strong>. They are software-generated emulation labels for this competition prototype and must not be used for clinical decisions.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+          <div style="background:#0d1b2a;border:1px solid #1b3a4b;border-radius:12px;padding:.8rem;">
+            <div style="font-size:.72rem;font-weight:700;color:#4fc3f7;margin-bottom:.5rem;"><i class="fas fa-chart-line"></i> EMULATED INDEX</div>
+            <div style="display:flex;align-items:baseline;gap:.5rem;">
+              <span id="thermalIndexVal" style="font:700 1.8rem JetBrains Mono,monospace;color:#ff6f3c;">—</span>
+              <span style="font:.62rem JetBrains Mono,monospace;color:rgba(255,255,255,.4);">proxy units</span>
+            </div>
+            <div style="font-size:.62rem;color:rgba(255,255,255,.35);margin-top:.3rem;">NOT AN INFRARED MEASUREMENT</div>
+          </div>
+          <div style="background:#0d1b2a;border:1px solid #1b3a4b;border-radius:12px;padding:.8rem;">
+            <div style="font-size:.72rem;font-weight:700;color:#4fc3f7;margin-bottom:.5rem;"><i class="fas fa-chart-area"></i> Rolling Proxy Chart</div>
+            <canvas id="thermalChartCanvas" width="280" height="80" style="width:100%;height:80px;border-radius:6px;"></canvas>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+          <div style="background:#0d1b2a;border:1px solid #1b3a4b;border-radius:12px;padding:.8rem;">
+            <div style="font-size:.72rem;font-weight:700;color:#4fc3f7;margin-bottom:.5rem;"><i class="fas fa-palette"></i> Color Legend</div>
+            <div style="height:16px;border-radius:4px;background:linear-gradient(90deg,#000004,#1b0c41,#4a0c6b,#781c6d,#a52c60,#cf4446,#ed6925,#fb9b06,#f7d13d,#fcffa4);margin-bottom:.3rem;"></div>
+            <div style="display:flex;justify-content:space-between;font:.6rem JetBrains Mono,monospace;color:rgba(255,255,255,.5);"><span>COOL</span><span>WARM</span></div>
+          </div>
+          <div style="background:#0d1b2a;border:1px solid #1b3a4b;border-radius:12px;padding:.8rem;">
+            <div style="font-size:.72rem;font-weight:700;color:#4fc3f7;margin-bottom:.5rem;"><i class="fas fa-circle-question"></i> How This Works</div>
+            <div style="font-size:.65rem;color:rgba(255,255,255,.55);line-height:1.6;">RGB luminance from the webcam is normalized to 0\u20131 intensity, temporally smoothed, then mapped through an Inferno-style color map to produce the thermal proxy visualization. No infrared sensor is used.</div>
+          </div>
+        </div>
+        <div class="expo-status-row"><span id="presenceStatus">STATUS: CAMERA NOT STARTED</span><span>SOFTWARE THERMAL PROXY \u2014 NOT AN INFRARED MEASUREMENT</span></div>
+        <div class="expo-disclaimer"><i class="fas fa-circle-info"></i> <strong>Scientific boundary:</strong> the webcam does not measure body temperature. All thermal values are <strong>Software Thermal Proxy \u2014 Not an Infrared Measurement</strong>. They are software-generated emulation labels for this competition prototype and must not be used for clinical decisions.</div>
       </div>
       <div class="card expo-presence-card">
-        <div class="section-heading"><i class="fas fa-list-check"></i> Active Presence Log</div>
-        <p class="expo-presence-lead">Events stay in this browser session and use temporary demo IDs. No face recognition or patient identity tracking is performed.</p>
-        <div class="expo-table-wrap"><table class="expo-presence-table"><thead><tr><th>Time</th><th>Tracking ID</th><th>Status</th><th>Confidence</th><th>Temperature</th><th>Thermal Channel</th></tr></thead><tbody id="presenceLogBody"><tr><td colspan="6" class="expo-empty-log">No presence events yet.</td></tr></tbody></table></div>
+        <div class="section-heading"><i class="fas fa-list-check"></i> Temperature Tracking Log</div>
+        <div class="expo-table-wrap"><table class="expo-presence-table"><thead><tr><th>Time</th><th>ID</th><th>Proxy Index</th><th>Trend</th><th>Status</th></tr></thead><tbody id="presenceLogBody"><tr><td colspan="5" class="expo-empty-log">No data yet. Start the camera to begin.</td></tr></tbody></table></div>
       </div>
     </section>
 
@@ -4143,6 +4168,16 @@ body.ns-compact .ns-settings{
 let uploadedFiles = [];
 let sessionReports = [];   // {id, patientName, patientId, age, gender, doctor, hospital, scanType, indication, symptoms,
                             //  prediction, confidence, uncertain, quality, riskLevel, riskWhy, reportHTML, date, imgURL}
+try {
+  const saved = JSON.parse(sessionStorage.getItem('ns_reports') || '[]');
+  if (saved.length) {
+    sessionReports = saved.map(function(r) { r.date = new Date(r.date); return r; });
+    reportCounter = sessionReports.length + 1;
+  }
+} catch(e) { sessionReports = []; }
+function _saveReports() {
+  try { sessionStorage.setItem('ns_reports', JSON.stringify(sessionReports)); } catch(e) {}
+}
 let reportCounter = 1;
 let currentMode = 'doctor';
 let currentOpenReportId = null;
@@ -4475,7 +4510,8 @@ const predictionEndpoints = {
       scanType,
       indication,
       result.prediction,
-      result.confidence
+      result.confidence,
+      result
     );
 
   } catch(error) {
@@ -4503,9 +4539,13 @@ const predictionEndpoints = {
 }, 420*stepEls.length + 500);
 }
 
-function finalizeReport(scanType, indication, modelPrediction, modelConfidence){
+function finalizeReport(scanType, indication, modelPrediction, modelConfidence, rawResult){
   const prediction = String(modelPrediction || '').toLowerCase();
-  const confidence = Number(modelConfidence || 0);
+  const confidence = Math.max(0, Math.min(100, Number(modelConfidence || 0)));
+  const prov = (rawResult && rawResult.provenance) || {};
+  const provModel = prov.model || 'unknown';
+  const provInference = prov.inference_type || 'UNKNOWN';
+  const provField = rawResult && rawResult.positive_probability !== undefined ? 'positive_probability' : rawResult && rawResult.cardiomegaly_probability !== undefined ? 'cardiomegaly_probability' : 'confidence';
   const isChest = scanType === 'chest_xray';
   const isBrain = scanType === 'mri_brain';
   const isKidney = scanType === 'ct_kub';
@@ -4608,10 +4648,12 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence){
   const patientGuidanceBlock = `<div class="report-section"><div class="section-title"><i class="fas fa-person"></i> PATIENT GUIDANCE</div><div class="content">This is an AI-assisted educational screening or classification result, not a diagnosis. Share it with a qualified healthcare professional and follow the clinical advice you receive. ${emergency}</div></div>`;
   const uncertainBlock = uncertain ? `<div class="doctor-note"><strong><i class="fas fa-circle-question"></i> UNCERTAIN RESULT</strong><br/>Confidence is below the configured threshold (${confThreshold}%). Qualified clinical review is recommended.</div>` : '';
   const evidenceSummaryBlock = `<div class="doctor-note" style="border-left:4px solid #2b8cc4;background:linear-gradient(135deg,#eef9fb,#fff8e8);"><div class="section-title"><i class="fas fa-sparkles"></i> AI EVIDENCE SUMMARY <span style="font-size:.58rem;opacity:.7;margin-left:auto;">REPORT ENGINE 3.0</span></div><div class="content"><b>Input:</b> ${inputLabel} · <b>Output:</b> ${outputLabel} · <b>Confidence:</b> ${confidence}%<br/><b>What this means:</b> The model produced an educational prototype result for the selected modality. It does not replace clinical interpretation.</div></div>`;
+  const provenanceDebugBlock = `<div style="margin-top:.5rem;padding:.5rem .7rem;border-radius:8px;background:rgba(0,0,0,.25);font:500 .62rem/1.5 JetBrains Mono,monospace;color:rgba(255,255,255,.55);word-break:break-all;"><i class="fas fa-fingerprint" style="margin-right:.3rem;"></i> <b>Provenance:</b> model=${provModel} · class=${prediction} · confidence=${confidence}% · field=${provField} · inference=${provInference}</div>`;
   const reportHTML = `
     <div class="report-section"><div class="section-title"><i class="fas fa-id-card"></i> PATIENT</div><div class="content">${patientName} · ${age} yrs · ${gender} · ID: ${patientId}</div></div>
     <div class="report-section"><div class="section-title"><i class="fas fa-stethoscope"></i> CLINICAL INFORMATION</div><div class="content">Indication: ${indication}<br/>Symptoms: ${symptoms}<br/>Doctor: ${doctor} · ${hospital}</div></div>
     ${evidenceSummaryBlock}
+    ${provenanceDebugBlock}
     ${findingsBlock}
     ${modelAssessmentBlock}
     <div class="report-section"><div class="section-title"><i class="fas fa-clipboard-check"></i> IMPRESSION</div><div class="content">${uncertain ? 'Uncertain — see below.' : label}</div></div>
@@ -4626,6 +4668,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence){
   reportBody.innerHTML = reportHTML;
   document.getElementById('reportContainer').scrollIntoView({behavior:'smooth', block:'start'});
   sessionReports.push({id:reportId, patientName, patientId, age, gender, doctor, hospital, symptoms, scanType, indication, prediction: uncertain ? 'Uncertain' : label, confidence, uncertain, quality, riskLevel, reportHTML, date:now, dateStr:nowStr, category:uncertain ? 'uncertain' : diseaseCategory, imgURL});
+  _saveReports();
   currentOpenReportId = reportId;
   refreshDashboard();
   toast('Analysis complete — organ-specific report generated.', 'info');
@@ -4854,6 +4897,7 @@ window.__ns_viewReport = function(id){
 window.__ns_printReport = function(id){ window.__ns_viewReport(id); setTimeout(()=>printBtn.click(), 200); };
 window.__ns_deleteReport = function(id){
   sessionReports = sessionReports.filter(r=>r.id!==id);
+  _saveReports();
   renderHistory(); refreshDashboard();
   toast('Report removed from this session.','info');
 };
@@ -4862,24 +4906,79 @@ window.__ns_deleteReport = function(id){
 function renderPatients(){
   const wrap = document.getElementById('patientsWrap');
   const byPatient = {};
-  sessionReports.forEach(r=>{ (byPatient[r.patientId] = byPatient[r.patientId]||{name:r.patientName,id:r.patientId,reports:[]}).reports.push(r); });
+  sessionReports.forEach(function(r){ (byPatient[r.patientId] = byPatient[r.patientId]||{name:r.patientName,id:r.patientId,reports:[]}).reports.push(r); });
   const keys = Object.keys(byPatient);
-  if(keys.length===0){ wrap.innerHTML = `<div class="empty-state"><i class="fas fa-user-injured"></i>No patients recorded yet this session.</div>`; document.getElementById('patientTimelineCard').style.display='none'; return; }
-  wrap.innerHTML = `<table class="data-table"><thead><tr><th>Patient</th><th>ID</th><th>Reports</th><th></th></tr></thead><tbody>
-    ${keys.map(k=>`<tr><td>${byPatient[k].name}</td><td>${k}</td><td>${byPatient[k].reports.length}</td><td><button class="btn btn-secondary" style="padding:.3rem .8rem;font-size:.68rem;" onclick="window.__ns_showTimeline('${k}')"><i class="fas fa-timeline"></i> Timeline</button></td></tr>`).join('')}
-  </tbody></table>`;
+  if(keys.length===0){ wrap.innerHTML = '<div class="empty-state"><i class="fas fa-user-injured"></i>No patients recorded yet this session. Run an analysis or load a demo case.</div>'; document.getElementById('patientTimelineCard').style.display='none'; return; }
+  wrap.innerHTML = '<table class="data-table"><thead><tr><th>Patient</th><th>ID</th><th>Reports</th><th></th></tr></thead><tbody>' +
+    keys.map(function(k){
+      var p = byPatient[k];
+      var lastReport = p.reports[p.reports.length - 1];
+      var modality = lastReport ? lastReport.scanType.replace('_',' ') : '\u2014';
+      return '<tr><td>' + (p.name || '\u2014') + '</td><td>' + (p.id || '\u2014') + '</td><td>' + p.reports.length + '</td><td><button class="btn btn-secondary" style="padding:.3rem .8rem;font-size:.68rem;" onclick="window.__ns_showTimeline(\'' + k + '\')"><i class="fas fa-timeline"></i> Timeline</button></td></tr>';
+    }).join('') +
+  '</tbody></table>';
 }
 window.__ns_showTimeline = function(patientId){
-  const reports = sessionReports.filter(r=>r.patientId===patientId).reverse();
-  const card = document.getElementById('patientTimelineCard');
-  card.style.display='block';
-  document.getElementById('patientTimelineWrap').innerHTML = reports.map((r,i)=>`
-    <div style="padding:.9rem 0;${i<reports.length-1?'border-bottom:1px solid rgba(255,255,255,.06);':''}">
-      <div style="font-size:.85rem;font-weight:600;">${r.dateStr}</div>
-      <div style="font-size:.78rem;color:rgba(255,255,255,.5);">${r.scanType.replace('_',' ')} · Prediction: ${r.prediction} · Confidence: ${r.confidence}%</div>
-    </div>`).join('');
+  var reports = sessionReports.filter(function(r){ return r.patientId === patientId; }).reverse();
+  var card = document.getElementById('patientTimelineCard');
+  card.style.display = 'block';
+  var html = '<div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.6rem;">SESSION DATA \u2014 not persisted across page reloads</div>';
+  html += reports.map(function(r, i){
+    var border = i < reports.length - 1 ? 'border-bottom:1px solid rgba(255,255,255,.06);' : '';
+    var modality = r.scanType ? r.scanType.replace('_',' ') : '\u2014';
+    var pred = r.prediction || '\u2014';
+    var conf = r.confidence !== undefined ? r.confidence + '%' : '\u2014';
+    var prov = r.provenance || '\u2014';
+    var reviewStatus = r.uncertain ? 'REQUIRES REVIEW' : 'COMPLETED';
+    var reviewColor = r.uncertain ? 'var(--warning)' : 'var(--success)';
+    return '<div style="padding:.9rem 0;' + border + '">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+        '<div style="font-size:.85rem;font-weight:600;">' + (r.dateStr || '\u2014') + '</div>' +
+        '<span style="font-size:.62rem;padding:.2rem .5rem;border-radius:4px;background:' + reviewColor + '22;color:' + reviewColor + ';font-weight:600;">' + reviewStatus + '</span>' +
+      '</div>' +
+      '<div style="font-size:.78rem;color:rgba(255,255,255,.7);margin-top:.3rem;">' +
+        '<b>Organ:</b> ' + modality + ' · <b>Prediction:</b> ' + pred + ' · <b>Confidence:</b> ' + conf +
+      '</div>' +
+      '<div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:.2rem;">' +
+        'Patient: ' + (r.patientName || '\u2014') + ' (' + (r.patientId || '\u2014') + ') · Doctor: ' + (r.doctor || '\u2014') +
+      '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('patientTimelineWrap').innerHTML = html;
   card.scrollIntoView({behavior:'smooth'});
 };
+
+/* ===================== SYNTHETIC DEMO CASE ===================== */
+document.getElementById('demoCaseBtn').addEventListener('click', function(){
+  var demoReport = {
+    id: 'NSAI-DEMO-000001',
+    patientName: 'Demo Patient',
+    patientId: 'PT-9999',
+    age: '45',
+    gender: 'Male',
+    doctor: 'Dr. Smith',
+    hospital: 'Demo Hospital',
+    symptoms: 'Routine screening',
+    scanType: 'chest_xray',
+    indication: 'Annual health checkup',
+    prediction: 'pneumonia',
+    confidence: 92.5,
+    uncertain: false,
+    quality: 88,
+    riskLevel: 'high',
+    reportHTML: '<div class="report-section"><div class="section-title"><i class="fas fa-lungs"></i> CHEST X-RAY FINDINGS</div><div class="content">[DEMO] The model detected a pattern associated with pneumonia in this image.<br/><b>Scope:</b> This is a synthetic demo result for testing the patient timeline.</div></div>',
+    date: new Date(),
+    dateStr: new Date().toLocaleString('en-US', {dateStyle:'long', timeStyle:'short'}),
+    category: 'abnormal',
+    imgURL: null,
+    provenance: 'chest_pneumonia_resnet18.pth / REAL_MODEL_INFERENCE'
+  };
+  sessionReports.push(demoReport);
+  _saveReports();
+  renderPatients();
+  refreshDashboard();
+  toast('Synthetic demo case loaded.','info');
+});
 
 /* ===================== COMPARE ===================== */
 function renderCompareOptions(){
