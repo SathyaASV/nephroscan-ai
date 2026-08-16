@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Environment
+.env
+
+# Models (large files, track with DVC or similar)
+models/*.pth
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Diagnostics (generated images)
+diagnostics/
+
+# Data files
+*.npz
+*.zip
+heart_data/
+brain_data/
+chest_data/
+chest_data_224/
+abdomen_data/
+abdomen_samples_clear/
+chest_samples/
+chest_samples_512/
+chest_samples_clear/
+my dataset final 512x512(implemented)/
+
+# Backups
+*.bak
+*.pre-upgrade
+CLAUDE WORK/
+claude_share/
+claude_share.zip
+expo_backup/
+expo_four_model_backup/
+frontend_share/
+frontend_code_only.zip
+ai/venvcurl/
+ai/__pycache__/
+__pycache__/
+
+# Cloudflare tunnel binary
+cloudflared/

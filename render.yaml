@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: nephroscan-ai
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --preload app:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: MODEL_DIR
+        value: models
+      - key: CORS_ORIGINS
+        sync: false
+      - key: API_BASE_URL
+        value: /api
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    healthCheckPath: /api/health
+    autoDeploy: true
