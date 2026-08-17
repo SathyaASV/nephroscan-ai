@@ -58,6 +58,10 @@
   var sessionLog      = [];
   var chartHistory    = [];
   var CHART_MAX       = 60;
+  var fpsEl           = document.getElementById('thermalFpsVal');
+  var latencyEl       = document.getElementById('thermalLatencyVal');
+  var frameCount      = 0;
+  var lastFpsTime     = performance.now();
 
   var LOG_THROTTLE_MS = 2000;
   var SMOOTH_ALPHA    = 0.15;
@@ -172,6 +176,7 @@
 
   function detectionLoop() {
     if (!cameraStream) return;
+    var loopStart = performance.now();
     if (video.readyState >= 2) {
       if (!rgbCtx) {
         rgbCanvas.width = video.videoWidth;
@@ -226,6 +231,18 @@
         }
         setStatus('THERMAL PROXY ACTIVE \u2014 EMULATED INDEX ' + displayIndex);
       }
+
+      /* FPS and latency tracking */
+      frameCount++;
+      var now2 = performance.now();
+      if (now2 - lastFpsTime >= 1000) {
+        var fps = Math.round(frameCount * 1000 / (now2 - lastFpsTime));
+        if (fpsEl) fpsEl.textContent = fps;
+        frameCount = 0;
+        lastFpsTime = now2;
+      }
+      var latency = Math.round(performance.now() - loopStart);
+      if (latencyEl) latencyEl.textContent = latency;
     }
     animFrame = requestAnimationFrame(detectionLoop);
   }
