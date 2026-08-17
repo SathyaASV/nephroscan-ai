@@ -52,9 +52,18 @@ CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
 
 def _load_models(application: Flask) -> None:
     """Load all four ResNet-18 checkpoints at startup."""
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    import logging
+    log = logging.getLogger("nephroscan.models")
+
+    device = torch.device("cpu")
     application.config["DEVICE"] = device
     application.config["STARTUP_TIME"] = datetime.now(timezone.utc).isoformat()
+
+    log.info("=" * 60)
+    log.info("NephroScan AI v%s — Loading models", APP_VERSION)
+    log.info("Device: %s", device)
+    log.info("MODEL_DIR resolved to: %s (exists=%s)", MODEL_DIR, MODEL_DIR.exists())
+    log.info("=" * 60)
 
     model_specs = {
         "kidney": {
@@ -94,15 +103,21 @@ def _load_models(application: Flask) -> None:
 
     for organ, spec in model_specs.items():
         model_path = MODEL_DIR / spec["path"]
+        log.info("[%s] Loading %s …", organ, model_path)
         try:
-            checkpoint = torch.load(model_path, map_location=device, weights_only=False)
+            if not model_path.exists():
+                raise FileNotFoundError(
+                    f"Checkpoint not found: {model_path} "
+                    f"(dir contents: {[f.name for f in MODEL_DIR.iterdir()] if MODEL_DIR.exists() else 'DIR_MISSING'})"
+                )
+            checkpoint = torch.load(model_path, map_location="cpu", weights_only=False)
             classes = checkpoint["classes"]
             image_size = checkpoint.get("image_size", 128)
 
             model = models.resnet18(weights=None)
             model.fc = nn.Linear(model.fc.in_features, len(classes))
             model.load_state_dict(checkpoint["model_state_dict"])
-            model.to(device)
+            model.to("cpu")
             model.eval()
 
             transform_list = []
@@ -125,7 +140,9 @@ def _load_models(application: Flask) -> None:
                 "calibrated_label": spec["calibrated_label"],
                 "loaded": True,
             }
+            log.info("[%s] OK — classes=%s, image_size=%d", organ, classes, image_size)
         except Exception as e:
+            log.error("[%s] FAILED to load %s: %s", organ, spec["path"], e, exc_info=True)
             models_loaded[organ] = {
                 "model": None,
                 "classes": [],
@@ -138,6 +155,11 @@ def _load_models(application: Flask) -> None:
                 "loaded": False,
                 "error": str(e),
             }
+
+    loaded_count = sum(1 for m in models_loaded.values() if m["loaded"])
+    log.info("=" * 60)
+    log.info("Models loaded: %d / %d", loaded_count, len(models_loaded))
+    log.info("=" * 60)
 
     application.config["MODELS"] = models_loaded
     application.config["DEVICE"] = device
@@ -461,6 +483,12 @@ def _register_routes(application: Flask) -> None:
 # ---------------------------------------------------------------------------
 
 def create_app() -> Flask:
+    import logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(name)s] %(levelname)s %(message)s",
+    )
+
     application = Flask(__name__, static_folder=None)
 
     # Narrow CORS from environment in production

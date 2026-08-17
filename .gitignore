@@ -16,7 +16,8 @@ env/
 .env
 
 # Models (large files, track with DVC or similar)
-models/*.pth
+models/*_v2.pth
+models/*_baseline_65pct.pth
 
 # IDE
 .vscode/
