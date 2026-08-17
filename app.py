@@ -40,8 +40,9 @@ MODEL_DIR = ROOT / os.getenv("MODEL_DIR", "models")
 
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", "20971520"))
 INFERENCE_TIMEOUT = int(os.getenv("INFERENCE_TIMEOUT", "30"))
+MAX_IMAGE_DIM = int(os.getenv("MAX_IMAGE_DIM", "1024"))
 
-APP_VERSION = "2.0.0"
+APP_VERSION = "2.1.0"
 
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
 
@@ -177,6 +178,29 @@ def _load_models(application: Flask) -> None:
     application.config["EXPLAIN_MAP"] = explain_map
 
 
+def _warmup_models(application: Flask) -> None:
+    """Run a dummy inference on each loaded model to warm up CPU kernels."""
+    import logging
+    log = logging.getLogger("nephroscan.warmup")
+    device = application.config["DEVICE"]
+    models = application.config.get("MODELS", {})
+
+    for organ, spec in models.items():
+        if not spec.get("loaded") or spec["model"] is None:
+            continue
+        model = spec["model"]
+        image_size = spec["image_size"]
+        t0 = time.perf_counter()
+        try:
+            dummy = torch.randn(1, 3, image_size, image_size).to(device)
+            with torch.inference_mode():
+                _ = model(dummy)
+            elapsed_ms = round((time.perf_counter() - t0) * 1000, 1)
+            log.info("[%s] warm-up OK in %.1fms", organ, elapsed_ms)
+        except Exception as e:
+            log.warning("[%s] warm-up failed: %s", organ, e)
+
+
 # ---------------------------------------------------------------------------
 # Provenance helper
 # ---------------------------------------------------------------------------
@@ -203,6 +227,11 @@ def _predict_image(
     organ: str,
     file_storage,
 ) -> dict:
+    import logging
+    log = logging.getLogger("nephroscan.inference")
+    timings = {}
+    t_total_start = time.perf_counter()
+
     device = application.config["DEVICE"]
     models = application.config["MODELS"]
     spec = models[organ]
@@ -220,13 +249,29 @@ def _predict_image(
     threshold = spec["threshold"]
     calibrated_label = spec["calibrated_label"]
 
-    image = Image.open(io.BytesIO(file_storage.read())).convert("RGB")
-    tensor = transform(image).unsqueeze(0).to(device)
+    # Stage 1: Read & open image
+    t0 = time.perf_counter()
+    raw_bytes = file_storage.read()
+    image = Image.open(io.BytesIO(raw_bytes)).convert("RGB")
+    timings["read_ms"] = round((time.perf_counter() - t0) * 1000, 1)
 
-    with torch.no_grad():
+    # Stage 2: Preprocess (resize, normalize, to tensor)
+    t0 = time.perf_counter()
+    image_size = spec["image_size"]
+    if max(image.width, image.height) > MAX_IMAGE_DIM:
+        image.thumbnail((MAX_IMAGE_DIM, MAX_IMAGE_DIM), Image.LANCZOS)
+    tensor = transform(image).unsqueeze(0).to(device)
+    timings["preprocess_ms"] = round((time.perf_counter() - t0) * 1000, 1)
+
+    # Stage 3: Model inference
+    t0 = time.perf_counter()
+    with torch.inference_mode():
         output = model(tensor)
         probabilities = torch.softmax(output, dim=1)[0]
+    timings["inference_ms"] = round((time.perf_counter() - t0) * 1000, 1)
 
+    # Stage 4: Postprocess
+    t0 = time.perf_counter()
     original_index = int(torch.argmax(probabilities).item())
     original_prediction = classes[original_index]
     original_confidence = float(probabilities[original_index].item() * 100)
@@ -240,6 +285,7 @@ def _predict_image(
 
     predicted_class = classes[prediction_index]
     confidence_percent = float(probabilities[prediction_index].item() * 100)
+    timings["postprocess_ms"] = round((time.perf_counter() - t0) * 1000, 1)
 
     result = {
         "prediction": predicted_class,
@@ -261,6 +307,18 @@ def _predict_image(
         if calibrated_label == "cardiomegaly":
             result["cardiomegaly_probability"] = round(positive_prob * 100, 2)
 
+    # Stage 5: Response serialization (jsonify happens outside, just log total)
+    timings["total_ms"] = round((time.perf_counter() - t_total_start) * 1000, 1)
+
+    log.info(
+        "[%s] predict timings: read=%.1fms preprocess=%.1fms inference=%.1fms postprocess=%.1fms total=%.1fms",
+        organ,
+        timings["read_ms"], timings["preprocess_ms"],
+        timings["inference_ms"], timings["postprocess_ms"],
+        timings["total_ms"],
+    )
+
+    result["timings"] = timings
     return result
 
 
@@ -495,6 +553,7 @@ def create_app() -> Flask:
     CORS(application, origins=CORS_ORIGINS.split(","), supports_credentials=True)
 
     _load_models(application)
+    _warmup_models(application)
 
     _register_routes(application)
 

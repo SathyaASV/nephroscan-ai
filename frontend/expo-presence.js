@@ -28,6 +28,8 @@
     return;
   }
 
+  var APP_VERSION = (typeof window.APP_VERSION === 'string') ? window.APP_VERSION : '2.1.0';
+
   /* ===================== INFERNO COLORMAP (256 entries) ===================== */
   var INFERNO_STOPS = [
     [0, 0, 4], [40, 11, 84], [101, 21, 110], [159, 42, 99],
@@ -263,7 +265,7 @@
       '<div><b style="color:#1a2d3d;">Status</b><br><span style="color:#1a2d3d;">' + data.statusText + '</span></div>' +
       '</div>' +
       '<div style="margin-top:.5rem;font-size:.6rem;color:#9aa7b2;border-top:1px solid #edf2f5;padding-top:.4rem;">' +
-      'Disclosure: Ordinary webcams do not measure absolute temperature or infrared radiation; this is a software visualization prototype.' +
+      'Disclosure: Calculated from ordinary webcam brightness; not an infrared or medical temperature reading.' +
       '</div>';
   }
 
@@ -448,7 +450,7 @@
     });
     lines.push('');
     lines.push('Labels: SOFTWARE THERMAL PROXY, RELATIVE INDEX, NOT AN INFRARED MEASUREMENT');
-    lines.push('Disclosure: Ordinary webcams do not measure absolute temperature or infrared radiation; this is a software visualization prototype.');
+    lines.push('Disclosure: Calculated from ordinary webcam brightness; not an infrared or medical temperature reading.');
     lines.push('Disclaimer: Educational prototype only. Not a medical device.');
     var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
     var url = URL.createObjectURL(blob);
