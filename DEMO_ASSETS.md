@@ -2,37 +2,41 @@
 
 ## Overview
 
-NephroScan AI is a **research prototype and educational demo**. It does not store, process, or transmit real patient data. All demo images are either procedurally generated synthetic placeholders or sourced from public datasets under permissive licenses.
+NephroScan AI is a **research prototype and educational demo**. It does not store, process, or transmit real patient data. Demo images are sourced from public datasets under permissive licenses or are procedurally generated synthetic placeholders.
 
 ---
 
-## Demo Image Inventory
+## Demo Case Images (real model inference)
+
+These images are loaded by the frontend "Load Demo Case" button and sent to the backend for real inference.
 
 | File | Scan Type | Source | License |
 |------|-----------|--------|---------|
-| `kidney_normal.png` | Kidney CT | Procedurally generated placeholder | Synthetic — no license required |
-| `chest_normal.png` | Chest X-ray | Procedurally generated placeholder | Synthetic — no license required |
+| `chest_normal_real.png` | Chest X-ray | [Chest X-ray dataset (Kermany et al., 2018)](https://data.mendeley.com/datasets/rscbj4/3) | CC BY 4.0 |
+| `brain_glioma_real.jpg` | Brain MRI | [Brain MRI dataset (Kermany et al., 2018)](https://data.mendeley.com/datasets/rscbj4/3) | CC BY 4.0 |
+| `heart_cardio_real.png` | Chest X-ray (cardiomegaly) | [Chest X-ray dataset (Kermany et al., 2018)](https://data.mendeley.com/datasets/rscbj4/3) | CC BY 4.0 |
+
+No kidney demo case is provided — no verified real kidney image was available.
+
+---
+
+## Synthetic Demo Images (precomputed results, no model call)
+
+These images are used by the "Synthetic Demo" flow, which displays precomputed results without calling the model.
+
+| File | Scan Type | Source | License |
+|------|-----------|--------|---------|
+| `kidney_stone.png` | Kidney CT | Procedurally generated placeholder | Synthetic — no license required |
+| `chest_pneumonia.png` | Chest X-ray | Procedurally generated placeholder | Synthetic — no license required |
 | `brain_tumor.png` | Brain MRI | Procedurally generated placeholder | Synthetic — no license required |
 | `heart_cardio.png` | Heart X-ray | Procedurally generated placeholder | Synthetic — no license required |
 
 ---
 
-## Real Dataset Samples (for backend inference testing only)
-
-These images exist in the repository for testing the Python inference pipeline. They are **not** served to the frontend demo:
-
-| Directory | Source | License |
-|-----------|--------|---------|
-| `chest_samples/` | [Chest X-ray dataset (Kermany et al., 2018)](https://data.mendeley.com/datasets/rscbj4/3) | CC BY 4.0 |
-| `abdomen_samples_clear/` | [Abdomen CT samples](https://github.com/ Maheshkkorgi/CT-Scan-Images) | Public domain / CC0 |
-| `my dataset final 512x512(implemented)/` | Custom synthetic dataset | Procedurally generated |
-
----
-
 ## Provenance Notes
 
-- All demo images in `frontend/demo_assets/` are **synthetic placeholders** generated for layout and workflow demonstration. They do not represent real patient data.
-- The backend inference pipeline (`ai/diagnose_gradcam.py`) is tested against real public dataset samples, which are excluded from deployment via `.gitignore`.
+- Real demo images in `frontend/demo_assets/` are sourced from publicly available medical imaging datasets under CC BY 4.0 licenses.
+- Synthetic placeholder images are procedurally generated for layout demonstration only.
 - No Protected Health Information (PHI) or Personally Identifiable Information (PII) is included in any asset.
 
 ---

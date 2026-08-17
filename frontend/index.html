@@ -5166,10 +5166,9 @@ function resetPlaceholder(){
 
 /* ===================== DEMO CASE ===================== */
 var DEMO_CASES = [
-  { key:'kidney_normal', label:'Normal Kidney', img:'demo_assets/kidney_normal.png', scanType:'kidney', indication:'Routine renal screening — no symptoms.', patient:'Demo Patient (Kidney)', age:'40', gender:'Male', doctor:'Dr. M. Rao', symptoms:'No symptoms — routine check', name:'kidney_normal.png' },
-  { key:'chest_normal', label:'Normal Chest / Lungs', img:'demo_assets/chest_normal.png', scanType:'chest_xray', indication:'Annual health checkup — rule out pneumonia.', patient:'Demo Patient (Chest)', age:'45', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Mild cough for 3 days', name:'chest_normal.png' },
-  { key:'brain_glioma', label:'Abnormal Brain (Glioma)', img:'demo_assets/brain_tumor.png', scanType:'brain_mri', indication:'New-onset seizures — evaluate for intracranial lesion.', patient:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures, progressive headache', name:'brain_tumor.png' },
-  { key:'heart_cardio', label:'Abnormal Heart (Cardiomegaly)', img:'demo_assets/heart_cardio.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'heart_cardio.png' }
+  { key:'chest_normal', label:'Normal Chest / Lungs', img:'demo_assets/chest_normal_real.png', scanType:'chest_xray', indication:'Annual health checkup — rule out pneumonia.', patient:'Demo Patient (Chest)', age:'45', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Mild cough for 3 days', name:'chest_normal_real.png' },
+  { key:'brain_glioma', label:'Abnormal Brain (Glioma)', img:'demo_assets/brain_glioma_real.jpg', scanType:'brain_mri', indication:'New-onset seizures — evaluate for intracranial lesion.', patient:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures, progressive headache', name:'brain_glioma_real.jpg' },
+  { key:'heart_cardio', label:'Abnormal Heart (Cardiomegaly)', img:'demo_assets/heart_cardio_real.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'heart_cardio_real.png' }
 ];
 function _loadDemoByKey(key, autoRun){
   var pick = DEMO_CASES.find(function(c){ return c.key === key; });
@@ -5206,7 +5205,7 @@ function loadDemoCase(){
   dd.id = 'demoCaseDropdown';
   dd.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:#fff;border:1px solid #dce6ec;border-radius:16px;box-shadow:0 24px 60px rgba(31,79,102,.18);padding:1.2rem 1.4rem;min-width:300px;';
   dd.innerHTML = '<div style="font-weight:700;font-size:.92rem;color:#1d3c55;margin-bottom:.2rem;">Select a Demo Case</div>' +
-    '<div style="font-size:.72rem;color:#6b7f8d;margin-bottom:.9rem;">Loads a synthetic image and runs real model inference.</div>' +
+    '<div style="font-size:.72rem;color:#6b7f8d;margin-bottom:.9rem;">Loads a verified medical image and runs real model inference.</div>' +
     DEMO_CASES.map(function(c){
       return '<div class="demo-opt" data-key="' + c.key + '" style="display:flex;align-items:center;gap:10px;padding:.6rem .8rem;border-radius:10px;cursor:pointer;transition:background .15s;border:1px solid #edf2f5;margin-bottom:.4rem;">' +
         '<div style="width:36px;height:36px;border-radius:8px;background:#f0f7fb;display:flex;align-items:center;justify-content:center;color:#168e99;font-size:.8rem;"><i class="fas fa-' + (c.scanType==='kidney'?'kidneys':c.scanType==='chest_xray'?'lungs':c.scanType==='brain_mri'?'brain':'heart') + '"></i></div>' +
