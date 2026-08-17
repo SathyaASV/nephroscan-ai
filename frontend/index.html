@@ -2278,8 +2278,9 @@ table.data-table tr:hover td {
     </nav>
 
     <div class="sidebar-footer">
-      <div class="mode-status"><span class="dot"></span> DEMO MODE — model not connected</div>
+      <div class="mode-status"><span class="dot"></span> SOFTWARE THERMAL PROXY — not an infrared measurement</div>
       <div class="sidebar-disclaimer">Educational prototype. Not a diagnostic device. Do not upload real patient-identifiable data.</div>
+      <div style="font-size:.55rem;color:#b0bec5;margin-top:.4rem;">v2.1.0-build.20260817</div>
     </div>
   </aside>
 
@@ -2290,7 +2291,7 @@ table.data-table tr:hover td {
       <button class="hamburger" id="hamburgerBtn" aria-label="Open menu"><i class="fas fa-bars"></i></button>
       <div class="view-title" id="viewTitle"><i class="fas fa-gauge-high"></i> Dashboard</div>
       <div class="topbar-right">
-        <span class="demo-mode-badge"><i class="fas fa-flask"></i> DEMO / SIMULATION MODE</span>
+        <span class="demo-mode-badge"><i class="fas fa-camera"></i> LIVE CAMERA ACTIVE</span>
         <div class="pill-toggle" id="modeToggle">
           <button class="active" data-mode="doctor">Doctor Mode</button>
           <button data-mode="patient">Patient Mode</button>
@@ -5167,7 +5168,7 @@ function resetPlaceholder(){
 /* ===================== DEMO CASE ===================== */
 var DEMO_CASES = [
   { key:'chest_normal', label:'Normal Chest / Lungs', img:'demo_assets/chest_normal_real.png', scanType:'chest_xray', indication:'Annual health checkup — rule out pneumonia.', patient:'Demo Patient (Chest)', age:'45', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Mild cough for 3 days', name:'chest_normal_real.png' },
-  { key:'brain_glioma', label:'Abnormal Brain (Glioma)', img:'demo_assets/brain_glioma_real.jpg', scanType:'brain_mri', indication:'New-onset seizures — evaluate for intracranial lesion.', patient:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures, progressive headache', name:'brain_glioma_real.jpg' },
+  { key:'brain_glioma', label:'Abnormal Brain (Glioma)', img:'demo_assets/brain_glioma_real.jpg', scanType:'mri_brain', indication:'New-onset seizures — evaluate for intracranial lesion.', patient:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures, progressive headache', name:'brain_glioma_real.jpg' },
   { key:'heart_cardio', label:'Abnormal Heart (Cardiomegaly)', img:'demo_assets/heart_cardio_real.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'heart_cardio_real.png' }
 ];
 function _loadDemoByKey(key, autoRun){
@@ -5345,16 +5346,32 @@ const predictionEndpoints = {
     const predictionUrl = predictionEndpoints[scanType];
     if(!predictionUrl){ throw new Error('This scan type is not available yet.'); }
 
-    const response = await fetch(
-      predictionUrl,
-      {
-        method: 'POST',
-        body: formData
+    const controller = new AbortController();
+    const timeoutId = setTimeout(function(){ controller.abort(); }, 60000);
+
+    let response;
+    try {
+      response = await fetch(
+        predictionUrl,
+        {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal
+        }
+      );
+    } catch(fetchErr) {
+      clearTimeout(timeoutId);
+      if(fetchErr.name === 'AbortError'){
+        throw new Error('Request timed out after 60 seconds. The server may be overloaded.');
       }
-    );
+      throw new Error('Network error: ' + fetchErr.message + '. Check your connection and try again.');
+    }
+    clearTimeout(timeoutId);
 
     if(!response.ok){
-      throw new Error('AI server returned an error.');
+      var errBody = '';
+      try { errBody = await response.text(); } catch(e){}
+      throw new Error('Server error ' + response.status + ': ' + (errBody || response.statusText));
     }
 
     const result = await response.json();
@@ -5371,17 +5388,16 @@ const predictionEndpoints = {
 
   } catch(error) {
 
-    console.error('AI CONNECTION ERROR:', error);
+    console.error('ANALYSIS ERROR:', error);
 
     reportBody.innerHTML = `
       <div class="doctor-note">
-        <strong>AI MODEL CONNECTION ERROR</strong><br>
-        ${error.message}<br><br>
-        Make sure <b>ai_server.py</b> is running.
+        <strong>Analysis Error</strong><br>
+        ${error.message}
       </div>
     `;
 
-    toast('Could not connect to AI model.','error');
+    toast('Analysis failed: ' + error.message, 'error');
 
   } finally {
 
@@ -6017,6 +6033,6 @@ refreshDashboard();
 setMode('doctor');
 })();
 </script>
-<script src="expo-presence.js"></script>
+<script src="expo-presence.js?v=20260817-fix3"></script>
 </body>
 </html>
