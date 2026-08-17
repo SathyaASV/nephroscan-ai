@@ -21,7 +21,14 @@
   var chartCanvas = document.getElementById('thermalChartCanvas');
   var fpsEl       = document.getElementById('thermalFpsVal');
   var latencyEl   = document.getElementById('thermalLatencyVal');
-  var reportEl    = document.getElementById('presenceReport');
+
+  /* Live report spans — must match index.html IDs exactly */
+  var reportProxyEl = document.getElementById('reportProxyIndex');
+  var reportLumaEl  = document.getElementById('reportLuma');
+  var reportStatEl  = document.getElementById('reportStatus');
+  var reportMotEl   = document.getElementById('reportMotion');
+  var reportSampEl  = document.getElementById('reportSamples');
+  var reportUpEl    = document.getElementById('reportUptime');
 
   if (!startBtn || !stopBtn || !video || !rgbCanvas || !thermCanvas) {
     console.warn('Expo presence: required DOM elements not found.');
@@ -67,16 +74,15 @@
   var LOG_THROTTLE_MS = 2000;
 
   /* ===================== MOTION TRACKING STATE ===================== */
-  var prevGray       = null;
-  var prevGrayData   = null;
+  var prevGrayData = null;
   var lastX = 200, lastY = 110, lastW = 240, lastH = 260;
   var startTime      = 0;
   var bootComplete   = false;
 
   /* ===================== 15-SAMPLE HISTORY ===================== */
-  var readingHistory  = [];
-  var HIST_MAX        = 15;
-  var THRESHOLD       = 35.0;
+  var readingHistory = [];
+  var HIST_MAX       = 15;
+  var THRESHOLD      = 35.0;
 
   /* ===================== GRAYSCALE HELPERS ===================== */
   function toGrayscale(rgbData, w, h) {
@@ -163,7 +169,7 @@
       }
     }
     if (count < 2000) return null;
-    return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1, area: count };
+    return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
   }
 
   /* ===================== INFERNO COLORMAP ON CANVAS ===================== */
@@ -182,21 +188,15 @@
     ctx.putImageData(imageData, 0, 0);
   }
 
-  /* ===================== CROSSHAIR + BOX DRAWING ===================== */
+  /* ===================== CANVAS DRAWING ===================== */
   function drawTrackingBox(ctx, x, y, w, h, isAlarm) {
     ctx.save();
     ctx.strokeStyle = isAlarm ? 'rgba(255,0,0,0.9)' : 'rgba(0,255,255,0.85)';
     ctx.lineWidth = isAlarm ? 3 : 2;
     ctx.strokeRect(x, y, w, h);
-    if (isAlarm) {
-      ctx.shadowColor = 'rgba(255,0,0,0.4)';
-      ctx.shadowBlur = 6;
-      ctx.strokeRect(x, y, w, h);
-    }
-    var cX = (x + w / 2) | 0;
-    var cY = (y + h / 2) | 0;
-    ctx.strokeStyle = 'rgba(255,0,0,0.8)';
-    ctx.lineWidth = 2;
+    if (isAlarm) { ctx.shadowColor = 'rgba(255,0,0,0.4)'; ctx.shadowBlur = 6; ctx.strokeRect(x, y, w, h); }
+    var cX = (x + w / 2) | 0, cY = (y + h / 2) | 0;
+    ctx.strokeStyle = 'rgba(255,0,0,0.8)'; ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(cX - 15, cY); ctx.lineTo(cX + 15, cY);
     ctx.moveTo(cX, cY - 15); ctx.lineTo(cX, cY + 15);
@@ -204,7 +204,6 @@
     ctx.restore();
   }
 
-  /* ===================== HUD SIDEBAR PANEL ===================== */
   function drawHUD(ctx, w, h, statusText, statusColor, elapsed, avgBrightness) {
     ctx.save();
     ctx.fillStyle = 'rgba(25,25,25,0.85)';
@@ -222,7 +221,6 @@
     ctx.restore();
   }
 
-  /* ===================== BOTTOM BAR ===================== */
   function drawBottomBar(ctx, w, h) {
     ctx.save();
     ctx.fillStyle = 'rgba(15,15,15,0.9)';
@@ -233,7 +231,6 @@
     ctx.restore();
   }
 
-  /* ===================== BOOT BAR ===================== */
   function drawBootBar(ctx, w, h, elapsed) {
     ctx.save();
     var barW = ((elapsed / 3.0) * (w - 200)) | 0;
@@ -245,7 +242,6 @@
     ctx.restore();
   }
 
-  /* ===================== ROLLING CHART ===================== */
   function drawChart() {
     if (!chartCanvas) return;
     var ctx = chartCanvas.getContext('2d');
@@ -277,7 +273,6 @@
   }
 
   function resetState() {
-    prevGray = null;
     prevGrayData = null;
     lastX = 200; lastY = 110; lastW = 240; lastH = 260;
     bootComplete = false;
@@ -289,44 +284,20 @@
     frameCount = 0;
     lastFpsTime = performance.now();
     if (indexValEl) indexValEl.textContent = '\u2014';
-    updateReport(null);
+    updateReportFields('\u2014', '\u2014', '\u2014', '\u2014', '\u2014 / 15', '\u2014');
     if (logBody) {
       logBody.innerHTML = '<tr><td colspan="5" class="expo-empty-log">No data yet. Start the camera to begin.</td></tr>';
     }
   }
 
-  /* ===================== LIVE REPORT ===================== */
-  function updateReport(data) {
-    if (!reportEl) return;
-    if (!data) {
-      reportEl.innerHTML = '<div style="font-size:.72rem;color:#9aa7b2;">Camera inactive. Press Start Camera to begin.</div>';
-      return;
-    }
-    var elapsed = startTime ? ((performance.now() - startTime) / 1000).toFixed(1) : '0.0';
-    var trend = chartHistory.length >= 2
-      ? (chartHistory[chartHistory.length - 1] > chartHistory[chartHistory.length - 2] ? 'Rising' :
-         chartHistory[chartHistory.length - 1] < chartHistory[chartHistory.length - 2] ? 'Falling' : 'Stable')
-      : '\u2014';
-    reportEl.innerHTML =
-      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.5rem;font-size:.7rem;">' +
-      '<div><b style="color:#1a2d3d;">Camera Status</b><br><span style="color:#168a62;">' + (cameraStream ? 'ACTIVE' : 'INACTIVE') + '</span></div>' +
-      '<div><b style="color:#1a2d3d;">Presence State</b><br><span style="color:#1a2d3d;">' + (data.motionDetected ? 'Motion Detected' : 'No Motion') + '</span></div>' +
-      '<div><b style="color:#1a2d3d;">ROI Brightness</b><br><span style="color:#1a2d3d;">' + data.avgBrightness.toFixed(1) + ' lx</span></div>' +
-      '<div><b style="color:#1a2d3d;">Emulated Index</b><br><span style="color:#1a2d3d;">' + data.liveReading.toFixed(1) + '</span></div>' +
-      '<div><b style="color:#1a2d3d;">Smoothed Reading</b><br><span style="color:#1a2d3d;">' + data.smoothed.toFixed(1) + '</span></div>' +
-      '<div><b style="color:#1a2d3d;">Trend Direction</b><br><span style="color:#1a2d3d;">' + trend + '</span></div>' +
-      '<div><b style="color:#1a2d3d;">Sample Count</b><br><span style="color:#1a2d3d;">' + data.sampleCount + ' / ' + HIST_MAX + '</span></div>' +
-      '<div><b style="color:#1a2d3d;">Threshold</b><br><span style="color:#1a2d3d;">' + THRESHOLD + '</span></div>' +
-      '<div><b style="color:#1a2d3d;">Tracking Box</b><br><span style="color:#1a2d3d;">' + data.boxW + '\u00d7' + data.boxH + ' px</span></div>' +
-      '<div><b style="color:#1a2d3d;">Uptime</b><br><span style="color:#1a2d3d;">' + elapsed + 's</span></div>' +
-      '<div><b style="color:#1a2d3d;">FPS</b><br><span style="color:#1a2d3d;">' + (fpsEl ? fpsEl.textContent : '\u2014') + '</span></div>' +
-      '<div><b style="color:#1a2d3d;">Frame Latency</b><br><span style="color:#1a2d3d;">' + (latencyEl ? latencyEl.textContent : '\u2014') + ' ms</span></div>' +
-      '<div><b style="color:#1a2d3d;">Status</b><br><span style="color:#1a2d3d;">' + data.statusText + '</span></div>' +
-      '<div><b style="color:#1a2d3d;">Provenance</b><br><span style="color:#1a2d3d;">SOFTWARE THERMAL PROXY</span></div>' +
-      '</div>' +
-      '<div style="margin-top:.5rem;font-size:.6rem;color:#9aa7b2;border-top:1px solid #edf2f5;padding-top:.4rem;">' +
-      'Disclosure: Calculated from ordinary webcam brightness; not an infrared or medical temperature reading.' +
-      '</div>';
+  /* ===================== UPDATE REPORT FIELDS — textContent every frame ===================== */
+  function updateReportFields(proxyVal, lumaVal, statusVal, motionVal, samplesVal, uptimeVal) {
+    if (reportProxyEl) reportProxyEl.textContent = proxyVal;
+    if (reportLumaEl)  reportLumaEl.textContent  = lumaVal;
+    if (reportStatEl)  reportStatEl.textContent   = statusVal;
+    if (reportMotEl)   reportMotEl.textContent    = motionVal;
+    if (reportSampEl)  reportSampEl.textContent   = samplesVal;
+    if (reportUpEl)    reportUpEl.textContent     = uptimeVal;
   }
 
   /* ===================== DETECTION LOOP ===================== */
@@ -339,10 +310,8 @@
       var h = video.videoHeight;
 
       if (!rgbCtx) {
-        rgbCanvas.width = w;
-        rgbCanvas.height = h;
-        thermCanvas.width = w;
-        thermCanvas.height = h;
+        rgbCanvas.width = w;  rgbCanvas.height = h;
+        thermCanvas.width = w; thermCanvas.height = h;
         rgbCtx = rgbCanvas.getContext('2d');
         thermCtx = thermCanvas.getContext('2d');
       }
@@ -358,28 +327,24 @@
       var rgbData = rgbCtx.getImageData(0, 0, w, h).data;
       var grayData = toGrayscale(rgbData, w, h);
 
-      /* 3. Apply Inferno colormap to thermal canvas */
+      /* 3. Apply Inferno colormap */
       applyInfernoGray(grayData, thermCtx, w, h);
 
-      /* 4. Motion tracking */
-      var elapsed = ((performance.now() - startTime) / 1000);
+      /* 4. Motion tracking pipeline */
+      var elapsed = (performance.now() - startTime) / 1000;
       var avgBrightness = 128.0;
       var liveCalc = 0;
       var smoothed = 0;
       var motionDetected = false;
+      var targetMoving = false;
       var statusText, statusColor, isAlarm = false;
 
       if (elapsed < 3.0) {
-        /* Boot phase */
-        statusText = 'COMPUTING MOTION DELTA MAPS (' + (3.0 - elapsed | 0) + 's)...';
+        statusText = 'COMPUTING MOTION DELTA MAPS (' + ((3.0 - elapsed) | 0) + 's)...';
         statusColor = '#00a5ff';
         drawBootBar(thermCtx, w, h, elapsed);
       } else {
-        if (!bootComplete) {
-          prevGray = null;
-          prevGrayData = null;
-          bootComplete = true;
-        }
+        if (!bootComplete) { prevGrayData = null; bootComplete = true; }
 
         var currentBlur = boxBlur21(grayData, w, h);
 
@@ -396,6 +361,7 @@
             if (lastW < 180) lastW = 200;
             if (lastH < 180) lastH = 220;
             motionDetected = true;
+            targetMoving = true;
           }
         }
 
@@ -407,7 +373,7 @@
         var bw = Math.min(w - bx, lastW);
         var bh = Math.min(h - by, lastH);
 
-        /* 5. ROI brightness from original gray frame */
+        /* 5. ROI brightness */
         var sum = 0, cnt = 0;
         for (var row = by; row < by + bh && row < h; row++) {
           var rowOff = row * w;
@@ -418,7 +384,7 @@
         }
         avgBrightness = cnt > 0 ? sum / cnt : 128.0;
 
-        /* 6. SUPPLIED FORMULA exactly: 15.0 + (avg_brightness / 255.0) * 30.0 */
+        /* 6. SUPPLIED FORMULA: live_calc = 15.0 + (avg_brightness / 255.0) * 30.0 */
         liveCalc = 15.0 + (avgBrightness / 255.0) * 30.0;
 
         readingHistory.push(liveCalc);
@@ -426,7 +392,7 @@
         smoothed = readingHistory.reduce(function (a, b) { return a + b; }, 0) / readingHistory.length;
         smoothed = Math.round(smoothed * 10) / 10;
 
-        /* 7. Threshold check — supplied value 35.0 */
+        /* 7. Threshold — supplied value 35.0 */
         if (smoothed >= THRESHOLD) {
           statusText = 'ALARM: HIGH HEAT PROFILE';
           statusColor = '#ff0000';
@@ -453,25 +419,25 @@
         thermCtx.restore();
       }
 
-      /* Update index display */
+      /* ===================== UPDATE ALL DISPLAYS EVERY FRAME ===================== */
+
+      /* Big index card */
       if (indexValEl) indexValEl.textContent = smoothed > 0 ? smoothed.toFixed(1) : '\u2014';
+
+      /* Live report card — textContent, every frame */
+      updateReportFields(
+        smoothed > 0 ? smoothed.toFixed(1) : '\u2014',
+        avgBrightness.toFixed(1),
+        statusText || 'BOOTING...',
+        targetMoving ? 'MOTION LOCKED' : 'SEARCHING',
+        readingHistory.length + ' / 15',
+        elapsed.toFixed(1) + 's'
+      );
 
       /* Rolling chart */
       chartHistory.push(smoothed);
       if (chartHistory.length > CHART_MAX) chartHistory.shift();
       drawChart();
-
-      /* Live report */
-      updateReport({
-        avgBrightness: avgBrightness,
-        liveReading: liveCalc,
-        smoothed: smoothed,
-        motionDetected: motionDetected,
-        sampleCount: readingHistory.length,
-        statusText: statusText || 'BOOTING...',
-        boxW: lastW,
-        boxH: lastH
-      });
 
       /* Throttled log entry */
       var now = Date.now();
@@ -483,13 +449,7 @@
           : '\u2014';
         var ts = new Date().toLocaleTimeString('en-US', { hour12: false });
         var id = 'T-' + String(presenceCounter++).padStart(3, '0');
-        sessionLog.push({
-          time: ts, id: id,
-          brightness: avgBrightness,
-          smoothed: smoothed,
-          trend: trend,
-          status: statusText || ''
-        });
+        sessionLog.push({ time: ts, id: id, smoothed: smoothed, trend: trend, status: statusText || '' });
         if (logBody) {
           if (logBody.querySelector('.expo-empty-log')) logBody.innerHTML = '';
           var row = document.createElement('tr');
@@ -504,13 +464,11 @@
       frameCount++;
       var now2 = performance.now();
       if (now2 - lastFpsTime >= 1000) {
-        var fps = Math.round(frameCount * 1000 / (now2 - lastFpsTime));
-        if (fpsEl) fpsEl.textContent = fps;
+        if (fpsEl) fpsEl.textContent = Math.round(frameCount * 1000 / (now2 - lastFpsTime));
         frameCount = 0;
         lastFpsTime = now2;
       }
-      var latency = Math.round(performance.now() - loopStart);
-      if (latencyEl) latencyEl.textContent = latency;
+      if (latencyEl) latencyEl.textContent = Math.round(performance.now() - loopStart);
     }
 
     animFrame = requestAnimationFrame(detectionLoop);
@@ -550,26 +508,19 @@
       });
     }).catch(function (err) {
       console.error('Camera access failed:', err);
-      if (err && err.name === 'NotAllowedError') {
-        setStatus('CAMERA PERMISSION DENIED');
-      } else if (err && err.name === 'NotFoundError') {
-        setStatus('NO CAMERA DETECTED');
-      } else {
-        setStatus('CAMERA UNAVAILABLE');
-      }
+      if (err && err.name === 'NotAllowedError') setStatus('CAMERA PERMISSION DENIED');
+      else if (err && err.name === 'NotFoundError') setStatus('NO CAMERA DETECTED');
+      else setStatus('CAMERA UNAVAILABLE');
       cameraStream = null;
     });
   }
 
   function stopCamera() {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(function (t) { t.stop(); });
-    }
+    if (cameraStream) cameraStream.getTracks().forEach(function (t) { t.stop(); });
     cameraStream = null;
     video.srcObject = null;
     video.pause();
     if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
-    prevGray = null;
     prevGrayData = null;
     readingHistory = [];
     chartHistory = [];
@@ -577,40 +528,31 @@
     stopBtn.disabled = true;
     if (placeholder) placeholder.style.display = '';
     setStatus('CAMERA STOPPED');
-    updateReport(null);
+    updateReportFields('\u2014', '\u2014', '\u2014', '\u2014', '\u2014 / 15', '\u2014');
+    if (indexValEl) indexValEl.textContent = '\u2014';
   }
 
   /* ===================== CSV EXPORT ===================== */
-
   function exportDemoReport() {
     var lines = [
       'NephroScan AI \u2014 Software Thermal Proxy Session',
-      '==============================================',
       'Session: ' + (sessionStart ? sessionStart.toLocaleString() : 'N/A') + ' to ' + new Date().toLocaleString(),
       'Total readings: ' + sessionLog.length,
-      '',
-      'Time,ID,Smoothed,Trend,Status'
+      '', 'Time,ID,Smoothed,Trend,Status'
     ];
-    sessionLog.forEach(function (e) {
-      lines.push([e.time, e.id, e.smoothed, e.trend, e.status].join(','));
-    });
+    sessionLog.forEach(function (e) { lines.push([e.time, e.id, e.smoothed, e.trend, e.status].join(',')); });
     lines.push('');
-    lines.push('Labels: SOFTWARE THERMAL PROXY, EMULATED INDEX, NOT AN INFRARED MEASUREMENT');
     lines.push('Disclosure: Calculated from ordinary webcam brightness; not an infrared or medical temperature reading.');
     lines.push('Disclaimer: Educational prototype only. Not a medical device.');
     var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
     var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
+    var a = document.createElement('a'); a.href = url;
     a.download = 'nephroscan-thermal-' + Date.now() + '.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }
 
   /* ===================== EVENT BINDINGS ===================== */
-
   startBtn.addEventListener('click', startCamera);
   stopBtn.addEventListener('click', stopCamera);
   if (clearBtn) clearBtn.addEventListener('click', function () { resetState(); });
