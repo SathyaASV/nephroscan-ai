@@ -441,7 +441,7 @@ def _register_routes(application: Flask) -> None:
         index_path = FRONTEND_DIR / "index.html"
         if not index_path.exists():
             return jsonify({"error": "Frontend not found"}), 500
-        return send_from_directory(str(FRONTEND_DIR), "index.html")
+        return send_from_directory(str(FRONTEND_DIR), "index.html", mimetype="text/html")
 
     @application.route("/<path:filename>")
     def serve_static(filename: str):
