@@ -4,7 +4,7 @@ NephroScan AI — Unified Production Server
 Merges AI inference, frontend serving, and health endpoints into a single
 Flask application. Designed for Gunicorn on Render or any PaaS.
 
-    gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app
+    gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 180 app:app
 
 Educational prototype only. Not a medical diagnostic device.
 """
@@ -546,6 +546,9 @@ def create_app() -> Flask:
         level=logging.INFO,
         format="%(asctime)s [%(name)s] %(levelname)s %(message)s",
     )
+
+    # Prevent Gunicorn fork-deadlock: single-threaded CPU inference
+    torch.set_num_threads(1)
 
     application = Flask(__name__, static_folder=None)
 
