@@ -1453,6 +1453,94 @@ body::after{opacity:.3!important;background-size:52px 52px!important}
 .bot-quick{background:rgba(255,255,255,.5)!important;border-top:1px solid rgba(112,176,191,.18)!important}.bot-quick button{background:#fff!important;border-color:#c9e1e7!important;color:#356378!important}.bot-quick button:hover{background:#eaf8fa!important;border-color:#83c7d0!important;color:#185a70!important}.bot-input-row{background:rgba(255,255,255,.72)!important;border-top:1px solid rgba(112,176,191,.2)!important}.bot-input-row input{background:#fff!important;color:#294c61!important;border-color:#c8dfe6!important}.bot-input-row input::placeholder{color:#849aa6!important}.bot-input-row button{background:linear-gradient(135deg,#1667d9,#159b9d)!important;color:#fff!important;box-shadow:0 5px 14px rgba(22,103,217,.18)}
 @media(prefers-reduced-motion:reduce){.bot-panel::before{animation:none!important}}
 </style>
+<style>
+/* FINAL SAFETY NET — catch any remaining dark-on-light contrast leaks */
+.view:not(#view-settings) .card,
+.view:not(#view-settings) .upload-box,
+.view:not(#view-settings) .report-container,
+.view:not(#view-settings) .ai-banner,
+.view:not(#view-settings) .stat-card,
+.view:not(#view-settings) .quick-actions .qa,
+.view:not(#view-settings) .compare-col,
+.view:not(#view-settings) .metric-tile,
+.view:not(#view-settings) .doctor-note,
+.view:not(#view-settings) .disclaimer-box,
+.view:not(#view-settings) .emergency-box{background:#fff!important;color:#1e2d3d!important}
+.view:not(#view-settings) .section-heading{color:#1d3c55!important}
+.view:not(#view-settings) .section-heading i{color:#168e99!important}
+.view:not(#view-settings) .hero-card h1{color:#173f5f!important}
+.view:not(#view-settings) .hero-card .tagline{color:#527188!important}
+.view:not(#view-settings) .hero-card p.desc{color:#617788!important}
+.view:not(#view-settings) .hero-eyebrow{color:#168e99!important}
+.view:not(#view-settings) .stat-card .num{color:#1b4868!important}
+.view:not(#view-settings) .stat-card .label{color:#7e8f9d!important}
+.view:not(#view-settings) .donut .hole{background:#fff!important}
+.view:not(#view-settings) .legend .row{color:#5f7281!important}
+.view:not(#view-settings) .bar-chart .col .lbl{color:#83939f!important}
+.view:not(#view-settings) .quick-actions .qa{color:#5d7180!important;border-color:#dce6ec!important}
+.view:not(#view-settings) .quick-actions .qa i{color:#168e99!important}
+.view:not(#view-settings) .ai-banner .tag{color:#5d7787!important}
+.view:not(#view-settings) .ai-banner .chip{color:#68808f!important;border-color:#dce6ec!important}
+.view:not(#view-settings) .ai-banner .chip .strong{color:#234c68!important}
+.view:not(#view-settings) .upload-box h3{color:#264b63!important}
+.view:not(#view-settings) .upload-box p{color:#718795!important}
+.view:not(#view-settings) .upload-box .file-types{color:#6e8593!important;background:#eef5f7!important}
+.view:not(#view-settings) .field-group label{color:#607787!important}
+.view:not(#view-settings) .field-group select,.view:not(#view-settings) .field-group textarea,.view:not(#view-settings) .field-group input{color:#263e50!important;background:#fbfdfe!important;border-color:#d8e4ea!important}
+.view:not(#view-settings) .field-group select option{background:#fff!important;color:#263e50!important}
+.view:not(#view-settings) .btn-secondary{color:#617585!important;background:#fff!important;border-color:#d7e3e9!important}
+.view:not(#view-settings) .btn-secondary:hover:not(:disabled){color:#264b63!important;background:#f4f9fb!important}
+.view:not(#view-settings) .pipeline .step{color:#81919d!important;background:#f7fafb!important;border-color:#dce6ec!important}
+.view:not(#view-settings) .pipeline .step.active{color:#147ca9!important;background:#e9f5fb!important;border-color:#9ed4e7!important}
+.view:not(#view-settings) .pipeline .step.done{color:#168a5b!important;background:#edf9f4!important;border-color:#c2e8d6!important}
+.view:not(#view-settings) .metric-row{color:#5b6d7d!important}
+.view:not(#view-settings) .metric-row .val{color:#17212b!important}
+.view:not(#view-settings) .pred-headline{color:#17212b!important}
+.view:not(#view-settings) .pred-sub{color:#7b8792!important}
+.view:not(#view-settings) .confidence-track{background:#dce6ec!important}
+.view:not(#view-settings) .risk-uncertain{color:#5b6b7c!important}
+.view:not(#view-settings) .conf-badge{border:1px solid rgba(0,0,0,.06)!important}
+.view:not(#view-settings) .risk-badge{border:1px solid rgba(0,0,0,.06)!important}
+.view:not(#view-settings) .report-header-bar{background:#f4f8fa!important;border-bottom:1px solid #dce6eb!important;color:#1e2d3d!important}
+.view:not(#view-settings) .report-header-bar .left{color:#1e2d3d!important}
+.view:not(#view-settings) .report-header-bar .actions button{color:#617585!important;background:#fff!important;border-color:#dce6ec!important}
+.view:not(#view-settings) .report-body{color:#3d5a6e!important}
+.view:not(#view-settings) .report-section .section-title{color:#1a3a52!important}
+.view:not(#view-settings) .report-section .content{color:#3d5a6e!important;border-left-color:rgba(26,92,255,.3)!important}
+.view:not(#view-settings) .emergency-box{background:#fef2f3!important;border-color:#f0c2c8!important;color:#7a3040!important}
+.view:not(#view-settings) .emergency-box .title{color:#c94c5d!important}
+.view:not(#view-settings) .doctor-note{background:#f0faf6!important;border-color:#c2e8d6!important;color:#1e2d3d!important}
+.view:not(#view-settings) .doctor-note strong{color:#168a62!important}
+.view:not(#view-settings) .disclaimer-box{background:#f8f6ef!important;border-color:#d5c9a0!important;color:#6d5f3a!important}
+.view:not(#view-settings) .ai-meta{color:#84959e!important;border-top-color:#e1e9ed!important}
+.view:not(#view-settings) table.data-table th{color:#6b7f8d!important;border-bottom-color:#dce6ec!important}
+.view:not(#view-settings) table.data-table td{color:#3d5a6e!important;border-bottom-color:#edf2f5!important}
+.view:not(#view-settings) table.data-table tr:hover td{background:#f4f8fa!important}
+.view:not(#view-settings) .search-input{color:#1e2d3d!important;background:#fff!important;border-color:#dce6ec!important}
+.view:not(#view-settings) .search-input::placeholder{color:#a0adb6!important}
+.view:not(#view-settings) .filter-chip{color:#6b7f8d!important;background:#fff!important;border-color:#dce6ec!important}
+.view:not(#view-settings) .filter-chip.active{color:#fff!important}
+.view:not(#view-settings) select.sort-select{color:#1e2d3d!important;background:#fff!important;border-color:#dce6ec!important}
+.view:not(#view-settings) .row-actions button{color:#617585!important;background:#fff!important;border-color:#dce6ec!important}
+.view:not(#view-settings) .row-actions button:hover{color:#1667d9!important;background:#f0f7fb!important}
+.view:not(#view-settings) .empty-state{color:#8493a0!important}
+.view:not(#view-settings) .empty-state i{color:#91a2ae!important}
+.view:not(#view-settings) .status-chip{border:1px solid rgba(0,0,0,.06)!important}
+.view:not(#view-settings) .compare-col h4{color:#168e99!important}
+.view:not(#view-settings) .metric-tile .v{color:#168e99!important}
+.view:not(#view-settings) .metric-tile .k{color:#7e8f9d!important}
+.view:not(#view-settings) .confusion-table th{color:#6b7f8d!important;border-color:#dce6ec!important}
+.view:not(#view-settings) .confusion-table td{color:#3d5a6e!important;border-color:#edf2f5!important;background:#fff!important}
+.view:not(#view-settings) .toast{background:#102a42!important;color:#e8f6ff!important;border-color:rgba(103,216,255,.2)!important}
+.view:not(#view-settings) .expo-panel-title{color:#1e5871!important}
+.view:not(#view-settings) .expo-video-panel{background:#f7fbfd!important;border-color:#d7e5eb!important}
+#view-about .card>p{color:#527183!important}
+#view-about .content{color:#294e65!important;background:linear-gradient(100deg,#eef9fb,#fff9e9)!important;border-left-color:#38a7b0!important}
+#view-about .section-heading{color:#21465f!important}
+#view-about .about-flow{color:#476b7d!important}
+#view-about .about-flow .node{background:#f3fafc!important;border-color:#c9e3ea!important;color:#2c6075!important}
+#view-about .about-flow .arrow{color:#159b9d!important}
+</style>
 </head>
 <body class="mode-doctor">
 
@@ -4380,18 +4468,15 @@ function resetPlaceholder(){
 }
 
 /* ===================== DEMO CASE ===================== */
-function loadDemoCase(){
-  var demoPool = [
-    { img:'demo_assets/chest_normal.png', scanType:'chest_xray', indication:'Annual health checkup — rule out pneumonia.', patient:'Demo Patient (Chest)', age:'45', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Mild cough for 3 days', name:'chest_normal.png' },
-    { img:'demo_assets/chest_pneumonia.png', scanType:'chest_xray', indication:'Fever and productive cough for 1 week.', patient:'Demo Patient (Chest)', age:'62', gender:'Female', doctor:'Dr. S. Patel', symptoms:'Fever, cough, shortness of breath', name:'chest_pneumonia.png' },
-    { img:'demo_assets/brain_normal.png', scanType:'brain_mri', indication:'Chronic headaches — rule out intracranial mass.', patient:'Demo Patient (Brain)', age:'38', gender:'Male', doctor:'Dr. R. Gupta', symptoms:'Persistent headaches for 2 months', name:'brain_normal.png' },
-    { img:'demo_assets/brain_tumor.png', scanType:'brain_mri', indication:'New-onset seizures — evaluate for intracranial lesion.', patient:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures, progressive headache', name:'brain_tumor.png' },
-    { img:'demo_assets/kidney_normal.png', scanType:'kidney', indication:'Routine renal screening — no symptoms.', patient:'Demo Patient (Kidney)', age:'40', gender:'Male', doctor:'Dr. M. Rao', symptoms:'No symptoms — routine check', name:'kidney_normal.png' },
-    { img:'demo_assets/kidney_stone.png', scanType:'kidney', indication:'Haematuria for 2 weeks — investigate renal cause.', patient:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Persistent flank pain', name:'kidney_stone.png' },
-    { img:'demo_assets/heart_normal.png', scanType:'heart', indication:'Pre-operative cardiac screening.', patient:'Demo Patient (Heart)', age:'60', gender:'Male', doctor:'Dr. P. Nair', symptoms:'Mild breathlessness on exertion', name:'heart_normal.png' },
-    { img:'demo_assets/heart_cardio.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'heart_cardio.png' }
-  ];
-  var pick = demoPool[Math.floor(Math.random() * demoPool.length)];
+var DEMO_CASES = [
+  { key:'kidney_normal', label:'Normal Kidney', img:'demo_assets/kidney_normal.png', scanType:'kidney', indication:'Routine renal screening — no symptoms.', patient:'Demo Patient (Kidney)', age:'40', gender:'Male', doctor:'Dr. M. Rao', symptoms:'No symptoms — routine check', name:'kidney_normal.png' },
+  { key:'chest_normal', label:'Normal Chest / Lungs', img:'demo_assets/chest_normal.png', scanType:'chest_xray', indication:'Annual health checkup — rule out pneumonia.', patient:'Demo Patient (Chest)', age:'45', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Mild cough for 3 days', name:'chest_normal.png' },
+  { key:'brain_glioma', label:'Abnormal Brain (Glioma)', img:'demo_assets/brain_tumor.png', scanType:'brain_mri', indication:'New-onset seizures — evaluate for intracranial lesion.', patient:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures, progressive headache', name:'brain_tumor.png' },
+  { key:'heart_cardio', label:'Abnormal Heart (Cardiomegaly)', img:'demo_assets/heart_cardio.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'heart_cardio.png' }
+];
+function _loadDemoByKey(key, autoRun){
+  var pick = DEMO_CASES.find(function(c){ return c.key === key; });
+  if(!pick) return;
   fetch(pick.img).then(function(r){ return r.blob(); }).then(function(blob){
     var file = new File([blob], pick.name, {type:'image/png'});
     uploadedFiles = [file];
@@ -4403,7 +4488,7 @@ function loadDemoCase(){
       demoBadge.style.cssText = 'text-align:center;margin-bottom:.5rem;';
       previewGrid.parentNode.insertBefore(demoBadge, previewGrid);
     }
-    demoBadge.innerHTML = '<span style="display:inline-block;padding:.2rem .7rem;border-radius:60px;font-size:.62rem;font-weight:700;background:rgba(22,103,217,.1);color:#1667d9;border:1px solid rgba(22,103,217,.2);">SYNTHETIC DEMO CASE — click Run Analysis for real model inference</span>';
+    demoBadge.innerHTML = '<span style="display:inline-block;padding:.2rem .7rem;border-radius:60px;font-size:.62rem;font-weight:700;background:rgba(22,103,217,.1);color:#1667d9;border:1px solid rgba(22,103,217,.2);">DEMO: ' + pick.label.toUpperCase() + ' — real model inference</span>';
     clinicalIndication.value = pick.indication;
     scanTypeSelect.value = pick.scanType;
     document.getElementById('patientName').value = pick.patient;
@@ -4411,8 +4496,39 @@ function loadDemoCase(){
     document.getElementById('patientGender').value = pick.gender;
     document.getElementById('doctorName').value = pick.doctor;
     document.getElementById('symptomsField').value = pick.symptoms;
-    toast('Demo case loaded (' + pick.name + ') — click Run Analysis', 'info');
+    toast('Demo loaded: ' + pick.label + (autoRun ? ' — running analysis...' : ' — click Run Analysis'), 'info');
+    if(autoRun){
+      setTimeout(function(){ document.getElementById('generateBtn').click(); }, 350);
+    }
   });
+}
+function loadDemoCase(){
+  var existing = document.getElementById('demoCaseDropdown');
+  if(existing){ existing.remove(); return; }
+  var dd = document.createElement('div');
+  dd.id = 'demoCaseDropdown';
+  dd.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:#fff;border:1px solid #dce6ec;border-radius:16px;box-shadow:0 24px 60px rgba(31,79,102,.18);padding:1.2rem 1.4rem;min-width:300px;';
+  dd.innerHTML = '<div style="font-weight:700;font-size:.92rem;color:#1d3c55;margin-bottom:.2rem;">Select a Demo Case</div>' +
+    '<div style="font-size:.72rem;color:#6b7f8d;margin-bottom:.9rem;">Loads a synthetic image and runs real model inference.</div>' +
+    DEMO_CASES.map(function(c){
+      return '<div class="demo-opt" data-key="' + c.key + '" style="display:flex;align-items:center;gap:10px;padding:.6rem .8rem;border-radius:10px;cursor:pointer;transition:background .15s;border:1px solid #edf2f5;margin-bottom:.4rem;">' +
+        '<div style="width:36px;height:36px;border-radius:8px;background:#f0f7fb;display:flex;align-items:center;justify-content:center;color:#168e99;font-size:.8rem;"><i class="fas fa-' + (c.scanType==='kidney'?'kidneys':c.scanType==='chest_xray'?'lungs':c.scanType==='brain_mri'?'brain':'heart') + '"></i></div>' +
+        '<div><div style="font-weight:600;font-size:.82rem;color:#1d3c55;">' + c.label + '</div>' +
+        '<div style="font-size:.65rem;color:#8493a0;">' + c.scanType.replace('_',' ').toUpperCase() + '</div></div></div>';
+    }).join('') +
+    '<div style="text-align:right;margin-top:.4rem;"><button id="demoCaseCancel" style="background:none;border:none;color:#8493a0;font-size:.72rem;cursor:pointer;padding:.3rem .6rem;">Cancel</button></div>';
+  document.body.appendChild(dd);
+  dd.querySelectorAll('.demo-opt').forEach(function(opt){
+    opt.addEventListener('mouseenter', function(){ opt.style.background='#f0f7fb'; });
+    opt.addEventListener('mouseleave', function(){ opt.style.background=''; });
+    opt.addEventListener('click', function(){
+      dd.remove();
+      showView('analysis');
+      _loadDemoByKey(opt.dataset.key, true);
+    });
+  });
+  document.getElementById('demoCaseCancel').addEventListener('click', function(){ dd.remove(); });
+  dd.addEventListener('click', function(e){ if(e.target===dd) dd.remove(); });
 }
 demoBtn.addEventListener('click', loadDemoCase);
 
@@ -4976,24 +5092,24 @@ window.__ns_showTimeline = function(patientId){
   var reports = sessionReports.filter(function(r){ return r.patientId === patientId; }).reverse();
   var card = document.getElementById('patientTimelineCard');
   card.style.display = 'block';
-  var html = '<div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.6rem;">SESSION DATA \u2014 not persisted across page reloads</div>';
+  var html = '<div style="font-size:.72rem;color:#8493a0;margin-bottom:.6rem;">SESSION DATA \u2014 not persisted across page reloads</div>';
   html += reports.map(function(r, i){
-    var border = i < reports.length - 1 ? 'border-bottom:1px solid rgba(255,255,255,.06);' : '';
+    var border = i < reports.length - 1 ? 'border-bottom:1px solid #edf2f5;' : '';
     var modality = r.scanType ? r.scanType.replace('_',' ') : '\u2014';
     var pred = r.prediction || '\u2014';
     var conf = r.confidence !== undefined ? r.confidence + '%' : '\u2014';
     var prov = r.provenance || '\u2014';
     var reviewStatus = r.uncertain ? 'REQUIRES REVIEW' : 'COMPLETED';
-    var reviewColor = r.uncertain ? 'var(--warning)' : 'var(--success)';
+    var reviewColor = r.uncertain ? '#b87908' : '#168a62';
     return '<div style="padding:.9rem 0;' + border + '">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-        '<div style="font-size:.85rem;font-weight:600;">' + (r.dateStr || '\u2014') + '</div>' +
-        '<span style="font-size:.62rem;padding:.2rem .5rem;border-radius:4px;background:' + reviewColor + '22;color:' + reviewColor + ';font-weight:600;">' + reviewStatus + '</span>' +
+        '<div style="font-size:.85rem;font-weight:600;color:#1d3c55;">' + (r.dateStr || '\u2014') + '</div>' +
+        '<span style="font-size:.62rem;padding:.2rem .5rem;border-radius:4px;background:' + reviewColor + '18;color:' + reviewColor + ';font-weight:600;">' + reviewStatus + '</span>' +
       '</div>' +
-      '<div style="font-size:.78rem;color:rgba(255,255,255,.7);margin-top:.3rem;">' +
+      '<div style="font-size:.78rem;color:#3d5a6e;margin-top:.3rem;">' +
         '<b>Organ:</b> ' + modality + ' · <b>Prediction:</b> ' + pred + ' · <b>Confidence:</b> ' + conf +
       '</div>' +
-      '<div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:.2rem;">' +
+      '<div style="font-size:.68rem;color:#8493a0;margin-top:.2rem;">' +
         'Patient: ' + (r.patientName || '\u2014') + ' (' + (r.patientId || '\u2014') + ') · Doctor: ' + (r.doctor || '\u2014') +
       '</div>' +
     '</div>';
@@ -5003,14 +5119,15 @@ window.__ns_showTimeline = function(patientId){
 };
 
 /* ===================== SYNTHETIC DEMO CASE ===================== */
-document.getElementById('demoCaseBtn').addEventListener('click', function(){
-  var demoPool = [
-    { img:'demo_assets/chest_pneumonia.png', scanType:'chest_xray', prediction:'pneumonia', confidence:92.5, category:'abnormal', patientName:'Demo Patient (Chest)', age:'62', gender:'Female', doctor:'Dr. S. Patel', symptoms:'Fever, cough', indication:'Fever and productive cough for 1 week', model:'chest_pneumonia_resnet18.pth', riskLevel:'high' },
-    { img:'demo_assets/brain_tumor.png', scanType:'brain_mri', prediction:'glioma', confidence:99.7, category:'abnormal', patientName:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures', indication:'New-onset seizures — evaluate for lesion', model:'brain_mri_resnet18.pth', riskLevel:'high' },
-    { img:'demo_assets/kidney_stone.png', scanType:'kidney', prediction:'stone', confidence:95.2, category:'abnormal', patientName:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', indication:'Haematuria — investigate renal cause', model:'kidney_stone_resnet18.pth', riskLevel:'high' },
-    { img:'demo_assets/heart_cardio.png', scanType:'heart', prediction:'true', confidence:88.1, category:'abnormal', patientName:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Breathlessness, leg swelling', indication:'Dyspnoea on exertion — assess cardiac silhouette', model:'heart_cardiomegaly_resnet18_improved.pth', riskLevel:'high' }
-  ];
-  var pick = demoPool[Math.floor(Math.random() * demoPool.length)];
+var SYNTH_DEMO_CASES = [
+  { key:'kidney_stone', label:'Kidney Stone', img:'demo_assets/kidney_stone.png', scanType:'kidney', prediction:'stone', confidence:95.2, category:'abnormal', patientName:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', indication:'Haematuria — investigate renal cause', model:'kidney_stone_resnet18.pth', riskLevel:'high' },
+  { key:'chest_pneumonia', label:'Chest Pneumonia', img:'demo_assets/chest_pneumonia.png', scanType:'chest_xray', prediction:'pneumonia', confidence:92.5, category:'abnormal', patientName:'Demo Patient (Chest)', age:'62', gender:'Female', doctor:'Dr. S. Patel', symptoms:'Fever, cough', indication:'Fever and productive cough for 1 week', model:'chest_pneumonia_resnet18.pth', riskLevel:'high' },
+  { key:'brain_glioma', label:'Brain Glioma', img:'demo_assets/brain_tumor.png', scanType:'brain_mri', prediction:'glioma', confidence:99.7, category:'abnormal', patientName:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures', indication:'New-onset seizures — evaluate for lesion', model:'brain_mri_resnet18.pth', riskLevel:'high' },
+  { key:'heart_cardio', label:'Heart Cardiomegaly', img:'demo_assets/heart_cardio.png', scanType:'heart', prediction:'true', confidence:88.1, category:'abnormal', patientName:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Breathlessness, leg swelling', indication:'Dyspnoea on exertion — assess cardiac silhouette', model:'heart_cardiomegaly_resnet18_improved.pth', riskLevel:'high' }
+];
+function _loadSynthDemoByKey(key){
+  var pick = SYNTH_DEMO_CASES.find(function(c){ return c.key === key; });
+  if(!pick) return;
   var modLabels = { chest_xray:'Chest X-ray', brain_mri:'Brain MRI', kidney:'Kidney Scan', heart:'Heart X-ray' };
   var predLabels = { pneumonia:'Pneumonia pattern detected', glioma:'Glioma classification', stone:'Kidney stone pattern detected', 'true':'Cardiomegaly pattern detected' };
   var scopeLabels = { chest_xray:'Binary pneumonia-screening prototype.', brain_mri:'Four-class Brain MRI classification prototype.', kidney:'Binary kidney-stone screening prototype.', heart:'Binary cardiomegaly-screening prototype.' };
@@ -5043,8 +5160,35 @@ document.getElementById('demoCaseBtn').addEventListener('click', function(){
     _saveReports();
     renderPatients();
     refreshDashboard();
-    toast('Synthetic demo case loaded (' + modLabels[pick.scanType] + ').', 'info');
+    toast('Synthetic demo loaded (' + modLabels[pick.scanType] + ').', 'info');
   });
+}
+document.getElementById('demoCaseBtn').addEventListener('click', function(){
+  var existing = document.getElementById('synthDemoDropdown');
+  if(existing){ existing.remove(); return; }
+  var dd = document.createElement('div');
+  dd.id = 'synthDemoDropdown';
+  dd.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:#fff;border:1px solid #dce6ec;border-radius:16px;box-shadow:0 24px 60px rgba(31,79,102,.18);padding:1.2rem 1.4rem;min-width:300px;';
+  dd.innerHTML = '<div style="font-weight:700;font-size:.92rem;color:#1d3c55;margin-bottom:.2rem;">Select a Synthetic Demo</div>' +
+    '<div style="font-size:.72rem;color:#6b7f8d;margin-bottom:.9rem;">Precomputed result — no model call.</div>' +
+    SYNTH_DEMO_CASES.map(function(c){
+      return '<div class="synth-opt" data-key="' + c.key + '" style="display:flex;align-items:center;gap:10px;padding:.6rem .8rem;border-radius:10px;cursor:pointer;transition:background .15s;border:1px solid #edf2f5;margin-bottom:.4rem;">' +
+        '<div style="width:36px;height:36px;border-radius:8px;background:#f0f7fb;display:flex;align-items:center;justify-content:center;color:#168e99;font-size:.8rem;"><i class="fas fa-' + (c.scanType==='kidney'?'kidneys':c.scanType==='chest_xray'?'lungs':c.scanType==='brain_mri'?'brain':'heart') + '"></i></div>' +
+        '<div><div style="font-weight:600;font-size:.82rem;color:#1d3c55;">' + c.label + '</div>' +
+        '<div style="font-size:.65rem;color:#8493a0;">' + c.scanType.replace('_',' ').toUpperCase() + '</div></div></div>';
+    }).join('') +
+    '<div style="text-align:right;margin-top:.4rem;"><button id="synthDemoCancel" style="background:none;border:none;color:#8493a0;font-size:.72rem;cursor:pointer;padding:.3rem .6rem;">Cancel</button></div>';
+  document.body.appendChild(dd);
+  dd.querySelectorAll('.synth-opt').forEach(function(opt){
+    opt.addEventListener('mouseenter', function(){ opt.style.background='#f0f7fb'; });
+    opt.addEventListener('mouseleave', function(){ opt.style.background=''; });
+    opt.addEventListener('click', function(){
+      dd.remove();
+      _loadSynthDemoByKey(opt.dataset.key);
+    });
+  });
+  document.getElementById('synthDemoCancel').addEventListener('click', function(){ dd.remove(); });
+  dd.addEventListener('click', function(e){ if(e.target===dd) dd.remove(); });
 });
 
 /* ===================== COMPARE ===================== */
@@ -5150,7 +5294,7 @@ document.getElementById('expoBtn').addEventListener('click', runExpoMode);
 document.getElementById('expoCloseBtn').addEventListener('click', ()=>document.getElementById('expoOverlay').classList.remove('active'));
 function runExpoMode(){
   showView('analysis');
-  loadDemoCase();
+  _loadDemoByKey('kidney_normal', false);
   const overlay = document.getElementById('expoOverlay');
   overlay.classList.add('active');
   const steps = [...document.querySelectorAll('#expoSteps .es')];
