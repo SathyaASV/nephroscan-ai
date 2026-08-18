@@ -2390,6 +2390,7 @@ table.data-table tr:hover td {
       <label><i class="fas fa-mobile-screen-button"></i> Mobile number for report SMS <span style="opacity:.45;">(optional)</span></label>
       <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
         <input type="tel" id="smsPhone" placeholder="+91 9876543210" style="flex:1;min-width:180px;padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;" />
+        <input type="email" id="shareEmail" placeholder="recipient@example.com (optional)" style="flex:1;min-width:180px;padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;" />
         <label style="display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:#5a6b7a;cursor:pointer;"><input type="checkbox" id="smsConsent" /> I agree to prepare this X-ray report for SMS delivery</label>
       </div>
     </div>
@@ -2868,7 +2869,13 @@ table.data-table tr:hover td {
     <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.6rem 1.6rem;background:#fff;">
       <button class="btn btn-primary" id="prepareSmsBtn" disabled style="font-size:.72rem;padding:.4rem .9rem;"><i class="fas fa-comment-sms"></i> Prepare Report SMS</button>
       <button class="btn btn-secondary" id="copySmsBtn" style="font-size:.68rem;padding:.35rem .7rem;display:none;"><i class="fas fa-copy"></i> Copy SMS Text</button>
-      <span id="smsStatusLabel" style="font-size:.62rem;font-weight:600;display:none;">SMS READY — USER MUST PRESS SEND</span>
+      <button class="btn btn-secondary" id="whatsappBtn" style="font-size:.68rem;padding:.35rem .7rem;"><i class="fab fa-whatsapp"></i> Share via WhatsApp</button>
+      <button class="btn btn-secondary" id="emailBtn" style="font-size:.68rem;padding:.35rem .7rem;"><i class="fas fa-envelope"></i> Share via Email</button>
+      <button class="btn btn-secondary" id="listenBtn" style="font-size:.68rem;padding:.35rem .7rem;"><i class="fas fa-volume-high"></i> Listen to Report</button>
+      <button class="btn btn-secondary" id="listenPauseBtn" style="font-size:.66rem;padding:.3rem .6rem;display:none;"><i class="fas fa-pause"></i> Pause</button>
+      <button class="btn btn-secondary" id="listenResumeBtn" style="font-size:.66rem;padding:.3rem .6rem;display:none;"><i class="fas fa-play"></i> Resume</button>
+      <button class="btn btn-secondary" id="listenStopBtn" style="font-size:.66rem;padding:.3rem .6rem;display:none;"><i class="fas fa-stop"></i> Stop</button>
+      <span id="smsStatusLabel" style="font-size:.62rem;font-weight:600;display:none;">Message prepared — press Send</span>
       <span id="smsNote" style="font-size:.6rem;color:#8493a0;">SMS is prepared, not sent. You must press Send.</span>
     </div>
 
@@ -5501,7 +5508,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   currentOpenReportId = reportId;
   refreshDashboard();
   toast('Analysis complete — organ-specific report generated.', 'info');
-  _smsEnable(scanType, uncertain ? 'Uncertain' : label, confidence, uncertain, nowStr);
+  _smsEnable(scanType, uncertain ? 'Uncertain' : label, confidence, uncertain, nowStr, recommendations);
 }
 
 /* explainability toggle */
@@ -5632,29 +5639,39 @@ printBtn.addEventListener('click', ()=>{
 /* ===================== SMS HANDOFF ===================== */
 var _smsReady = false;
 var _smsSummaryText = '';
+var _smsNextAction = '';
 var smsPhoneEl = document.getElementById('smsPhone');
 var smsConsentEl = document.getElementById('smsConsent');
 var prepareSmsBtn = document.getElementById('prepareSmsBtn');
 var copySmsBtn = document.getElementById('copySmsBtn');
 var smsStatusLabel = document.getElementById('smsStatusLabel');
 var smsNote = document.getElementById('smsNote');
-function _smsReset(){ _smsReady=false; _smsSummaryText=''; if(prepareSmsBtn) prepareSmsBtn.disabled=true; if(copySmsBtn) copySmsBtn.style.display='none'; if(smsStatusLabel) smsStatusLabel.style.display='none'; if(smsNote) smsNote.textContent='SMS is prepared, not sent. You must press Send.'; }
+var emailEl = document.getElementById('shareEmail');
+var whatsappBtn = document.getElementById('whatsappBtn');
+var emailBtn = document.getElementById('emailBtn');
+var listenBtn = document.getElementById('listenBtn');
+var listenPauseBtn = document.getElementById('listenPauseBtn');
+var listenResumeBtn = document.getElementById('listenResumeBtn');
+var listenStopBtn = document.getElementById('listenStopBtn');
+var speaking = false;
+var speechPaused = false;
+function _smsReset(){ _smsReady=false; _smsSummaryText=''; _smsNextAction=''; if(prepareSmsBtn) prepareSmsBtn.disabled=true; if(copySmsBtn) copySmsBtn.style.display='none'; if(smsStatusLabel) smsStatusLabel.style.display='none'; if(smsNote) smsNote.textContent='SMS is prepared, not sent. You must press Send.'; }
 function _smsUpdate(){ var good = smsPhoneEl && smsConsentEl && _smsReady && /^\+\d{7,15}$/.test((smsPhoneEl.value||'').replace(/[\s-]/g,'')) && smsConsentEl.checked; if(prepareSmsBtn) prepareSmsBtn.disabled = !good; }
 if(smsPhoneEl) smsPhoneEl.addEventListener('input', _smsUpdate);
 if(smsConsentEl) smsConsentEl.addEventListener('change', _smsUpdate);
-function _smsEnable(scanType, prediction, confidence, uncertain, nowStr){
+function _smsEnable(scanType, prediction, confidence, uncertain, nowStr, nextAction){
   var mods = { ct_kub:'Kidney scan', chest_xray:'Chest X-ray', mri_brain:'Brain MRI', heart:'Heart X-ray' };
   var mod = mods[scanType] || scanType;
-  _smsSummaryText = 'NephroScan AI Report | Modality: ' + mod + ' | Result: ' + prediction + ' | Confidence: ' + confidence + '% | Review: ' + (uncertain ? 'REQUIRES REVIEW' : 'Completed') + ' | Time: ' + nowStr + ' | AI research prototype; not a medical diagnosis. Confirm with a qualified clinician.';
+  _smsNextAction = nextAction || '';
+  _smsSummaryText = 'NephroScan AI Report | Modality: ' + mod + ' | Result: ' + prediction + ' | Confidence: ' + confidence + '% | Review: ' + (uncertain ? 'REQUIRES REVIEW' : 'Completed') + ' | Time: ' + nowStr + (nextAction ? ' | Next action: ' + nextAction : '') + ' | AI research prototype; not a medical diagnosis. Confirm with a qualified clinician.';
   _smsReady = true;
   _smsUpdate();
 }
+function _showPrepared(){ if(copySmsBtn) copySmsBtn.style.display='inline-flex'; if(smsStatusLabel){ smsStatusLabel.style.display='inline'; smsStatusLabel.textContent='Message prepared — press Send'; } if(smsNote) smsNote.textContent='Message prepared — not sent. Confirm and press Send in the app that opens.'; }
 if(prepareSmsBtn) prepareSmsBtn.addEventListener('click', function(){
   var num = (smsPhoneEl.value||'').replace(/[\s-]/g,'');
   window.location.href = 'sms:' + encodeURIComponent(num) + '?body=' + encodeURIComponent(_smsSummaryText);
-  if(copySmsBtn) copySmsBtn.style.display = 'inline-flex';
-  if(smsStatusLabel) smsStatusLabel.style.display = 'inline';
-  if(smsNote) smsNote.textContent = 'SMS prepared — not sent. Confirm and press Send in your device SMS app.';
+  _showPrepared();
   toast('SMS ready — user must press Send.', 'info');
 });
 if(copySmsBtn) copySmsBtn.addEventListener('click', function(){
@@ -5662,9 +5679,55 @@ if(copySmsBtn) copySmsBtn.addEventListener('click', function(){
     var orig = copySmsBtn.innerHTML;
     copySmsBtn.innerHTML = '<i class="fas fa-check" style="color:var(--success);"></i>';
     setTimeout(function(){ copySmsBtn.innerHTML = orig; }, 1500);
-    toast('SMS text copied.','info');
+    toast('Message text copied.','info');
   }).catch(function(){ toast('Could not copy automatically.','error'); });
 });
+if(whatsappBtn) whatsappBtn.addEventListener('click', function(){
+  if(!_smsReady){ toast('Run an analysis first.','warn'); return; }
+  var num = smsPhoneEl && smsPhoneEl.value ? (smsPhoneEl.value||'').replace(/[\s-]/g,'') : '';
+  window.open('https://wa.me/' + encodeURIComponent(num) + '?text=' + encodeURIComponent(_smsSummaryText), '_blank');
+  _showPrepared();
+  toast('WhatsApp message prepared — press Send.','info');
+});
+if(emailBtn) emailBtn.addEventListener('click', function(){
+  if(!_smsReady){ toast('Run an analysis first.','warn'); return; }
+  var to = emailEl && emailEl.value ? emailEl.value : '';
+  var subject = 'NephroScan AI Report';
+  window.location.href = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(_smsSummaryText);
+  _showPrepared();
+  toast('Email message prepared — press Send.','info');
+});
+/* ===================== SPEECH (LISTEN) ===================== */
+function _speechText(){
+  var parts = _smsSummaryText.split('|').map(function(s){ return s.trim(); }).filter(Boolean);
+  var want = ['NephroScan AI Report','Modality','Result','Confidence','Review','Next action'];
+  var out = [];
+  parts.forEach(function(p){
+    if(want.some(function(w){ return p.indexOf(w)===0; })) out.push(p);
+  });
+  return out.join('. ') + (out.length?' — this is an AI research prototype and not a medical diagnosis.':'');
+}
+function _stopSpeech(){ if('speechSynthesis' in window){ window.speechSynthesis.cancel(); } speaking=false; speechPaused=false; if(listenBtn) listenBtn.style.display='inline-flex'; if(listenPauseBtn) listenPauseBtn.style.display='none'; if(listenResumeBtn) listenResumeBtn.style.display='none'; if(listenStopBtn) listenStopBtn.style.display='none'; }
+function _speak(){
+  if(!_smsReady){ toast('Run an analysis first.','warn'); return; }
+  _stopSpeech();
+  var u = new SpeechSynthesisUtterance(_speechText());
+  u.lang = 'en-US'; u.rate = 1;
+  u.onend = _stopSpeech;
+  window.speechSynthesis.speak(u);
+  speaking = true;
+  if(listenBtn) listenBtn.style.display='none';
+  if(listenPauseBtn) listenPauseBtn.style.display='inline-flex';
+  if(listenStopBtn) listenStopBtn.style.display='inline-flex';
+}
+if(listenBtn) listenBtn.addEventListener('click', _speak);
+if(listenPauseBtn) listenPauseBtn.addEventListener('click', function(){
+  if(speaking && 'speechSynthesis' in window){ window.speechSynthesis.pause(); speechPaused=true; if(listenPauseBtn) listenPauseBtn.style.display='none'; if(listenResumeBtn) listenResumeBtn.style.display='inline-flex'; }
+});
+if(listenResumeBtn) listenResumeBtn.addEventListener('click', function(){
+  if(speaking && 'speechSynthesis' in window){ window.speechSynthesis.resume(); speechPaused=false; if(listenResumeBtn) listenResumeBtn.style.display='none'; if(listenPauseBtn) listenPauseBtn.style.display='inline-flex'; }
+});
+if(listenStopBtn) listenStopBtn.addEventListener('click', _stopSpeech);
 
 /* ===================== DASHBOARD ===================== */
 function refreshDashboard(){
