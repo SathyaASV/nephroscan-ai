@@ -2346,18 +2346,6 @@ table.data-table tr:hover td {
       </div>
 
       <div class="card">
-        <div class="section-heading"><i class="fas fa-server"></i> System Status <button class="btn btn-secondary" id="refreshStatusBtn" style="margin-left:auto;font-size:.6rem;padding:.2rem .5rem;"><i class="fas fa-arrows-rotate"></i> Refresh</button></div>
-        <div class="sys-status-panel" id="sysStatusPanel">
-          <div class="sys-status-item"><div class="sys-status-dot loading" id="statusBackendDot"></div><div class="sys-status-info"><div class="ssi-label">Backend API</div><div class="ssi-value" id="statusBackendVal">Checking...</div></div></div>
-          <div class="sys-status-item"><div class="sys-status-dot loading" id="statusKidneyDot"></div><div class="sys-status-info"><div class="ssi-label">Kidney Model</div><div class="ssi-value" id="statusKidneyVal">Checking...</div></div></div>
-          <div class="sys-status-item"><div class="sys-status-dot loading" id="statusChestDot"></div><div class="sys-status-info"><div class="ssi-label">Chest Model</div><div class="ssi-value" id="statusChestVal">Checking...</div></div></div>
-          <div class="sys-status-item"><div class="sys-status-dot loading" id="statusBrainDot"></div><div class="sys-status-info"><div class="ssi-label">Brain Model</div><div class="ssi-value" id="statusBrainVal">Checking...</div></div></div>
-          <div class="sys-status-item"><div class="sys-status-dot loading" id="statusHeartDot"></div><div class="sys-status-info"><div class="ssi-label">Heart Model</div><div class="ssi-value" id="statusHeartVal">Checking...</div></div></div>
-          <div class="sys-status-item"><div class="sys-status-dot loading" id="statusResponseDot"></div><div class="sys-status-info"><div class="ssi-label">Last Response</div><div class="ssi-value" id="statusResponseVal">—</div></div></div>
-        </div>
-      </div>
-
-      <div class="card">
         <div class="section-heading"><i class="fas fa-list"></i> Recent Reports</div>
         <div id="recentReportsWrap"><div class="empty-state"><i class="fas fa-inbox"></i>No reports generated yet in this session.</div></div>
       </div>
@@ -2397,14 +2385,6 @@ table.data-table tr:hover td {
     <div class="section-heading">
       <i class="fas fa-id-card"></i>
       Patient &amp; Clinical Information
-    </div>
-
-    <div class="field-group" style="margin-bottom:.8rem;">
-      <label><i class="fas fa-mobile-screen-button"></i> Mobile number for report SMS <span style="opacity:.45;">(optional)</span></label>
-      <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
-        <input type="tel" id="smsPhone" placeholder="+91 9876543210" style="flex:1;min-width:180px;" />
-        <label class="check" style="font-size:.72rem;color:#5a6b7a;display:flex;align-items:center;gap:.3rem;cursor:pointer;white-space:nowrap;"><input type="checkbox" id="smsConsent" /> I agree to prepare this X-ray report for SMS delivery</label>
-      </div>
     </div>
 
     <div class="two-col">
@@ -2526,49 +2506,21 @@ table.data-table tr:hover td {
     <div class="card" style="padding:1.4rem 1.6rem;">
 
       <div class="field-group">
-        <label><i class="fas fa-cube"></i> Select Modality</label>
+
+        <label>
+          <i class="fas fa-cube"></i>
+          Scan Type
+        </label>
+
+        <select id="scanType">
+  <option value="ct_kub">🫘 Kidney Scan</option>
+  <option value="chest_xray">🫁 Chest X-ray — Pneumonia Screening</option>
+  <option value="mri_brain">🧠 Brain MRI — Tumor Classification</option>
+  <option value="heart">❤️ Heart X-ray — Cardiomegaly Screening</option>
+</select>
+
       </div>
 
-      <div class="modality-cards" id="modalityCards">
-        <div class="modality-card selected" data-scan="ct_kub" data-endpoint="/api/predict">
-          <div class="mc-icon">🫘</div>
-          <div class="mc-label">Kidney</div>
-          <div class="mc-desc">Kidney stone screening</div>
-          <div class="mc-endpoint">kidney_stone_resnet18</div>
-        </div>
-        <div class="modality-card" data-scan="chest_xray" data-endpoint="/api/predict-chest">
-          <div class="mc-icon">🫁</div>
-          <div class="mc-label">Chest</div>
-          <div class="mc-desc">Pneumonia screening</div>
-          <div class="mc-endpoint">chest_pneumonia_resnet18</div>
-        </div>
-        <div class="modality-card" data-scan="mri_brain" data-endpoint="/api/predict-brain">
-          <div class="mc-icon">🧠</div>
-          <div class="mc-label">Brain</div>
-          <div class="mc-desc">MRI tumor classification</div>
-          <div class="mc-endpoint">brain_mri_resnet18</div>
-        </div>
-        <div class="modality-card" data-scan="heart" data-endpoint="/api/predict-heart">
-          <div class="mc-icon">❤️</div>
-          <div class="mc-label">Heart</div>
-          <div class="mc-desc">Cardiomegaly screening</div>
-          <div class="mc-endpoint">heart_cardiomegaly_resnet18</div>
-        </div>
-      </div>
-
-      <select id="scanType" style="display:none;">
-        <option value="ct_kub">Kidney Scan</option>
-        <option value="chest_xray">Chest X-ray</option>
-        <option value="mri_brain">Brain MRI</option>
-        <option value="heart">Heart X-ray</option>
-      </select>
-
-      <!-- PRE-SCAN QUALITY GATE -->
-      <div class="quality-gate" id="qualityGate">
-        <div class="qg-icon" id="qgIcon"></div>
-        <div class="qg-title" id="qgTitle"></div>
-        <div class="qg-detail" id="qgDetail"></div>
-      </div>
 
       <div class="field-group">
 
@@ -2798,7 +2750,6 @@ table.data-table tr:hover td {
           —
         </div>
 
-        <div id="provenanceBadgeArea" style="margin-top:.4rem;"></div>
 
         <div class="confidence-track">
 
@@ -2840,11 +2791,6 @@ table.data-table tr:hover td {
           style="margin-bottom:.4rem;"
         >
           AI Risk Indicator
-        </div>
-
-        <div class="risk-meter" id="riskMeter">
-          <div class="risk-meter-bar"><div class="risk-meter-fill" id="riskMeterFill" style="width:0%;background:var(--success);"></div></div>
-          <div class="risk-meter-labels"><span id="riskLabelLow">Low</span><span id="riskLabelMod">Moderate</span><span id="riskLabelHigh">High</span></div>
         </div>
 
         <span
@@ -2912,19 +2858,6 @@ table.data-table tr:hover td {
 
     </div>
 
-    <div class="sms-section" id="smsSection" style="display:none;">
-      <div class="sms-row">
-        <input type="tel" id="smsPhoneInline" placeholder="+91 9876543210" />
-        <label class="check"><input type="checkbox" id="smsConsentInline" /> I agree to prepare this X-ray report for SMS delivery</label>
-      </div>
-      <div class="sms-actions">
-        <button class="btn btn-primary" id="prepareSmsBtn" disabled style="font-size:.7rem;padding:.35rem .8rem;"><i class="fas fa-comment-sms"></i> Prepare Report SMS</button>
-        <button class="btn btn-secondary" id="copySmsBtn" disabled style="font-size:.68rem;padding:.3rem .6rem;display:none;"><i class="fas fa-copy"></i> Copy SMS Text</button>
-        <span class="sms-status ready" id="smsStatusLabel" style="display:none;">SMS PREPARED — USER MUST PRESS SEND</span>
-      </div>
-      <div class="sms-note" id="smsNote">Prepared message will open your device SMS app. You must press Send yourself. The SMS is not sent automatically.</div>
-    </div>
-
 
     <div
       class="report-body"
@@ -2971,7 +2904,6 @@ table.data-table tr:hover td {
             <option value="name">Patient Name</option>
             <option value="disease">Disease</option>
           </select>
-          <button class="btn btn-secondary" id="clearSessionBtn" style="font-size:.65rem;padding:.3rem .7rem;margin-left:.5rem;color:#dc2626;border-color:#fca5a5;"><i class="fas fa-trash-can"></i> Clear Session Data</button>
         </div>
         <div id="historyTableWrap"></div>
       </div>
@@ -5005,98 +4937,6 @@ body.ns-compact .ns-settings{
 .expo-presence-table th{color:#1f526b;background:#f0f6f9;font-weight:700}
 .expo-empty-log{color:#999;font-style:italic;text-align:center}
 
-/* ===================== MODALITY SELECTOR CARDS ===================== */
-.modality-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.7rem;margin-bottom:1rem;}
-.modality-card{border:2px solid #e2ebef;border-radius:12px;padding:.9rem .8rem;text-align:center;cursor:pointer;transition:all .2s;background:#fafcfe;position:relative;}
-.modality-card:hover{border-color:#2b8cc4;background:#f0f7fb;transform:translateY(-2px);box-shadow:0 4px 14px rgba(31,79,102,.1);}
-.modality-card.selected{border-color:#1a73e8;background:linear-gradient(135deg,#eef6ff,#e3f0ff);box-shadow:0 0 0 3px rgba(26,115,232,.15);}
-.modality-card .mc-icon{font-size:1.6rem;margin-bottom:.35rem;}
-.modality-card .mc-label{font-weight:700;font-size:.78rem;color:#1d3c55;margin-bottom:.15rem;}
-.modality-card .mc-desc{font-size:.62rem;color:#6b7f8d;line-height:1.35;}
-.modality-card .mc-endpoint{font-size:.55rem;color:#999;margin-top:.3rem;font-family:'JetBrains Mono',monospace;}
-.modality-card.selected .mc-label{color:#1a5cff;}
-
-/* ===================== QUALITY GATE ===================== */
-.quality-gate{border-radius:14px;padding:1rem 1.2rem;margin-bottom:1rem;display:none;}
-.quality-gate.show{display:block;animation:fadeSlideIn .3s ease;}
-.quality-gate.good{background:linear-gradient(135deg,#e8f8f0,#f0faf5);border:1px solid #a8dfc0;}
-.quality-gate.warn{background:linear-gradient(135deg,#fff8e0,#fffdf0);border:1px solid #e8d090;}
-.quality-gate.bad{background:linear-gradient(135deg,#fde8ec,#fff0f2);border:1px solid #e8a0a8;}
-.quality-gate .qg-icon{font-size:1.3rem;margin-bottom:.3rem;}
-.quality-gate .qg-title{font-weight:700;font-size:.88rem;margin-bottom:.2rem;}
-.quality-gate .qg-detail{font-size:.72rem;line-height:1.5;opacity:.85;}
-
-/* ===================== PROVENANCE BADGE ===================== */
-.provenance-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .6rem;border-radius:6px;font-size:.6rem;font-weight:600;font-family:'JetBrains Mono',monospace;margin-top:.4rem;}
-.provenance-badge.real-model{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
-.provenance-badge.synthetic{background:#fff3e0;color:#e65100;border:1px solid #ffcc80;}
-.provenance-badge i{font-size:.55rem;}
-
-/* ===================== RISK METER ===================== */
-.risk-meter{margin:.8rem 0;}
-.risk-meter-bar{height:8px;border-radius:4px;background:#edf2f5;overflow:hidden;position:relative;}
-.risk-meter-fill{height:100%;border-radius:4px;transition:width .6s ease,background .6s ease;}
-.risk-meter-labels{display:flex;justify-content:space-between;margin-top:.3rem;font-size:.58rem;color:#8493a0;}
-.risk-meter-labels span.active{font-weight:700;color:#1d3c55;}
-
-/* ===================== SYSTEM STATUS PANEL ===================== */
-.sys-status-panel{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.7rem;margin-bottom:1rem;}
-.sys-status-item{background:#f8fbfd;border:1px solid #e2ebef;border-radius:10px;padding:.7rem .8rem;display:flex;align-items:center;gap:.6rem;}
-.sys-status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.sys-status-dot.online{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.4);}
-.sys-status-dot.offline{background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,.4);}
-.sys-status-dot.loading{background:#f59e0b;animation:pulse 1.2s infinite;}
-.sys-status-info .ssi-label{font-size:.62rem;color:#6b7f8d;text-transform:uppercase;letter-spacing:.04em;}
-.sys-status-info .ssi-value{font-size:.75rem;font-weight:600;color:#1d3c55;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-
-/* ===================== JUDGE MODE OVERLAY ===================== */
-.judge-overlay{position:fixed;inset:0;z-index:10000;background:rgba(8,23,36,.92);display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
-.judge-overlay.active{display:flex;}
-.judge-card{background:#fff;border-radius:20px;max-width:520px;width:92%;padding:2rem;box-shadow:0 24px 80px rgba(0,0,0,.3);position:relative;max-height:85vh;overflow-y:auto;}
-.judge-card .jc-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.1rem;color:#8493a0;cursor:pointer;}
-.judge-card h2{font-size:1.1rem;color:#1d3c55;margin-bottom:.2rem;}
-.judge-card .jc-sub{font-size:.72rem;color:#6b7f8d;margin-bottom:1.2rem;}
-.judge-step{display:flex;gap:.8rem;padding:.7rem 0;border-bottom:1px solid #f0f4f6;align-items:flex-start;}
-.judge-step .js-num{width:28px;height:28px;border-radius:50%;background:#edf2f5;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.72rem;color:#6b7f8d;flex-shrink:0;}
-.judge-step.active .js-num{background:#1a73e8;color:#fff;}
-.judge-step.done .js-num{background:#22c55e;color:#fff;}
-.judge-step .js-text{font-size:.78rem;color:#3d5a6e;line-height:1.5;}
-.judge-step .js-text strong{color:#1d3c55;}
-.judge-step.active .js-text{color:#1d3c55;font-weight:500;}
-.judge-footer{margin-top:1.2rem;text-align:right;}
-.judge-indicator{position:fixed;bottom:1.2rem;right:1.2rem;z-index:9999;background:#1a73e8;color:#fff;border:none;border-radius:50%;width:48px;height:48px;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 20px rgba(26,115,232,.35);display:none;}
-.judge-indicator.show{display:flex;align-items:center;justify-content:center;}
-
-/* ===================== PATIENT EXPLANATION ===================== */
-.patient-explainer{background:linear-gradient(135deg,#f0f9ff,#f8fbfd);border:1px solid #d0e4f0;border-radius:12px;padding:1rem 1.2rem;margin-top:.8rem;}
-.patient-explainer .pe-title{font-weight:700;font-size:.82rem;color:#1d3c55;margin-bottom:.3rem;display:flex;align-items:center;gap:.4rem;}
-.patient-explainer .pe-body{font-size:.76rem;color:#3d5a6e;line-height:1.65;}
-
-/* ===================== EXPORT STYLES ===================== */
-.export-scan-preview{max-width:200px;border-radius:8px;margin:.5rem 0;border:1px solid #edf2f5;}
-
-/* ===================== CONTRAST FIXES ===================== */
-.disclaimer-box{color:#4a5568 !important;}
-.ai-meta span{color:#5a6b7a !important;}
-.mode-status{color:#486271 !important;}
-.sidebar-disclaimer{color:#607d8b !important;}
-
-@keyframes fadeSlideIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
-
-/* ===================== SMS HANDOFF ===================== */
-.sms-section{margin-top:1rem;padding-top:1rem;border-top:1px solid #edf2f5;}
-.sms-section .sms-row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-top:.5rem;}
-.sms-section .sms-row input[type=tel]{flex:1;min-width:180px;padding:.45rem .7rem;border:1px solid #d0dbe2;border-radius:8px;font-size:.78rem;color:#1d3c55;background:#fafcfe;}
-.sms-section .sms-row input[type=tel]:focus{border-color:#1a73e8;outline:none;box-shadow:0 0 0 2px rgba(26,115,232,.15);}
-.sms-section .sms-row label.check{font-size:.7rem;color:#5a6b7a;display:flex;align-items:center;gap:.35rem;cursor:pointer;white-space:nowrap;}
-.sms-section .sms-row label.check input{accent-color:#1a73e8;}
-.sms-actions{margin-top:.6rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
-.sms-status{font-size:.62rem;font-weight:600;padding:.25rem .55rem;border-radius:5px;white-space:nowrap;}
-.sms-status.ready{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
-.sms-status.sent{background:#fff3e0;color:#e65100;border:1px solid #ffcc80;}
-.sms-note{font-size:.6rem;color:#8493a0;margin-top:.35rem;}
-
 </style>
 
 </section>
@@ -5173,148 +5013,6 @@ const SCAN_TYPE_TO_BACKEND = {
   heart: 'heart'
 };
 
-/* ===================== MODALITY CARDS ===================== */
-document.querySelectorAll('.modality-card').forEach(card=>{
-  card.addEventListener('click', ()=>{
-    document.querySelectorAll('.modality-card').forEach(c=>c.classList.remove('selected'));
-    card.classList.add('selected');
-    scanTypeSelect.value = card.dataset.scan;
-    _updateQualityGate(null);
-  });
-});
-
-/* ===================== PRE-SCAN QUALITY GATE ===================== */
-function _updateQualityGate(imgData){
-  const gate = document.getElementById('qualityGate');
-  const icon = document.getElementById('qgIcon');
-  const title = document.getElementById('qgTitle');
-  const detail = document.getElementById('qgDetail');
-  if(!imgData){
-    gate.classList.remove('show','good','warn','bad');
-    return;
-  }
-  let score = 100;
-  let issues = [];
-  const w = imgData.naturalWidth || imgData.width;
-  const h = imgData.naturalHeight || imgData.height;
-  if(w < 200 || h < 200){ score -= 30; issues.push('Low resolution ('+w+'x'+h+') — inference may be less reliable.'); }
-  else if(w < 500 || h < 500){ score -= 10; issues.push('Moderate resolution ('+w+'x'+h+').'); }
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  const tw = Math.min(w, 128), th = Math.min(h, 128);
-  canvas.width = tw; canvas.height = th;
-  ctx.drawImage(imgData, 0, 0, tw, th);
-  const px = ctx.getImageData(0, 0, tw, th).data;
-  let sum = 0, min = 255, max = 0;
-  for(let i=0; i<px.length; i+=4){ const v = (px[i]+px[i+1]+px[i+2])/3; sum += v; if(v<min) min=v; if(v>max) max=v; }
-  const avg = sum / (tw*th);
-  const range = max - min;
-  if(range < 15){ score -= 35; issues.push('Very low contrast — image may be nearly blank or overexposed.'); }
-  else if(range < 30){ score -= 15; issues.push('Low contrast — some detail may be lost.'); }
-  if(avg < 10){ score -= 25; issues.push('Very dark image — details may not be visible.'); }
-  else if(avg > 245){ score -= 25; issues.push('Very bright image — details may not be visible.'); }
-  score = Math.max(0, Math.min(100, score));
-  gate.classList.add('show');
-  gate.classList.remove('good','warn','bad');
-  if(score >= 80){
-    gate.classList.add('good');
-    icon.innerHTML = '<i class="fas fa-circle-check" style="color:#16a34a;"></i>';
-    title.textContent = 'Ready for Analysis';
-    detail.textContent = 'Image quality: ' + score + '/100. The image appears suitable for AI analysis.';
-  } else if(score >= 50){
-    gate.classList.add('warn');
-    icon.innerHTML = '<i class="fas fa-triangle-exclamation" style="color:#ca8a04;"></i>';
-    title.textContent = 'Improve Image Quality';
-    detail.textContent = 'Image quality: ' + score + '/100. ' + (issues.length ? issues.join(' ') : 'Consider uploading a clearer image for better results.');
-  } else {
-    gate.classList.add('bad');
-    icon.innerHTML = '<i class="fas fa-circle-xmark" style="color:#dc2626;"></i>';
-    title.textContent = 'Poor Image Quality';
-    detail.textContent = 'Image quality: ' + score + '/100. ' + (issues.length ? issues.join(' ') : 'This image may produce unreliable results. Please upload a different image.');
-  }
-}
-function _runQualityCheckOnFile(file){
-  return new Promise(resolve=>{
-    if(!file || !file.type.startsWith('image/')){ resolve(null); return; }
-    const img = new Image();
-    img.onload = function(){ _updateQualityGate(img); resolve(img); };
-    img.onerror = function(){ _updateQualityGate(null); resolve(null); };
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-/* ===================== SYSTEM STATUS ===================== */
-let lastResponseTime = null;
-async function refreshHealth(){
-  const setDot = (id, online, val) => {
-    const dot = document.getElementById(id+'Dot');
-    const valEl = document.getElementById(id+'Val');
-    if(dot){ dot.className = 'sys-status-dot ' + (online ? 'online' : 'offline'); }
-    if(valEl) valEl.textContent = val;
-  };
-  setDot('statusBackend', false, 'Checking...');
-  setDot('statusKidney', false, '—');
-  setDot('statusChest', false, '—');
-  setDot('statusBrain', false, '—');
-  setDot('statusHeart', false, '—');
-  document.getElementById('statusResponseVal').textContent = lastResponseTime ? lastResponseTime + 'ms' : '—';
-  document.getElementById('statusResponseDot').className = 'sys-status-dot ' + (lastResponseTime ? 'online' : 'loading');
-  try{
-    const t0 = performance.now();
-    const resp = await fetch('/api/health', {signal: AbortSignal.timeout(12000)});
-    const elapsed = Math.round(performance.now() - t0);
-    if(!resp.ok) throw new Error('HTTP ' + resp.status);
-    const data = await resp.json();
-    setDot('statusBackend', true, 'Connected (' + elapsed + 'ms)');
-    const models = data.models || {};
-    setDot('statusKidney', !!(models.kidney || models.kidney_stone), models.kidney || models.kidney_stone ? 'Loaded' : 'Unavailable');
-    setDot('statusChest', !!(models.chest || models.chest_pneumonia), models.chest || models.chest_pneumonia ? 'Loaded' : 'Unavailable');
-    setDot('statusBrain', !!(models.brain || models.brain_mri), models.brain || models.brain_mri ? 'Loaded' : 'Unavailable');
-    setDot('statusHeart', !!(models.heart || models.heart_cardiomegaly), models.heart || models.heart_cardiomegaly ? 'Loaded' : 'Unavailable');
-  } catch(e){
-    setDot('statusBackend', false, 'Offline — ' + e.message);
-    setDot('statusKidney', false, 'Unknown');
-    setDot('statusChest', false, 'Unknown');
-    setDot('statusBrain', false, 'Unknown');
-    setDot('statusHeart', false, 'Unknown');
-  }
-}
-document.getElementById('refreshStatusBtn').addEventListener('click', refreshHealth);
-if(document.getElementById('view-dashboard').classList.contains('active')) setTimeout(refreshHealth, 600);
-
-/* ===================== CLEAR SESSION DATA ===================== */
-document.getElementById('clearSessionBtn').addEventListener('click', ()=>{
-  if(!confirm('Clear all session reports? This cannot be undone.')) return;
-  sessionReports = [];
-  _saveReports();
-  renderHistory();
-  refreshDashboard();
-  toast('All session data cleared.', 'info');
-});
-
-/* ===================== JUDGE MODE ===================== */
-(function(){
-  const overlay = document.getElementById('judgeOverlay');
-  const indicator = document.getElementById('judgeIndicator');
-  const steps = overlay.querySelectorAll('.judge-step');
-  indicator.addEventListener('click', ()=>{ overlay.classList.add('active'); _judgeHighlightStep(0); });
-  document.getElementById('judgeCloseBtn').addEventListener('click', ()=>overlay.classList.remove('active'));
-  document.getElementById('judgeDismissBtn').addEventListener('click', ()=>{ overlay.classList.remove('active'); indicator.classList.remove('show'); });
-  document.getElementById('judgeStartDemoBtn').addEventListener('click', ()=>{
-    overlay.classList.remove('active');
-    indicator.classList.remove('show');
-    showView('analysis');
-  });
-  function _judgeHighlightStep(n){
-    steps.forEach((s,i)=>{
-      s.classList.remove('active','done');
-      if(i < n) s.classList.add('done');
-      else if(i === n) s.classList.add('active');
-    });
-  }
-  window.__ns_judgeAdvance = function(){ const cur = [...steps].findIndex(s=>s.classList.contains('active')); if(cur < steps.length-1) _judgeHighlightStep(cur+1); };
-})();
-
 /* ===================== DOM REFS ===================== */
 const fileInput = document.getElementById('fileInput');
 const uploadBox = document.getElementById('uploadBox');
@@ -5357,7 +5055,6 @@ function showView(name){
   if(name==='history') renderHistory();
   if(name==='patients') renderPatients();
   if(name==='compare') renderCompareOptions();
-  if(name==='dashboard') refreshHealth();
   closeSidebarMobile();
 }
 document.querySelectorAll('.nav-item').forEach(btn=>btn.addEventListener('click',()=>showView(btn.dataset.view)));
@@ -5475,7 +5172,6 @@ clearBtn.addEventListener('click', ()=>{
   document.getElementById('symptomsField').value='';
   document.getElementById('pipelineCard').style.display='none';
   document.getElementById('resultsGrid').style.display='none';
-  _resetSms();
 });
 function resetPlaceholder(){
   reportBody.innerHTML = `<div class="placeholder"><i class="fas fa-brain"></i><span>Upload scans &amp; run analysis</span><span style="font-size:.72rem;opacity:.4;">Illustrative output · clinical review required</span></div>`;
@@ -5610,7 +5306,6 @@ function runAnalysis(){
   if(uploadedFiles.length===0){ toast('Please upload at least one scan image.','error'); return; }
   const scanType = scanTypeSelect.value;
   const indication = clinicalIndication.value.trim() || 'Not specified.';
-  _resetSms();
 
   generateBtn.disabled = true;
   generateBtn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Analyzing...`;
@@ -5650,9 +5345,6 @@ setTimeout(async ()=>{
       throw new Error('No image file found.');
     }
 
-    await _runQualityCheckOnFile(imageFile);
-    if(window.__ns_judgeAdvance) window.__ns_judgeAdvance();
-
     const formData = new FormData();
     formData.append('image', imageFile);
 
@@ -5670,7 +5362,6 @@ const predictionEndpoints = {
     const timeoutId = setTimeout(function(){ controller.abort(); }, 90000);
 
     let response;
-    const fetchStart = performance.now();
     try {
       response = await fetch(
         predictionUrl,
@@ -5688,7 +5379,6 @@ const predictionEndpoints = {
       throw new Error('Network error: ' + fetchErr.message + '. Check your connection and try again.');
     }
     clearTimeout(timeoutId);
-    lastResponseTime = Math.round(performance.now() - fetchStart);
 
     if(!response.ok){
       var errBody = '';
@@ -5720,7 +5410,6 @@ const predictionEndpoints = {
     `;
 
     toast('Analysis failed: ' + error.message, 'error');
-    _resetSms();
 
   } finally {
 
@@ -5731,27 +5420,6 @@ const predictionEndpoints = {
   }
 
 }, 420*stepEls.length + 500);
-}
-
-/* ===================== PATIENT EXPLANATION GENERATOR ===================== */
-function _generatePatientExplanation(scanType, prediction, confidence, uncertain){
-  const organMap = { ct_kub:'kidney', chest_xray:'lungs', mri_brain:'brain', heart:'heart' };
-  const organ = organMap[scanType] || 'organ';
-  const pred = String(prediction).toLowerCase();
-  const abnormalMap = {
-    ct_kub: { stone: 'a possible kidney stone pattern was found', default: 'no kidney stone pattern was found' },
-    chest_xray: { pneumonia: 'a possible pneumonia pattern was found', default: 'no pneumonia pattern was found' },
-    mri_brain: { glioma:'a possible glioma pattern was found', meningioma:'a possible meningioma pattern was found', pituitary:'a possible pituitary lesion pattern was found', notumor:'no tumor pattern was found', 'no tumor':'no tumor pattern was found', normal:'no tumor pattern was found' },
-    heart: { true:'a possible cardiomegaly (enlarged heart) pattern was found', default: 'no cardiomegaly pattern was found' }
-  };
-  const scanAbnormal = (abnormalMap[scanType] && abnormalMap[scanType][pred]) || (abnormalMap[scanType] && abnormalMap[scanType].default) || 'a finding was detected';
-  let text = `The AI looked at your ${organ} scan and ${scanAbnormal}. `;
-  text += `The model is ${confidence}% confident in this result. `;
-  if(uncertain){
-    text += `However, the confidence is below the recommended threshold, which means this result is uncertain and needs to be reviewed by a qualified doctor. `;
-  }
-  text += `This is NOT a diagnosis. Please share this result with your doctor, who will review the original scan and your symptoms to give you a proper assessment.`;
-  return text;
 }
 
 function finalizeReport(scanType, indication, modelPrediction, modelConfidence, rawResult){
@@ -5861,36 +5529,18 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   const confBadge = document.getElementById('confBadge');
   confBadge.className = 'conf-badge ' + (confidence >= 80 ? 'conf-high' : confidence >= 60 ? 'conf-mod' : 'conf-low');
   confBadge.textContent = confidence >= 80 ? 'High confidence' : confidence >= 60 ? 'Moderate confidence' : 'Low confidence';
-
-  const provBadgeArea = document.getElementById('provenanceBadgeArea');
-  const realModel = provModel !== 'unknown' && provModel !== 'SYNTHETIC DEMO';
-  provBadgeArea.innerHTML = '<span class="provenance-badge ' + (realModel ? 'real-model' : 'synthetic') + '"><i class="fas fa-' + (realModel ? 'check-circle' : 'flask') + '"></i> ' + (realModel ? 'REAL MODEL: ' + provModel : 'DEMO / SYNTHETIC') + '</span>';
-
-  const riskMeterFill = document.getElementById('riskMeterFill');
-  const riskMeterPct = riskLevel === 'high' ? 85 : riskLevel === 'uncertain' ? 55 : 20;
-  const riskMeterColor = riskLevel === 'high' ? '#dc2626' : riskLevel === 'uncertain' ? '#ca8a04' : '#16a34a';
-  riskMeterFill.style.width = riskMeterPct + '%';
-  riskMeterFill.style.background = riskMeterColor;
-  document.getElementById('riskLabelLow').className = riskLevel === 'low' ? 'active' : '';
-  document.getElementById('riskLabelMod').className = riskLevel === 'uncertain' ? 'active' : '';
-  document.getElementById('riskLabelHigh').className = riskLevel === 'high' ? 'active' : '';
-
   const riskBadge = document.getElementById('riskBadge');
-  const riskDisplay = uncertain ? 'REQUIRES REVIEW' : riskLevel.toUpperCase();
   riskBadge.className = 'risk-badge risk-' + riskLevel;
-  riskBadge.innerHTML = `<i class="fas fa-circle-exclamation"></i> ${riskDisplay}`;
-  document.getElementById('riskWhy').textContent = uncertain ? `Confidence ${confidence}% is below threshold (${confThreshold}%). This result requires qualified clinical review.` : `Prototype result only. Confidence: ${confidence}%. Qualified clinical review is required.`;
+  riskBadge.innerHTML = `<i class="fas fa-circle-exclamation"></i> ${riskLevel.toUpperCase()}`;
+  document.getElementById('riskWhy').textContent = `Prototype result only. Confidence: ${confidence}%. Qualified clinical review is required.`;
 
   const findingsBlock = currentMode === 'doctor' ? doctorText : patientText;
   const provTimestamp = prov.timestamp ? new Date(prov.timestamp).toLocaleString('en-US', {dateStyle:'medium', timeStyle:'short'}) : '—';
-  const isRealModel = provModel !== 'unknown' && provModel !== 'SYNTHETIC DEMO';
-  const modelAssessmentBlock = '<div class="report-section"><div class="section-title"><i class="fas fa-microchip"></i> MODEL ASSESSMENT</div><div class="content"><b>' + inputLabel + '</b> output: <b>' + outputLabel + '</b><br/>Confidence: <b>' + confidence + '%</b><br/>Model: ' + provModel + ' (v' + (prov.version || '—') + ')<br/>Inference: ' + provInference + '<br/>Timestamp: ' + provTimestamp + '<br/>' + scopeText + '<br/><span class="provenance-badge ' + (isRealModel ? 'real-model' : 'synthetic') + '"><i class="fas fa-' + (isRealModel ? 'check-circle' : 'flask') + '"></i> ' + (isRealModel ? 'REAL MODEL INFERENCE — ' + provModel : 'SYNTHETIC / DEMO RESULT') + '</span></div></div>';
+  const modelAssessmentBlock = '<div class="report-section"><div class="section-title"><i class="fas fa-microchip"></i> MODEL ASSESSMENT</div><div class="content"><b>' + inputLabel + '</b> output: <b>' + outputLabel + '</b><br/>Confidence: <b>' + confidence + '%</b><br/>Model: ' + provModel + ' (v' + (prov.version || '—') + ')<br/>Inference: ' + provInference + '<br/>Timestamp: ' + provTimestamp + '<br/>' + scopeText + '</div></div>';
   const emergencyBlock = `<div class="emergency-box"><div class="title"><i class="fas fa-triangle-exclamation"></i> SEEK URGENT CARE IF:</div>${emergency}</div>`;
   const doctorActionBlock = `<div class="report-section doctor-note"><div class="section-title"><i class="fas fa-user-doctor"></i> DOCTOR ACTIONS</div><div class="content">Review the original ${inputLabel} and confirm the AI output with the clinical history, examination, and complete study. Document the final clinician interpretation separately. Do not use this prototype result alone for diagnosis or treatment decisions.</div></div>`;
   const patientGuidanceBlock = `<div class="report-section"><div class="section-title"><i class="fas fa-person"></i> PATIENT GUIDANCE</div><div class="content">This is an AI-assisted educational screening or classification result, not a diagnosis. Share it with a qualified healthcare professional and follow the clinical advice you receive. ${emergency}</div></div>`;
   const uncertainBlock = uncertain ? `<div class="doctor-note"><strong><i class="fas fa-circle-question"></i> UNCERTAIN RESULT</strong><br/>Confidence is below the configured threshold (${confThreshold}%). Qualified clinical review is recommended.</div>` : '';
-  const patientExplainerBlock = currentMode === 'patient' ? `<div class="patient-explainer"><div class="pe-title"><i class="fas fa-language"></i> In Simple Terms</div><div class="pe-body">${_generatePatientExplanation(scanType, prediction, confidence, uncertain)}</div></div>` : '';
-  const explainabilityFailBlock = `<div class="report-section"><div class="section-title"><i class="fas fa-eye"></i> EXPLAINABILITY</div><div class="content">The attention heatmap shows which regions of the image most influenced the model. Toggle between the Original and Attention Heatmap views above. <em>Note: attention maps are an approximation and do not constitute a lesion segmentation or diagnosis.</em></div></div>`;
   const evidenceSummaryBlock = `<div class="doctor-note" style="border-left:4px solid #2b8cc4;background:linear-gradient(135deg,#eef9fb,#fff8e8);"><div class="section-title"><i class="fas fa-sparkles"></i> AI EVIDENCE SUMMARY <span style="font-size:.58rem;opacity:.7;margin-left:auto;">REPORT ENGINE 3.0</span></div><div class="content"><b>Input:</b> ${inputLabel} · <b>Output:</b> ${outputLabel} · <b>Confidence:</b> ${confidence}%<br/><b>What this means:</b> The model produced an educational prototype result for the selected modality. It does not replace clinical interpretation.</div></div>`;
   const provenanceDebugBlock = '<div style="margin-top:.5rem;padding:.5rem .7rem;border-radius:8px;background:#f0f4f7;border:1px solid #d7e0e8;font:500 .62rem/1.5 JetBrains Mono,monospace;color:#4a5568;word-break:break-all;"><i class="fas fa-fingerprint" style="margin-right:.3rem;color:#6b7280;"></i> <b style="color:#2d3748;">Provenance:</b> Model: ' + provModel + ' | Class: ' + prediction + ' | Confidence: ' + confidence + '% | Field: ' + provField + ' | Inference: ' + provInference + '</div>';
   const reportHTML = `
@@ -5903,8 +5553,6 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
     <div class="report-section"><div class="section-title"><i class="fas fa-clipboard-check"></i> IMPRESSION</div><div class="content">${uncertain ? 'Uncertain — see below.' : label}</div></div>
     ${uncertainBlock}
     <div class="report-section"><div class="section-title"><i class="fas fa-list-check"></i> AI-GUIDED NEXT STEPS</div><div class="content">${recommendations}</div></div>
-    ${patientExplainerBlock}
-    ${explainabilityFailBlock}
     ${doctorActionBlock}
     ${patientGuidanceBlock}
     ${emergencyBlock}
@@ -5918,7 +5566,6 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   currentOpenReportId = reportId;
   refreshDashboard();
   toast('Analysis complete — organ-specific report generated.', 'info');
-  _enableSms(scanType, uncertain ? 'Uncertain' : label, confidence, uncertain, nowStr);
 }
 
 /* explainability toggle */
@@ -6031,11 +5678,6 @@ copyBtn.addEventListener('click', ()=>{
 printBtn.addEventListener('click', ()=>{
   const content = reportBody.innerHTML;
   if(!content || content.includes('Upload scans')){ toast('No report to print yet.','warn'); return; }
-  const scanPreviewImg = document.getElementById('explainImg');
-  const scanPreviewSrc = (scanPreviewImg && scanPreviewImg.style.display !== 'none' && scanPreviewImg.src) ? scanPreviewImg.src : '';
-  const scanPreviewHTML = scanPreviewSrc ? '<div style="margin-bottom:1rem;"><img src="'+scanPreviewSrc+'" style="max-width:200px;border-radius:8px;border:1px solid #e2ebef;" /><div style="font-size:.62rem;color:#8493a0;margin-top:.2rem;">Scan preview</div></div>' : '';
-  const modalityLabels = { ct_kub:'Kidney Scan', chest_xray:'Chest X-ray', mri_brain:'Brain MRI', heart:'Heart X-ray' };
-  const modLabel = modalityLabels[scanTypeSelect.value] || scanTypeSelect.value;
   const win = window.open('','_blank','width=900,height=700');
   if(win){
     win.document.write(`<html><head><title>NephroScan AI Report</title><style>
@@ -6046,110 +5688,9 @@ printBtn.addEventListener('click', ()=>{
       .doctor-note{background:rgba(0,184,148,.04);border:1px solid rgba(0,184,148,.06);padding:1rem;border-radius:12px;}
       .disclaimer-box{border:1px dashed rgba(255,255,255,.15);padding:.8rem;border-radius:10px;font-size:.78rem;color:rgba(255,255,255,.55);}
       .ai-meta{margin-top:1rem;font-size:.72rem;color:rgba(255,255,255,.35);display:flex;gap:1rem;flex-wrap:wrap;}
-      .patient-explainer{background:rgba(26,115,232,.06);border:1px solid rgba(26,115,232,.12);padding:1rem;border-radius:12px;}
-      .provenance-badge{display:inline-block;padding:.2rem .5rem;border-radius:4px;font-size:.6rem;font-weight:600;margin-top:.3rem;}
-      .provenance-badge.real-model{background:rgba(46,125,50,.12);color:#81c784;border:1px solid rgba(46,125,50,.2);}
-      .provenance-badge.synthetic{background:rgba(230,81,0,.08);color:#ffb74d;border:1px solid rgba(230,81,0,.15);}
-    </style></head><body>
-      <div style="text-align:center;margin-bottom:1.5rem;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:1rem;">
-        <div style="font-size:1.2rem;font-weight:700;color:#fff;">NephroScan AI Report</div>
-        <div style="font-size:.72rem;color:#8493a0;">Modality: ${modLabel} · Generated: ${new Date().toLocaleString('en-US',{dateStyle:'long',timeStyle:'short'})}</div>
-      </div>
-      ${scanPreviewHTML}
-      ${content}
-      <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.1);font-size:.62rem;color:rgba(255,255,255,.3);text-align:center;">
-        This report is generated by an AI-assisted educational prototype and does not constitute a medical diagnosis.<br/>
-        NephroScan AI v2.1.0 · All models run on CPU · Not a medical device
-      </div>
-    </body></html>`);
+    </style></head><body>${content}</body></html>`);
     win.document.close(); win.print();
   } else toast('Please allow popups to print.','error');
-});
-
-/* ===================== SMS HANDOFF ===================== */
-let _smsReady = false;
-let _smsSummaryText = '';
-const smsPhoneTop = document.getElementById('smsPhone');
-const smsConsentTop = document.getElementById('smsConsent');
-const smsPhoneInline = document.getElementById('smsPhoneInline');
-const smsConsentInline = document.getElementById('smsConsentInline');
-const smsSection = document.getElementById('smsSection');
-const prepareSmsBtn = document.getElementById('prepareSmsBtn');
-const copySmsBtn = document.getElementById('copySmsBtn');
-const smsStatusLabel = document.getElementById('smsStatusLabel');
-const smsNote = document.getElementById('smsNote');
-
-function _syncSmsFields(){
-  if(smsPhoneTop && smsPhoneInline){
-    smsPhoneInline.value = smsPhoneTop.value;
-    smsConsentInline.checked = smsConsentTop.checked;
-  }
-}
-if(smsPhoneTop) smsPhoneTop.addEventListener('input', _syncSmsFields);
-if(smsConsentTop) smsConsentTop.addEventListener('change', _syncSmsFields);
-if(smsPhoneInline) smsPhoneInline.addEventListener('input', function(){ if(smsPhoneTop) smsPhoneTop.value = this.value; _updateSmsButton(); });
-if(smsConsentInline) smsConsentInline.addEventListener('change', function(){ if(smsConsentTop) smsConsentTop.checked = this.checked; _updateSmsButton(); });
-
-function _isValidPhone(p){
-  if(!p) return false;
-  var digits = p.replace(/[\s\-().]/g, '');
-  if(digits.length < 8 || digits.length > 20) return false;
-  return /^\+\d{7,19}$/.test(digits);
-}
-function _updateSmsButton(){
-  var phone = (smsPhoneInline && smsPhoneInline.value || smsPhoneTop && smsPhoneTop.value || '').trim();
-  var consent = (smsConsentInline && smsConsentInline.checked) || (smsConsentTop && smsConsentTop.checked);
-  var canPrepare = _isValidPhone(phone) && consent && _smsReady;
-  if(prepareSmsBtn) prepareSmsBtn.disabled = !canPrepare;
-}
-if(smsPhoneTop) smsPhoneTop.addEventListener('input', _updateSmsButton);
-if(smsConsentTop) smsConsentTop.addEventListener('change', _updateSmsButton);
-if(smsPhoneInline) smsPhoneInline.addEventListener('input', _updateSmsButton);
-if(smsConsentInline) smsConsentInline.addEventListener('change', _updateSmsButton);
-
-function _resetSms(){
-  _smsReady = false;
-  _smsSummaryText = '';
-  smsSection.style.display = 'none';
-  prepareSmsBtn.disabled = true;
-  copySmsBtn.style.display = 'none';
-  smsStatusLabel.style.display = 'none';
-  smsNote.textContent = 'Prepared message will open your device SMS app. You must press Send yourself. The SMS is not sent automatically.';
-}
-function _enableSms(scanType, prediction, confidence, uncertain, nowStr){
-  var modLabels = { ct_kub:'Kidney', chest_xray:'Chest X-ray', mri_brain:'Brain MRI', heart:'Heart X-ray' };
-  var mod = modLabels[scanType] || scanType;
-  var review = uncertain ? 'REQUIRES REVIEW' : 'Completed';
-  var disclaimer = 'AI research prototype; not a medical diagnosis. Confirm with a qualified clinician.';
-  _smsSummaryText = 'NephroScan AI Report\nModality: ' + mod + '\nResult: ' + prediction + '\nConfidence: ' + confidence + '%\nReview: ' + review + '\nTime: ' + nowStr + '\n' + disclaimer;
-  _smsReady = true;
-  smsSection.style.display = 'block';
-  prepareSmsBtn.disabled = true;
-  copySmsBtn.style.display = 'none';
-  smsStatusLabel.style.display = 'none';
-  smsNote.textContent = 'Prepared message will open your device SMS app. You must press Send yourself. The SMS is not sent automatically.';
-  _syncSmsFields();
-  _updateSmsButton();
-}
-if(prepareSmsBtn) prepareSmsBtn.addEventListener('click', function(){
-  var phone = (smsPhoneInline && smsPhoneInline.value || smsPhoneTop && smsPhoneTop.value || '').trim();
-  var digits = phone.replace(/[\s\-().]/g, '');
-  if(!_isValidPhone(digits)){ toast('Enter a valid number with country code (e.g. +91 9876543210).','warn'); return; }
-  var url = 'sms:' + encodeURIComponent(digits) + '?body=' + encodeURIComponent(_smsSummaryText);
-  window.location.href = url;
-  prepareSmsBtn.disabled = true;
-  copySmsBtn.style.display = 'inline-flex';
-  smsStatusLabel.style.display = 'inline-flex';
-  smsNote.textContent = 'SMS prepared. Your device SMS app should have opened. Press Send to deliver — NephroScan AI did NOT send the SMS.';
-});
-if(copySmsBtn) copySmsBtn.addEventListener('click', function(){
-  if(!_smsSummaryText){ toast('No SMS text to copy.','warn'); return; }
-  navigator.clipboard.writeText(_smsSummaryText).then(function(){
-    var orig = copySmsBtn.innerHTML;
-    copySmsBtn.innerHTML = '<i class="fas fa-check" style="color:var(--success);"></i>';
-    setTimeout(function(){ copySmsBtn.innerHTML = orig; }, 1500);
-    toast('SMS text copied to clipboard.','info');
-  }).catch(function(){ toast('Could not copy — select and copy manually.','error'); });
 });
 
 /* ===================== DASHBOARD ===================== */
@@ -6228,9 +5769,8 @@ function renderHistory(){
 
   if(rows.length===0){ wrap.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i>No reports match this view yet.</div>`; return; }
 
-  const modShort = { ct_kub:'Kidney', chest_xray:'Chest', mri_brain:'Brain', heart:'Heart' };
-  wrap.innerHTML = `<table class="data-table"><thead><tr><th>Patient</th><th>Modality</th><th>Finding</th><th>Confidence</th><th>Risk</th><th>Doctor</th><th>Date</th><th>Actions</th></tr></thead><tbody>
-    ${rows.map(r=>`<tr><td>${r.patientName}</td><td style="font-size:.7rem;white-space:nowrap;">${modShort[r.scanType]||r.scanType}</td><td>${statusChip(r)}</td><td style="font-size:.72rem;font-weight:600;">${r.confidence}%</td><td style="font-size:.68rem;">${r.riskLevel==='high'?'<span style="color:#dc2626;font-weight:600;">High</span>':r.uncertain?'<span style="color:#ca8a04;font-weight:600;">Review</span>':'<span style="color:#16a34a;">Low</span>'}</td><td>${r.doctor}</td><td>${r.dateStr}</td>
+  wrap.innerHTML = `<table class="data-table"><thead><tr><th>Patient</th><th>Finding</th><th>Doctor</th><th>Date</th><th>Actions</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${r.patientName}</td><td>${statusChip(r)}</td><td>${r.doctor}</td><td>${r.dateStr}</td>
       <td class="row-actions">
         <button title="View" onclick="window.__ns_viewReport('${r.id}')"><i class="fas fa-eye"></i></button>
         <button title="Print" onclick="window.__ns_printReport('${r.id}')"><i class="fas fa-print"></i></button>
@@ -6503,33 +6043,8 @@ renderPreviews();
 clinicalIndication.value = 'Haematuria for 2 weeks — investigate renal cause.';
 refreshDashboard();
 setMode('doctor');
-setTimeout(refreshHealth, 400);
 })();
 </script>
-<!-- JUDGE MODE OVERLAY -->
-<div class="judge-overlay" id="judgeOverlay">
-  <div class="judge-card">
-    <button class="jc-close" id="judgeCloseBtn"><i class="fas fa-xmark"></i></button>
-    <h2><i class="fas fa-gavel"></i> NephroScan AI — Judge Walkthrough</h2>
-    <div class="jc-sub">Step-by-step guide for demo presentation. Follow each step to showcase the full AI pipeline.</div>
-    <div id="judgeSteps">
-      <div class="judge-step" data-step="1"><div class="js-num">1</div><div class="js-text"><strong>Select Modality</strong> — Choose an organ system from the cards above (Kidney, Chest, Brain, or Heart).</div></div>
-      <div class="judge-step" data-step="2"><div class="js-num">2</div><div class="js-text"><strong>Load a Scan</strong> — Upload a medical image or click "Load Demo Case" for a pre-built example.</div></div>
-      <div class="judge-step" data-step="3"><div class="js-num">3</div><div class="js-text"><strong>Quality Gate</strong> — The system validates the image quality before inference.</div></div>
-      <div class="judge-step" data-step="4"><div class="js-num">4</div><div class="js-text"><strong>AI Inference</strong> — Click "Run Analysis". The PyTorch model processes the image (typically under 200ms).</div></div>
-      <div class="judge-step" data-step="5"><div class="js-num">5</div><div class="js-text"><strong>Confidence &amp; Risk</strong> — Review the model confidence score and AI risk indicator.</div></div>
-      <div class="judge-step" data-step="6"><div class="js-num">6</div><div class="js-text"><strong>Explainability</strong> — Toggle the Attention Heatmap to see which regions influenced the model.</div></div>
-      <div class="judge-step" data-step="7"><div class="js-num">7</div><div class="js-text"><strong>Report Generation</strong> — A structured clinical report is generated with findings, recommendations, and emergency guidance.</div></div>
-      <div class="judge-step" data-step="8"><div class="js-num">8</div><div class="js-text"><strong>Session Timeline</strong> — All analyses are tracked in Report History and Patients views with full provenance.</div></div>
-      <div class="judge-step" data-step="9"><div class="js-num">9</div><div class="js-text"><strong>System Status</strong> — Backend health, model availability, and response times are shown on the Dashboard.</div></div>
-    </div>
-    <div class="judge-footer">
-      <button class="btn btn-primary" id="judgeStartDemoBtn"><i class="fas fa-play"></i> Start Guided Demo</button>
-      <button class="btn btn-secondary" id="judgeDismissBtn" style="margin-left:.5rem;">Dismiss</button>
-    </div>
-  </div>
-</div>
-<button class="judge-indicator show" id="judgeIndicator" title="Judge Mode Walkthrough"><i class="fas fa-gavel"></i></button>
 <script src="expo-presence.js?v=20260817-fix3"></script>
 </body>
 </html>
