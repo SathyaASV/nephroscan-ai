@@ -2261,7 +2261,6 @@ table.data-table tr:hover td {
       <div class="nav-label">Workspace</div>
       <button class="nav-item active" data-view="dashboard"><i class="fas fa-gauge-high"></i> Dashboard</button>
       <button class="nav-item" data-view="analysis"><i class="fas fa-circle-notch"></i> New Analysis</button>
-      <button class="nav-item" data-view="expo-presence"><i class="fas fa-camera"></i> Expo Human Presence</button>
       <button class="nav-item" data-view="history"><i class="fas fa-clock-rotate-left"></i> Report History</button>
       <button class="nav-item" data-view="patients"><i class="fas fa-user-injured"></i> Patients</button>
       <button class="nav-item" data-view="compare"><i class="fas fa-code-compare"></i> Compare Scans</button>
@@ -2385,6 +2384,14 @@ table.data-table tr:hover td {
     <div class="section-heading">
       <i class="fas fa-id-card"></i>
       Patient &amp; Clinical Information
+    </div>
+
+    <div class="field-group" style="margin-bottom:.8rem;">
+      <label><i class="fas fa-mobile-screen-button"></i> Mobile number for report SMS <span style="opacity:.45;">(optional)</span></label>
+      <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+        <input type="tel" id="smsPhone" placeholder="+91 9876543210" style="flex:1;min-width:180px;padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;" />
+        <label style="display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:#5a6b7a;cursor:pointer;"><input type="checkbox" id="smsConsent" /> I agree to prepare this X-ray report for SMS delivery</label>
+      </div>
     </div>
 
     <div class="two-col">
@@ -2858,6 +2865,13 @@ table.data-table tr:hover td {
 
     </div>
 
+    <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.6rem 1.6rem;background:#fff;">
+      <button class="btn btn-primary" id="prepareSmsBtn" disabled style="font-size:.72rem;padding:.4rem .9rem;"><i class="fas fa-comment-sms"></i> Prepare Report SMS</button>
+      <button class="btn btn-secondary" id="copySmsBtn" style="font-size:.68rem;padding:.35rem .7rem;display:none;"><i class="fas fa-copy"></i> Copy SMS Text</button>
+      <span id="smsStatusLabel" style="font-size:.62rem;font-weight:600;display:none;">SMS READY — USER MUST PRESS SEND</span>
+      <span id="smsNote" style="font-size:.6rem;color:#8493a0;">SMS is prepared, not sent. You must press Send.</span>
+    </div>
+
 
     <div
       class="report-body"
@@ -2971,86 +2985,6 @@ table.data-table tr:hover td {
         <div class="section-heading"><i class="fas fa-comment-medical"></i> NephroBot — AI Health Assistant</div>
         <p style="font-size:.8rem;color:#5a6b7a;margin-bottom:1rem;">Open the chat panel in the corner to ask about your most recent report, medical terms, or general health questions. NephroBot explains — it does not diagnose or prescribe.</p>
         <button class="btn btn-primary" id="openBotFromView"><i class="fas fa-comments"></i> Open NephroBot</button>
-      </div>
-    </section>
-
-    <!-- ===================== EXPO HUMAN-PRESENCE VIEW ===================== -->
-    <section class="view" id="view-expo-presence">
-      <div class="card expo-presence-card">
-        <div class="section-heading"><i class="fas fa-fire"></i> Software Thermal Proxy Dashboard</div>
-        <p class="expo-presence-lead">Real-time <strong>MOTION / PRESENCE VISUALIZATION</strong> from a standard optical webcam using an <strong>RGB SOFTWARE PROXY</strong>. This is a <strong>Software Thermal Proxy — Not an Infrared Measurement</strong>. An ordinary webcam cannot measure absolute temperature or detect fever.</p>
-        <div class="expo-presence-actions">
-          <button class="btn btn-primary" id="presenceStartBtn"><i class="fas fa-video"></i> Start Camera</button>
-          <button class="btn btn-secondary" id="presenceStopBtn" disabled><i class="fas fa-video-slash"></i> Stop Camera</button>
-          <button class="btn btn-secondary" id="presenceClearBtn"><i class="fas fa-trash"></i> Clear Log</button>
-        </div>
-        <div class="expo-presence-grid">
-          <div class="expo-video-panel">
-            <div class="expo-panel-title"><i class="fas fa-eye"></i> RGB Software Proxy</div>
-            <div class="expo-video-frame">
-              <video id="presenceVideo" autoplay playsinline muted></video>
-              <canvas id="presenceRgbCanvas"></canvas>
-              <div class="expo-camera-placeholder" id="presencePlaceholder">Press Start Camera to begin</div>
-            </div>
-          </div>
-          <div class="expo-video-panel">
-            <div class="expo-panel-title"><i class="fas fa-temperature-half"></i> Software Thermal Proxy</div>
-            <div class="expo-video-frame">
-              <canvas id="presenceThermalCanvas"></canvas>
-              <div class="expo-thermal-label">SOFTWARE THERMAL PROXY</div>
-            </div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:1rem;">
-          <div style="background:#f4f8fa;border:1px solid #d7e5eb;border-radius:12px;padding:.8rem;">
-            <div style="font-size:.72rem;font-weight:700;color:#1e5871;margin-bottom:.5rem;"><i class="fas fa-chart-line"></i> EMULATED INDEX</div>
-            <div style="display:flex;align-items:baseline;gap:.5rem;">
-              <span id="thermalIndexVal" style="font:700 1.8rem JetBrains Mono,monospace;color:#c94c5d;">—</span>
-              <span style="font:.62rem JetBrains Mono,monospace;color:#8493a0;">RELATIVE PROXY</span>
-            </div>
-            <div style="font-size:.62rem;color:#8493a0;margin-top:.3rem;">NOT AN INFRARED MEASUREMENT</div>
-          </div>
-          <div style="background:#f4f8fa;border:1px solid #d7e5eb;border-radius:12px;padding:.8rem;">
-            <div style="font-size:.72rem;font-weight:700;color:#1e5871;margin-bottom:.5rem;"><i class="fas fa-gauge-high"></i> Performance</div>
-            <div style="font:.68rem JetBrains Mono,monospace;color:#3d5a6e;line-height:1.8;">
-              FPS: <span id="thermalFpsVal" style="color:#168a62;">—</span><br/>
-              Latency: <span id="thermalLatencyVal" style="color:#168a62;">—</span> ms
-            </div>
-          </div>
-          <div style="background:#f4f8fa;border:1px solid #d7e5eb;border-radius:12px;padding:.8rem;">
-            <div style="font-size:.72rem;font-weight:700;color:#1e5871;margin-bottom:.5rem;"><i class="fas fa-chart-area"></i> Rolling Proxy Chart</div>
-            <canvas id="thermalChartCanvas" width="280" height="80" style="width:100%;height:80px;border-radius:6px;background:#fff;"></canvas>
-          </div>
-        </div>
-        <div id="presenceReport" style="background:#f4f8fa;border:1px solid #d7e5eb;border-radius:12px;padding:.8rem;margin-top:1rem;">
-          <div style="font-size:.72rem;font-weight:700;color:#1e5871;margin-bottom:.5rem;"><i class="fas fa-chart-bar"></i> LIVE PROXY REPORT</div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.5rem;font-size:.72rem;font-family:'JetBrains Mono',monospace;color:#3d5a6e;line-height:1.8;">
-            <div>RELATIVE PROXY INDEX: <span id="reportProxyIndex" style="color:#c94c5d;font-weight:700;">\u2014</span></div>
-            <div>RAW LUMA INDEX: <span id="reportLuma" style="color:#168a62;font-weight:700;">\u2014</span></div>
-            <div>STATUS: <span id="reportStatus" style="font-weight:700;">\u2014</span></div>
-            <div>MOTION: <span id="reportMotion" style="font-weight:700;">\u2014</span></div>
-            <div>SAMPLES: <span id="reportSamples" style="font-weight:700;">\u2014</span> / 15</div>
-            <div>UPTIME: <span id="reportUptime" style="font-weight:700;">\u2014</span></div>
-          </div>
-          <div style="margin-top:.5rem;font-size:.6rem;color:#9aa7b2;border-top:1px solid #edf2f5;padding-top:.4rem;">Disclosure: Calculated from ordinary webcam brightness; not an infrared or medical temperature reading.</div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
-          <div style="background:#f4f8fa;border:1px solid #d7e5eb;border-radius:12px;padding:.8rem;">
-            <div style="font-size:.72rem;font-weight:700;color:#1e5871;margin-bottom:.5rem;"><i class="fas fa-palette"></i> Color Legend</div>
-            <div style="height:16px;border-radius:4px;background:linear-gradient(90deg,#000004,#1b0c41,#4a0c6b,#781c6d,#a52c60,#cf4446,#ed6925,#fb9b06,#f7d13d,#fcffa4);margin-bottom:.3rem;"></div>
-            <div style="display:flex;justify-content:space-between;font:.6rem JetBrains Mono,monospace;color:#5a6b7a;"><span>COOL</span><span>WARM</span></div>
-          </div>
-          <div style="background:#f4f8fa;border:1px solid #d7e5eb;border-radius:12px;padding:.8rem;">
-            <div style="font-size:.72rem;font-weight:700;color:#1e5871;margin-bottom:.5rem;"><i class="fas fa-circle-question"></i> How This Works</div>
-            <div style="font-size:.65rem;color:#5a6b7a;line-height:1.6;">RGB luminance from the webcam is normalized to 0–1 intensity, temporally smoothed, then mapped through an Inferno-style color map to produce the <b>SOFTWARE THERMAL PROXY</b> visualization. No infrared sensor is used. This demonstrates remote camera access and sensor-visualization methodology.</div>
-          </div>
-        </div>
-        <div class="expo-status-row"><span id="presenceStatus">STATUS: CAMERA NOT STARTED</span><span>SOFTWARE THERMAL PROXY — NOT AN INFRARED MEASUREMENT</span></div>
-        <div class="expo-disclaimer"><i class="fas fa-circle-info"></i> <strong>Scientific boundary:</strong> An ordinary webcam cannot measure absolute body temperature. All values are <strong>RELATIVE PROXY</strong> — software-generated emulation labels for this educational prototype. They are not clinical measurements and must not be used for diagnosis or triage.</div>
-      </div>
-      <div class="card expo-presence-card">
-        <div class="section-heading"><i class="fas fa-list-check"></i> Tracking Log</div>
-        <div class="expo-table-wrap"><table class="expo-presence-table"><thead><tr><th>Time</th><th>ID</th><th>Proxy Index</th><th>Trend</th><th>Status</th></tr></thead><tbody id="presenceLogBody"><tr><td colspan="5" class="expo-empty-log">No data yet. Start the camera to begin.</td></tr></tbody></table></div>
       </div>
     </section>
 
@@ -5179,6 +5113,7 @@ function resetPlaceholder(){
 
 /* ===================== DEMO CASE ===================== */
 var DEMO_CASES = [
+  { key:'kidney_stone', label:'Abnormal Kidney (Stone)', img:'demo_assets/kidney_stone.png', scanType:'ct_kub', indication:'Haematuria for 2 weeks — investigate renal cause.', patient:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', name:'kidney_stone.png' },
   { key:'chest_normal', label:'Normal Chest / Lungs', img:'demo_assets/chest_normal_real.png', scanType:'chest_xray', indication:'Annual health checkup — rule out pneumonia.', patient:'Demo Patient (Chest)', age:'45', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Mild cough for 3 days', name:'chest_normal_real.png' },
   { key:'brain_glioma', label:'Abnormal Brain (Glioma)', img:'demo_assets/brain_glioma_real.jpg', scanType:'mri_brain', indication:'New-onset seizures — evaluate for intracranial lesion.', patient:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures, progressive headache', name:'brain_glioma_real.jpg' },
   { key:'heart_cardio', label:'Abnormal Heart (Cardiomegaly)', img:'demo_assets/heart_cardio_real.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'heart_cardio_real.png' }
@@ -5566,6 +5501,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   currentOpenReportId = reportId;
   refreshDashboard();
   toast('Analysis complete — organ-specific report generated.', 'info');
+  _smsEnable(scanType, uncertain ? 'Uncertain' : label, confidence, uncertain, nowStr);
 }
 
 /* explainability toggle */
@@ -5691,6 +5627,43 @@ printBtn.addEventListener('click', ()=>{
     </style></head><body>${content}</body></html>`);
     win.document.close(); win.print();
   } else toast('Please allow popups to print.','error');
+});
+
+/* ===================== SMS HANDOFF ===================== */
+var _smsReady = false;
+var _smsSummaryText = '';
+var smsPhoneEl = document.getElementById('smsPhone');
+var smsConsentEl = document.getElementById('smsConsent');
+var prepareSmsBtn = document.getElementById('prepareSmsBtn');
+var copySmsBtn = document.getElementById('copySmsBtn');
+var smsStatusLabel = document.getElementById('smsStatusLabel');
+var smsNote = document.getElementById('smsNote');
+function _smsReset(){ _smsReady=false; _smsSummaryText=''; if(prepareSmsBtn) prepareSmsBtn.disabled=true; if(copySmsBtn) copySmsBtn.style.display='none'; if(smsStatusLabel) smsStatusLabel.style.display='none'; if(smsNote) smsNote.textContent='SMS is prepared, not sent. You must press Send.'; }
+function _smsUpdate(){ var good = smsPhoneEl && smsConsentEl && _smsReady && /^\+\d{7,15}$/.test((smsPhoneEl.value||'').replace(/[\s-]/g,'')) && smsConsentEl.checked; if(prepareSmsBtn) prepareSmsBtn.disabled = !good; }
+if(smsPhoneEl) smsPhoneEl.addEventListener('input', _smsUpdate);
+if(smsConsentEl) smsConsentEl.addEventListener('change', _smsUpdate);
+function _smsEnable(scanType, prediction, confidence, uncertain, nowStr){
+  var mods = { ct_kub:'Kidney scan', chest_xray:'Chest X-ray', mri_brain:'Brain MRI', heart:'Heart X-ray' };
+  var mod = mods[scanType] || scanType;
+  _smsSummaryText = 'NephroScan AI Report | Modality: ' + mod + ' | Result: ' + prediction + ' | Confidence: ' + confidence + '% | Review: ' + (uncertain ? 'REQUIRES REVIEW' : 'Completed') + ' | Time: ' + nowStr + ' | AI research prototype; not a medical diagnosis. Confirm with a qualified clinician.';
+  _smsReady = true;
+  _smsUpdate();
+}
+if(prepareSmsBtn) prepareSmsBtn.addEventListener('click', function(){
+  var num = (smsPhoneEl.value||'').replace(/[\s-]/g,'');
+  window.location.href = 'sms:' + encodeURIComponent(num) + '?body=' + encodeURIComponent(_smsSummaryText);
+  if(copySmsBtn) copySmsBtn.style.display = 'inline-flex';
+  if(smsStatusLabel) smsStatusLabel.style.display = 'inline';
+  if(smsNote) smsNote.textContent = 'SMS prepared — not sent. Confirm and press Send in your device SMS app.';
+  toast('SMS ready — user must press Send.', 'info');
+});
+if(copySmsBtn) copySmsBtn.addEventListener('click', function(){
+  navigator.clipboard.writeText(_smsSummaryText).then(function(){
+    var orig = copySmsBtn.innerHTML;
+    copySmsBtn.innerHTML = '<i class="fas fa-check" style="color:var(--success);"></i>';
+    setTimeout(function(){ copySmsBtn.innerHTML = orig; }, 1500);
+    toast('SMS text copied.','info');
+  }).catch(function(){ toast('Could not copy automatically.','error'); });
 });
 
 /* ===================== DASHBOARD ===================== */
@@ -6045,6 +6018,5 @@ refreshDashboard();
 setMode('doctor');
 })();
 </script>
-<script src="expo-presence.js?v=20260817-fix3"></script>
 </body>
 </html>
