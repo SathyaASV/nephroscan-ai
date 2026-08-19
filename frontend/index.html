@@ -1353,6 +1353,84 @@ body.mode-patient .mode-patient-only { display: block; }
   color: #168e99;
 }
 
+/* AI Attention Heatmap — full-width report card */
+#reportAttentionSection .content {
+  padding-left: 0;
+  border-left: none;
+  background: #f7fafb;
+  border: 1px solid #d0dde4;
+  border-radius: 14px;
+  padding: 1rem;
+  min-height: 520px;
+}
+#reportAttentionContent img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 720px;
+  object-fit: contain;
+  margin: 0 auto;
+  border-radius: 10px;
+  border: 1px solid #c5d4dc;
+  background: #fff;
+}
+.ns-heatmap-enlarge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: .6rem;
+  padding: .45rem 1rem;
+  border: 1px solid #c5d4dc;
+  border-radius: 8px;
+  background: #fff;
+  color: #2d536b;
+  font-size: .72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s;
+}
+.ns-heatmap-enlarge:hover {
+  background: #eaf3f7;
+  border-color: #a0c0d0;
+}
+.ns-heatmap-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(5,12,25,.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  cursor: zoom-out;
+}
+.ns-heatmap-overlay img {
+  max-width: 95vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+.ns-heatmap-overlay .close-overlay {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@media(max-width:620px){
+  #reportAttentionSection .content { min-height: 360px; }
+}
+
 /* Loading / spinner */
 .loading-report {
   display: flex;
@@ -5404,7 +5482,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
       var resp = await fetch(EXPLAIN_URL, { method: 'POST', body: fd });
       var data = await resp.json();
       if(data.status === 'ok' && data.heatmap_image){
-        attContent.innerHTML = '<div style="text-align:center;"><img src="' + data.heatmap_image + '" alt="AI Attention Heatmap" style="max-width:100%;border-radius:10px;border:1px solid #d0dde4;" /></div><div style="font-size:.68rem;color:#8493a0;margin-top:.5rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
+        attContent.innerHTML = '<div style="text-align:center;"><img src="' + data.heatmap_image + '" alt="AI Attention Heatmap" id="reportHeatmapImg" /></div><div style="text-align:center;margin-top:.5rem;"><button class="ns-heatmap-enlarge" onclick="window.__nsEnlargeHeatmap(this)"><i class="fas fa-up-right-and-down-left-from-center"></i> Enlarge heatmap</button></div><div style="font-size:.68rem;color:#8493a0;margin-top:.5rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
       } else {
         attContent.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div><div style="font-size:.68rem;color:#8493a0;margin-top:.3rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
       }
@@ -5509,6 +5587,17 @@ document.querySelectorAll('.explain-toggle button').forEach(btn=>{
     }
   });
 });
+
+/* ===================== HEATMAP ENLARGE ===================== */
+window.__nsEnlargeHeatmap = function(btn){
+  var img = document.getElementById('reportHeatmapImg');
+  if(!img || !img.src) return;
+  var overlay = document.createElement('div');
+  overlay.className = 'ns-heatmap-overlay';
+  overlay.innerHTML = '<button class="close-overlay"><i class="fas fa-xmark"></i></button><img src="' + img.src + '" alt="AI Attention Heatmap enlarged" />';
+  overlay.addEventListener('click', function(e){ if(e.target === overlay || e.target.closest('.close-overlay')) overlay.remove(); });
+  document.body.appendChild(overlay);
+};
 
 /* ===================== COPY / PRINT ===================== */
 copyBtn.addEventListener('click', ()=>{
