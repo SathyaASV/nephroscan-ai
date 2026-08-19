@@ -4820,6 +4820,7 @@ body.ns-compact .ns-settings{
     <div class="bt"><strong>NephroBot</strong><span>AI Health Assistant</span></div>
     <button class="close-bot" id="closeBotBtn"><i class="fas fa-xmark"></i></button>
   </div>
+  <div style="padding:.35rem .7rem;background:#f0faf6;border-top:1px solid #c2e8d6;font-size:.62rem;color:#2d536b;text-align:center;">NephroBot provides educational suggestions, not a diagnosis or treatment plan.</div>
   <div class="bot-messages" id="botMessages"></div>
   <div class="bot-quick" id="botQuick">
     <button data-q="explain">💡 Explain my result</button>
@@ -5977,53 +5978,166 @@ document.getElementById('botFab').addEventListener('click', ()=> botPanel.classL
 document.getElementById('closeBotBtn').addEventListener('click', ()=>botPanel.classList.remove('open'));
 function addBotMsg(text, who){ const el=document.createElement('div'); el.className='bot-msg '+who; el.textContent=text; botMessages.appendChild(el); botMessages.scrollTop = botMessages.scrollHeight; }
 
-const SAFE_DISCLAIMER = "I can help explain your report and provide general health information, but I cannot replace a qualified healthcare professional.";
+const SAFE_DISCLAIMER = "NephroBot provides educational suggestions, not a diagnosis or treatment plan.";
+
+function _reportContext(){
+  const r = sessionReports.find(function(x){ return x.id === currentOpenReportId; });
+  if(!r) return null;
+  var mod = {ct_kub:'Kidney Scan', chest_xray:'Chest X-ray', mri_brain:'Brain MRI', heart:'Heart X-ray'}[r.scanType] || r.scanType.replace('_',' ');
+  return { scanType:r.scanType, modality:mod, prediction:r.prediction, confidence:r.confidence, uncertain:r.uncertain, riskLevel:r.riskLevel, category:r.category };
+}
+
+function _nutritionAdvice(scanType, prediction, uncertain){
+  if(uncertain) return 'General balanced nutrition and adequate hydration are supportive for overall health. Clinician review is recommended before making any dietary changes specific to this result.';
+  if(scanType==='ct_kub') return 'Fluid intake, sodium, protein, potassium, and oxalate management depend on individual kidney function and stone type. Specific dietary guidance should be determined by your treating clinician or a registered dietitian based on lab results and clinical context.';
+  if(scanType==='heart') return 'Discussing a heart-healthy eating pattern with your clinician or a registered dietitian may be beneficial. General approaches include balanced portions, reduced sodium, and emphasis on whole foods — but any changes should be guided by your clinical profile.';
+  if(scanType==='chest_xray') return 'General balanced nutrition and adequate hydration support overall respiratory and immune health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins as tolerated.';
+  if(scanType==='mri_brain') return 'General balanced nutrition and adequate hydration support overall neurological and metabolic health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins as tolerated.';
+  return 'General balanced nutrition and adequate hydration support overall health. Maintain a varied diet as tolerated.';
+}
+
+function _watchFor(scanType){
+  if(scanType==='mri_brain') return 'Seizure, new weakness or numbness, confusion, difficulty speaking, loss of consciousness, or a severe rapidly worsening headache.';
+  if(scanType==='chest_xray') return 'Severe breathing difficulty, blue lips or face, confusion, chest pain, coughing blood, or rapidly worsening symptoms.';
+  if(scanType==='ct_kub') return 'Fever with flank pain, inability to pass urine, uncontrolled vomiting, or severe worsening pain.';
+  if(scanType==='heart') return 'Chest pain, shortness of breath, rapid or irregular heartbeat, swelling in legs or ankles, or fainting.';
+  return 'Worsening pain, new fever, breathing difficulty, confusion, or any rapidly worsening symptom.';
+}
+
+function _askDoctor(scanType){
+  if(scanType==='mri_brain') return 'What does this MRI classification mean in my clinical context? Is formal radiology review or additional imaging needed? Which symptoms require urgent attention?';
+  if(scanType==='chest_xray') return 'Does the chest X-ray support the AI screening result? Do my symptoms require examination, testing, or follow-up?';
+  if(scanType==='ct_kub') return 'What does this kidney screening result mean for my kidney function? Do I need additional testing or follow-up?';
+  if(scanType==='heart') return 'What does this heart screening result mean for my cardiac health? Do I need additional testing or follow-up?';
+  return 'What does this result mean in my clinical context? Do I need additional testing or follow-up?';
+}
+
 function botReply(userText){
-  const t = userText.toLowerCase();
-  const report = sessionReports.find(r=>r.id===currentOpenReportId);
-  const modality = report ? ({
-    ct_kub: 'Kidney Scan',
-    chest_xray: 'Chest X-ray',
-    mri_brain: 'Brain MRI',
-  }[report.scanType] || report.scanType.replace('_',' ')) : '';
+  var t = userText.toLowerCase();
+  var ctx = _reportContext();
+
+  var hasReport = !!ctx;
+  var isAbnormal = hasReport && (ctx.category==='abnormal' || ctx.riskLevel==='high');
+  var isLowConf = hasReport && ctx.confidence < 60;
+  var isUncertain = hasReport && ctx.uncertain;
 
   if(t.includes('explain') || t==='explain'){
-    if(!report) return "You haven't generated a report yet in this session. Run an analysis first, then ask me to explain it.";
-
-    const scope = report.scanType === 'mri_brain'
-      ? 'This four-class prototype classifies MRI images; it does not localize or diagnose a brain tumor.'
-      : report.scanType === 'chest_xray'
-        ? 'This is a binary pneumonia-screening prototype and does not assess every chest abnormality.'
-        : 'This is a binary kidney-stone screening prototype and does not measure stone size or obstruction.';
-
-    return `This ${modality} report shows "${report.prediction}" with model confidence ${report.confidence}%. ${scope} ${report.uncertain?'The result is marked uncertain and needs clinical review.':''} ${SAFE_DISCLAIMER}`;
+    if(!hasReport) return "You haven't generated a report yet. Run an analysis first, then ask me to explain it.";
+    var scope = ctx.scanType==='mri_brain' ? 'This four-class prototype classifies MRI images; it does not localize or diagnose a brain tumor.'
+      : ctx.scanType==='chest_xray' ? 'This is a binary pneumonia-screening prototype and does not assess every chest abnormality.'
+      : ctx.scanType==='heart' ? 'This is a binary cardiomegaly-screening prototype and does not measure heart size or function.'
+      : 'This is a binary kidney-stone screening prototype and does not measure stone size or obstruction.';
+    var lines = [];
+    lines.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" with ' + ctx.confidence + '% confidence. ' + scope);
+    if(isUncertain) lines.push('Review status: The result is marked uncertain and needs clinical review.');
+    lines.push('Helpful next steps: ' + _askDoctor(ctx.scanType));
+    lines.push('General nutrition guidance: ' + _nutritionAdvice(ctx.scanType, ctx.prediction, isUncertain));
+    lines.push('Questions to ask a clinician: ' + _askDoctor(ctx.scanType));
+    if(isAbnormal || isLowConf) lines.push('This result may benefit from clinician review.');
+    lines.push(SAFE_DISCLAIMER);
+    return lines.join('\n\n');
   }
 
   if(t.includes('summar')){
-    if(!report) return "There's no report open yet — generate one from New Analysis first.";
-    return `Summary: ${modality}, prediction "${report.prediction}", confidence ${report.confidence}%, risk level ${report.riskLevel}. ${SAFE_DISCLAIMER}`;
+    if(!hasReport) return "There's no report open yet. Generate one from New Analysis first.";
+    var s = [];
+    s.push('What the report says: ' + ctx.modality + ', "' + ctx.prediction + '", confidence ' + ctx.confidence + '%, risk ' + ctx.riskLevel + '.');
+    s.push('Helpful next steps: ' + _askDoctor(ctx.scanType));
+    s.push('General nutrition guidance: ' + _nutritionAdvice(ctx.scanType, ctx.prediction, isUncertain));
+    if(isAbnormal || isLowConf) s.push('This result may benefit from clinician review.');
+    s.push(SAFE_DISCLAIMER);
+    return s.join('\n\n');
   }
+
   if(t.includes('what should i watch') || t.includes('watch')){
-    if(report?.scanType === 'mri_brain') return `For a Brain MRI result, seek urgent care for seizure, new weakness or numbness, confusion, difficulty speaking, loss of consciousness, or a severe rapidly worsening headache. ${SAFE_DISCLAIMER}`;
-    if(report?.scanType === 'chest_xray') return `For a Chest X-ray result, seek urgent care for severe breathing difficulty, blue lips or face, confusion, chest pain, coughing blood, or rapidly worsening symptoms. ${SAFE_DISCLAIMER}`;
-    if(report?.scanType === 'ct_kub') return `For a Kidney Scan result, seek urgent care for fever with flank pain, inability to pass urine, uncontrolled vomiting, or severe worsening pain. ${SAFE_DISCLAIMER}`;
-    return "Watch for worsening pain, new fever, breathing difficulty, confusion, or any rapidly worsening symptom. " + SAFE_DISCLAIMER;
+    var signs = hasReport ? _watchFor(ctx.scanType) : 'Worsening pain, new fever, breathing difficulty, confusion, or any rapidly worsening symptom.';
+    var w = [];
+    if(hasReport) w.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
+    w.push('Helpful next steps: Seek urgent local medical care if you experience: ' + signs);
+    if(hasReport) w.push('Questions to ask a clinician: ' + _askDoctor(ctx.scanType));
+    w.push(SAFE_DISCLAIMER);
+    return w.join('\n\n');
   }
+
   if(t.includes('ask my doctor') || t.includes('doctor')){
-    if(report?.scanType === 'mri_brain') return "Ask your doctor: What does this MRI classification mean in my clinical context? Is formal radiology review or additional imaging needed? Which symptoms require urgent attention?";
-    if(report?.scanType === 'chest_xray') return "Ask your doctor: Does the chest X-ray support the AI screening result? Do my symptoms require examination, testing, or follow-up?";
-    return "Ask your doctor: What does this kidney screening result mean in my clinical context? Do I need additional testing or follow-up?";
+    if(!hasReport) return "Generate a report first, then I can suggest questions for your doctor.";
+    var d = [];
+    d.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
+    d.push('Questions to ask a clinician: ' + _askDoctor(ctx.scanType));
+    d.push(SAFE_DISCLAIMER);
+    return d.join('\n\n');
   }
+
   if(t.includes('mean') || t.includes('disease') || t.includes('what does')){
-    return `The result is an AI-assisted prototype classification for ${modality || 'the uploaded image'}. It is a starting point for discussion with a qualified clinician, not a diagnosis. ${SAFE_DISCLAIMER}`;
+    if(!hasReport) return 'Generate a report first and I can explain what the result means in general terms.';
+    var m = [];
+    m.push('What the report says: The result is an AI-assisted prototype classification for ' + ctx.modality + '. It is a starting point for discussion with a qualified clinician, not a diagnosis.');
+    m.push('Helpful next steps: ' + _askDoctor(ctx.scanType));
+    m.push(SAFE_DISCLAIMER);
+    return m.join('\n\n');
   }
-  if(t.includes('confidence')){
-    return "Model confidence reflects how strongly the model favored one class over alternatives. It is not medical certainty and does not measure disease severity.";
+
+  if(t.includes('confiden')){
+    return "Model confidence reflects how strongly the model favored one class over alternatives. It is not medical certainty and does not measure disease severity. " + SAFE_DISCLAIMER;
   }
-  if(t.includes('medication') || t.includes('dose') || t.includes('prescri') || t.includes('stop taking')){
-    return "I can't recommend or adjust medications or dosages. Please discuss medication questions directly with your doctor or pharmacist.";
+
+  if(t.includes('medication') || t.includes('dose') || t.includes('prescri') || t.includes('stop taking') || t.includes('medicine') || t.includes('drug')){
+    return "I can't recommend or adjust medications or dosages. Please discuss medication questions directly with your doctor or pharmacist. " + SAFE_DISCLAIMER;
   }
-  return `I can explain your ${modality || 'imaging'} report, summarize the result, or suggest questions for your doctor. ${SAFE_DISCLAIMER}`;
+
+  if(t.includes('supplement') || t.includes('vitamin') || t.includes('mineral')){
+    return "I can't recommend specific supplements. Individualized supplement needs depend on your lab results, medical history, and clinical context. Please discuss with your clinician or registered dietitian. " + SAFE_DISCLAIMER;
+  }
+
+  if(t.includes('diet') || t.includes('food') || t.includes('eat') || t.includes('nutrition') || t.includes('meal') || t.includes('hydrat')){
+    var n = [];
+    if(hasReport) n.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
+    n.push('General nutrition guidance: ' + (hasReport ? _nutritionAdvice(ctx.scanType, ctx.prediction, isUncertain) : 'General balanced nutrition and adequate hydration support overall health. Maintain a varied diet as tolerated. Individualized dietary advice depends on your clinical history and a clinician or registered dietitian.'));
+    n.push(SAFE_DISCLAIMER);
+    return n.join('\n\n');
+  }
+
+  if(t.includes('kidney') || t.includes('renal')){
+    var k = [];
+    if(hasReport) k.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
+    k.push('General nutrition guidance: For kidney health, fluid intake, sodium, protein, potassium, and oxalate management depend on individual kidney function and stone type. Specific dietary guidance should be determined by your treating clinician or a registered dietitian based on lab results and clinical context.');
+    k.push('Helpful next steps: ' + (hasReport ? _askDoctor(ctx.scanType) : 'Discuss any kidney-related questions with your clinician.'));
+    k.push(SAFE_DISCLAIMER);
+    return k.join('\n\n');
+  }
+
+  if(t.includes('heart') || t.includes('cardiac') || t.includes('cardio')){
+    var h = [];
+    if(hasReport) h.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
+    h.push('General nutrition guidance: Discussing a heart-healthy eating pattern with your clinician or a registered dietitian may be beneficial. General approaches include balanced portions, reduced sodium, and emphasis on whole foods — but any changes should be guided by your clinical profile.');
+    h.push('Helpful next steps: ' + (hasReport ? _askDoctor(ctx.scanType) : 'Discuss any heart-related questions with your clinician.'));
+    h.push(SAFE_DISCLAIMER);
+    return h.join('\n\n');
+  }
+
+  if(t.includes('brain') || t.includes('neuro') || t.includes('mri')){
+    var b = [];
+    if(hasReport) b.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
+    b.push('General nutrition guidance: General balanced nutrition and adequate hydration support overall neurological and metabolic health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins as tolerated. Individualized advice depends on your clinical history and a clinician.');
+    b.push('Helpful next steps: ' + (hasReport ? _askDoctor(ctx.scanType) : 'Discuss any neurological questions with your clinician.'));
+    b.push(SAFE_DISCLAIMER);
+    return b.join('\n\n');
+  }
+
+  if(t.includes('chest') || t.includes('lung') || t.includes('pneumonia') || t.includes('x-ray') || t.includes('xray')){
+    var c = [];
+    if(hasReport) c.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
+    c.push('General nutrition guidance: General balanced nutrition and adequate hydration support overall respiratory and immune health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins as tolerated.');
+    c.push('Helpful next steps: ' + (hasReport ? _askDoctor(ctx.scanType) : 'Discuss any chest or respiratory questions with your clinician.'));
+    c.push(SAFE_DISCLAIMER);
+    return c.join('\n\n');
+  }
+
+  var fallback = [];
+  if(hasReport) fallback.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
+  fallback.push('I can explain your report, suggest questions for your doctor, or discuss general nutrition and health topics. I cannot diagnose, prescribe, or replace a qualified healthcare professional.');
+  fallback.push(SAFE_DISCLAIMER);
+  return fallback.join('\n\n');
 }
 document.getElementById('botQuick').addEventListener('click', e=>{
   const btn = e.target.closest('button'); if(!btn) return;
