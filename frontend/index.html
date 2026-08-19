@@ -6073,8 +6073,10 @@ document.getElementById('labAnalyzeBtn').addEventListener('click', async functio
     fd.append('lab_report', f);
     fd.append('context', JSON.stringify(labReport.context));
     var resp = await fetch(LAB_API_URL, { method: 'POST', body: fd });
-    if(resp.status === 404 || resp.status === 501){
-      toast('Lab analysis service is not available yet.', 'warn');
+    if(!resp.ok){
+      var errBody = {};
+      try { errBody = await resp.json(); } catch(_){ errBody = { message: 'HTTP ' + resp.status }; }
+      toast('Lab analysis error: ' + (errBody.message || errBody.error || resp.status), 'error');
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-microchip"></i> Analyze Lab Report';
       return;
@@ -6099,7 +6101,7 @@ document.getElementById('labAnalyzeBtn').addEventListener('click', async functio
       toast(data.message || 'Lab analysis failed.', 'error');
     }
   } catch(err){
-    toast('Lab analysis service is not available yet.', 'warn');
+    toast('Lab analysis request failed: ' + (err.message || err), 'error');
   }
   btn.disabled = false;
   btn.innerHTML = '<i class="fas fa-microchip"></i> Analyze Lab Report';

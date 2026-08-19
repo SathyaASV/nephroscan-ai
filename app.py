@@ -759,7 +759,9 @@ def _register_routes(application: Flask) -> None:
     @application.route("/api/lab/health", methods=["GET"])
     def api_lab_health():
         return jsonify({
-            "status": "online",
+            "status": "ok",
+            "lab_endpoint": True,
+            "version": "lab-route-1",
             "ocr_available": OCR_AVAILABLE,
             "pdf_support": PDF_AVAILABLE,
             "endpoint": "/api/lab/analyze",
