@@ -1131,6 +1131,7 @@ button {
 .explain-viewer img {
   width: 100%;
   display: block;
+  object-fit: contain;
 }
 
 .explain-viewer .heatmap-overlay {
@@ -1351,6 +1352,57 @@ body.mode-patient .mode-patient-only { display: block; }
 .ai-meta span i {
   margin-right: 4px;
   color: #168e99;
+}
+
+/* Saved-report scan preview */
+.saved-scan-preview {
+  width: 100%;
+  max-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #f1f6f8;
+  border: 1px solid #c8d8de;
+  border-radius: 12px;
+  margin-bottom: .6rem;
+}
+.saved-scan-preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+/* Attention heatmap three-view layout */
+.ns-heatmap-views {
+  display: flex;
+  gap: 10px;
+  margin-bottom: .5rem;
+}
+.ns-heatmap-views .ns-heatmap-col {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+}
+.ns-heatmap-views .ns-heatmap-col-label {
+  font-size: .66rem;
+  font-weight: 600;
+  color: #4a6577;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.ns-heatmap-views img {
+  display: block;
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  margin: 0 auto;
+  border-radius: 8px;
+  border: 1px solid #dce6ec;
+  background: #f1f6f8;
 }
 
 /* AI Attention Heatmap — full-width report card */
@@ -4716,6 +4768,7 @@ table.data-table tr:hover td {
     clearReportsBtn.addEventListener('click', function(){
       if(!confirm('Delete all saved reports from local storage? This cannot be undone.')) return;
       try { localStorage.removeItem(REPORT_STORAGE_KEY); } catch(e) {}
+      _deleteAllScanImages();
       sessionReports = [];
       reportCounter = 1;
       refreshDashboard();
@@ -4875,6 +4928,11 @@ function saveReports() {
   } catch (error) {
     console.warn('Report history could not be saved:', error);
   }
+  if(_pendingScanBlob && sessionReports.length) {
+    var last = sessionReports[sessionReports.length - 1];
+    if(last && last.id) _storeScanImage(last.id, _pendingScanBlob);
+    _pendingScanBlob = null;
+  }
 }
 
 let sessionReports = [];
@@ -4890,6 +4948,69 @@ let currentOpenReportId = null;
 let confThreshold = 60;
 let currentExplainImgFile = null;
 let currentExplainOriginalSrc = null;
+let _pendingScanBlob = null;
+
+/* ===================== INDEXEDDB SCAN IMAGE STORE ===================== */
+var _scanDBName = 'nephroscan_scan_images';
+var _scanDBStore = 'scans';
+var _scanDBVersion = 1;
+
+function _openScanDB() {
+  return new Promise(function(resolve, reject) {
+    if(!window.indexedDB) { reject(new Error('no IndexedDB')); return; }
+    var req = indexedDB.open(_scanDBName, _scanDBVersion);
+    req.onupgradeneeded = function(e) {
+      var db = e.target.result;
+      if(!db.objectStoreNames.contains(_scanDBStore)) db.createObjectStore(_scanDBStore);
+    };
+    req.onsuccess = function(e) { resolve(e.target.result); };
+    req.onerror = function(e) { reject(e.target.error); };
+  });
+}
+
+function _storeScanImage(reportId, blob) {
+  return _openScanDB().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction(_scanDBStore, 'readwrite');
+      tx.objectStore(_scanDBStore).put(blob, reportId);
+      tx.oncomplete = function() { resolve(); };
+      tx.onerror = function(e) { reject(e.target.error); };
+    });
+  }).catch(function() {});
+}
+
+function _getScanImage(reportId) {
+  return _openScanDB().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction(_scanDBStore, 'readonly');
+      var req = tx.objectStore(_scanDBStore).get(reportId);
+      req.onsuccess = function() { resolve(req.result || null); };
+      req.onerror = function(e) { reject(e.target.error); };
+    });
+  }).catch(function() { return null; });
+}
+
+function _deleteScanImage(reportId) {
+  return _openScanDB().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx = db.transaction(_scanDBStore, 'readwrite');
+      tx.objectStore(_scanDBStore)['delete'](reportId);
+      tx.oncomplete = function() { resolve(); };
+      tx.onerror = function() { resolve(); };
+    });
+  }).catch(function() {});
+}
+
+function _deleteAllScanImages() {
+  return _openScanDB().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx = db.transaction(_scanDBStore, 'readwrite');
+      tx.objectStore(_scanDBStore).clear();
+      tx.oncomplete = function() { resolve(); };
+      tx.onerror = function() { resolve(); };
+    });
+  }).catch(function() {});
+}
 
 const EXPLAIN_URL = '/api/explain';
 const SCAN_TYPE_TO_BACKEND = {
@@ -5063,10 +5184,10 @@ function resetPlaceholder(){
 
 /* ===================== DEMO CASE ===================== */
 var DEMO_CASES = [
-  { key:'kidney_stone', label:'Abnormal Kidney (Stone)', img:'demo_assets/kidney_stone.png', scanType:'ct_kub', indication:'Haematuria for 2 weeks — investigate renal cause.', patient:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', name:'kidney_stone.png' },
+  { key:'kidney_stone', label:'Abnormal Kidney CT (Stone)', img:'demo_assets/kidney_stone_real.jpg', scanType:'ct_kub', indication:'Haematuria for 2 weeks — investigate renal cause.', patient:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', name:'kidney_stone_real.jpg' },
   { key:'chest_normal', label:'Normal Chest / Lungs', img:'demo_assets/chest_normal_real.png', scanType:'chest_xray', indication:'Annual health checkup — rule out pneumonia.', patient:'Demo Patient (Chest)', age:'45', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Mild cough for 3 days', name:'chest_normal_real.png' },
   { key:'brain_glioma', label:'Abnormal Brain (Glioma)', img:'demo_assets/brain_glioma_real.jpg', scanType:'mri_brain', indication:'New-onset seizures — evaluate for intracranial lesion.', patient:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures, progressive headache', name:'brain_glioma_real.jpg' },
-  { key:'heart_cardio', label:'Abnormal Heart (Cardiomegaly)', img:'demo_assets/heart_cardio_real.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'heart_cardio_real.png' }
+  { key:'heart_cardio', label:'Abnormal Heart (Cardiomegaly)', img:'demo_assets/heart_cardiomegaly_real.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'heart_cardiomegaly_real.png' }
 ];
 function _loadDemoByKey(key, autoRun){
   var pick = DEMO_CASES.find(function(c){ return c.key === key; });
@@ -5205,6 +5326,9 @@ function runAnalysis(){
   resetPlaceholder();
   reportBody.innerHTML = `<div class="loading-report"><div class="spinner-ring"></div><div class="progress-bar"><div class="fill"></div></div><p><i class="fas fa-microchip"></i> Analysis in progress</p><div style="font-size:.68rem;color:#9aa7b2;">Preparing an illustrative report for clinical review</div></div>`;
   document.getElementById('resultsGrid').style.display='none';
+  document.getElementById('explainViewer').style.display='';
+  var _explTgl = document.querySelector('.explain-toggle');
+  if(_explTgl) _explTgl.style.display='';
 
   let i=0;
   const interval = setInterval(()=>{
@@ -5427,7 +5551,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   const patientGuidanceBlock = `<div class="report-section"><div class="section-title"><i class="fas fa-person"></i> PATIENT GUIDANCE</div><div class="content">This is an AI-assisted educational screening or classification result, not a diagnosis. Share it with a qualified healthcare professional and follow the clinical advice you receive. ${emergency}</div></div>`;
   const uncertainBlock = uncertain ? `<div class="doctor-note"><strong><i class="fas fa-circle-question"></i> UNCERTAIN RESULT</strong><br/>Confidence is below the configured threshold (${confThreshold}%). Qualified clinical review is recommended.</div>` : '';
 
-  const attentionBlock = `<div class="report-section" id="reportAttentionSection"><div class="section-title"><i class="fas fa-fire-flame-curved"></i> AI ATTENTION VISUALIZATION</div><div class="content" id="reportAttentionContent"><div style="text-align:center;padding:1rem;color:#8493a0;"><i class="fas fa-circle-notch fa-spin" style="font-size:1.4rem;"></i><br/><span style="font-size:.72rem;">Generating attention heatmap…</span></div></div></div>`;
+  const attentionBlock = `<div class="report-section" id="reportAttentionSection"><div class="section-title"><i class="fas fa-fire-flame-curved"></i> AI ATTENTION VISUALIZATION</div><div class="content" id="reportAttentionContent"><div class="saved-scan-preview" id="savedScanPreview"><img alt="Original scan" style="display:none;"/></div><div id="reportHeatmapViews"><div style="text-align:center;padding:1rem;color:#8493a0;"><i class="fas fa-circle-notch fa-spin" style="font-size:1.4rem;"></i><br/><span style="font-size:.72rem;">Generating attention heatmap…</span></div></div><div style="font-size:.68rem;color:#8493a0;margin-top:.3rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div></div></div>`;
 
   var nutritionText = '';
   if(uncertain){
@@ -5466,6 +5590,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
 
   reportBody.innerHTML = reportHTML;
   document.getElementById('reportContainer').scrollIntoView({behavior:'smooth', block:'start'});
+  _pendingScanBlob = imgFile || null;
   sessionReports.push({id:reportId, patientName, patientId, age, gender, doctor, hospital, symptoms, scanType, indication, prediction: uncertain ? 'Uncertain' : label, confidence, uncertain, quality, riskLevel, reportHTML, date:now, dateStr:nowStr, category:uncertain ? 'uncertain' : diseaseCategory, imgURL});
   saveReports();
   currentOpenReportId = reportId;
@@ -5479,8 +5604,15 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
     if(!attContent) return;
     var explainFile = uploadedFiles.find(function(f){ return f.type && f.type.startsWith('image/'); });
     var backendType = SCAN_TYPE_TO_BACKEND[scanType];
+    var scanPreviewEl = document.getElementById('savedScanPreview');
+    var viewsEl = document.getElementById('reportHeatmapViews');
+    if(explainFile && scanPreviewEl){
+      var origUrl = URL.createObjectURL(explainFile);
+      var origImg = scanPreviewEl.querySelector('img');
+      if(origImg){ origImg.src = origUrl; origImg.style.display = 'block'; }
+    }
     if(!explainFile || !backendType){
-      attContent.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div><div style="font-size:.68rem;color:#8493a0;margin-top:.3rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
+      if(viewsEl) viewsEl.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div>';
       return;
     }
     try {
@@ -5490,12 +5622,46 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
       var resp = await fetch(EXPLAIN_URL, { method: 'POST', body: fd });
       var data = await resp.json();
       if(data.status === 'ok' && data.heatmap_image){
-        attContent.innerHTML = '<div class="attention-heatmap-frame"><img src="' + data.heatmap_image + '" alt="AI Attention Heatmap" id="reportHeatmapImg" /></div><div style="text-align:center;margin-top:.5rem;"><button class="ns-heatmap-enlarge" onclick="window.__nsEnlargeHeatmap(this)"><i class="fas fa-up-right-and-down-left-from-center"></i> Enlarge heatmap</button></div><div style="font-size:.68rem;color:#8493a0;margin-top:.5rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
+        var heatDataUrl = data.heatmap_image;
+        var origDataUrl = null;
+        if(explainFile){ origDataUrl = await new Promise(function(res){ var fr = new FileReader(); fr.onload = function(){ res(fr.result); }; fr.readAsDataURL(explainFile); }); }
+        if(viewsEl){
+          viewsEl.innerHTML = '<div class="explain-toggle" id="reportHeatmapToggle" style="margin-bottom:.5rem;"><button class="active" data-heatview="original">Original</button><button data-heatview="attention">AI Attention</button><button data-heatview="overlay">Overlay</button></div><div class="attention-heatmap-frame" id="nsHeatmapFrame"><img id="nsHeatmapFrameImg" alt="AI Attention Heatmap" style="display:none;"/></div><div class="ns-heatmap-views" id="nsHeatmapSideBySide" style="display:none;"><div class="ns-heatmap-col"><div class="ns-heatmap-col-label">Original</div><img id="nsHeatmapOrigImg" alt="Original scan"/></div><div class="ns-heatmap-col"><div class="ns-heatmap-col-label">AI Attention</div><img id="nsHeatmapAttnImg" alt="AI Attention Heatmap"/></div></div>';
+          var frameImg = document.getElementById('nsHeatmapFrameImg');
+          var origImgEl = document.getElementById('nsHeatmapOrigImg');
+          var attnImgEl = document.getElementById('nsHeatmapAttnImg');
+          if(frameImg) frameImg.src = heatDataUrl;
+          if(origImgEl && origDataUrl) origImgEl.src = origDataUrl;
+          if(attnImgEl) attnImgEl.src = heatDataUrl;
+          var toggleEl = document.getElementById('reportHeatmapToggle');
+          if(toggleEl){
+            toggleEl.querySelectorAll('button').forEach(function(b){
+              b.addEventListener('click', function(){
+                toggleEl.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+                b.classList.add('active');
+                var mode = b.dataset.heatview;
+                var frame = document.getElementById('nsHeatmapFrame');
+                var side = document.getElementById('nsHeatmapSideBySide');
+                var fi = document.getElementById('nsHeatmapFrameImg');
+                if(mode === 'overlay' && origDataUrl){
+                  if(frame) frame.style.display = 'none';
+                  if(side) side.style.display = 'flex';
+                } else if(mode === 'attention'){
+                  if(side) side.style.display = 'none';
+                  if(frame){ frame.style.display = 'flex'; if(fi){ fi.src = heatDataUrl; fi.style.display = 'block'; } }
+                } else {
+                  if(side) side.style.display = 'none';
+                  if(frame){ frame.style.display = 'flex'; if(fi && origDataUrl){ fi.src = origDataUrl; fi.style.display = 'block'; } else if(fi){ fi.src = heatDataUrl; fi.style.display = 'block'; } }
+                }
+              });
+            });
+          }
+        }
       } else {
-        attContent.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div><div style="font-size:.68rem;color:#8493a0;margin-top:.3rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
+        if(viewsEl) viewsEl.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div>';
       }
     } catch(err) {
-      attContent.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div><div style="font-size:.68rem;color:#8493a0;margin-top:.3rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
+      if(viewsEl) viewsEl.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div>';
     }
   })();
 }
@@ -5821,12 +5987,73 @@ window.__ns_viewReport = function(id){
   showView('analysis');
   document.getElementById('resultsGrid').style.display='none';
   document.getElementById('pipelineCard').style.display='none';
+  document.getElementById('explainViewer').style.display='none';
+  var explToggle = document.querySelector('.explain-toggle');
+  if(explToggle) explToggle.style.display='none';
   reportBody.innerHTML = r.reportHTML;
   document.getElementById('reportContainer').scrollIntoView({behavior:'smooth'});
+  _getScanImage(id).then(function(blob){
+    var viewsEl = document.getElementById('reportHeatmapViews');
+    var scanPreviewEl = document.getElementById('savedScanPreview');
+    if(blob && scanPreviewEl){
+      var url = URL.createObjectURL(blob);
+      var img = scanPreviewEl.querySelector('img');
+      if(img){
+        img.onload = function(){ URL.revokeObjectURL(url); };
+        img.onerror = function(){ scanPreviewEl.innerHTML='<div style="text-align:center;padding:1rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-image-slash"></i> Original scan unavailable</div>'; URL.revokeObjectURL(url); };
+        img.src = url;
+      }
+    } else if(!blob && scanPreviewEl) {
+      scanPreviewEl.innerHTML = '<div style="text-align:center;padding:.6rem;color:#8493a0;font-size:.72rem;">Original scan unavailable</div>';
+    }
+    if(viewsEl && blob){
+      var heatFrame = viewsEl.querySelector('.attention-heatmap-frame');
+      var heatImg = heatFrame ? heatFrame.querySelector('img') : null;
+      if(heatImg){
+        var heatDataUrl = heatImg.src;
+        var reader = new FileReader();
+        reader.onload = function(){
+          var origDataUrl = reader.result;
+          viewsEl.innerHTML = '<div class="explain-toggle" id="reportHeatmapToggle" style="margin-bottom:.5rem;"><button class="active" data-heatview="original">Original</button><button data-heatview="attention">AI Attention</button><button data-heatview="overlay">Overlay</button></div><div class="attention-heatmap-frame" id="nsHeatmapFrame"><img id="nsHeatmapFrameImg" alt="AI Attention Heatmap" style="display:none;"/></div><div class="ns-heatmap-views" id="nsHeatmapSideBySide" style="display:none;"><div class="ns-heatmap-col"><div class="ns-heatmap-col-label">Original</div><img id="nsHeatmapOrigImg" alt="Original scan"/></div><div class="ns-heatmap-col"><div class="ns-heatmap-col-label">AI Attention</div><img id="nsHeatmapAttnImg" alt="AI Attention Heatmap"/></div></div>';
+          var frameImg = document.getElementById('nsHeatmapFrameImg');
+          var origImgEl = document.getElementById('nsHeatmapOrigImg');
+          var attnImgEl = document.getElementById('nsHeatmapAttnImg');
+          if(frameImg) frameImg.src = origDataUrl;
+          if(origImgEl) origImgEl.src = origDataUrl;
+          if(attnImgEl) attnImgEl.src = heatDataUrl;
+          var toggleEl = document.getElementById('reportHeatmapToggle');
+          if(toggleEl){
+            toggleEl.querySelectorAll('button').forEach(function(b){
+              b.addEventListener('click', function(){
+                toggleEl.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+                b.classList.add('active');
+                var mode = b.dataset.heatview;
+                var frame = document.getElementById('nsHeatmapFrame');
+                var side = document.getElementById('nsHeatmapSideBySide');
+                var fi = document.getElementById('nsHeatmapFrameImg');
+                if(mode === 'overlay'){
+                  if(frame) frame.style.display = 'none';
+                  if(side) side.style.display = 'flex';
+                } else if(mode === 'attention'){
+                  if(side) side.style.display = 'none';
+                  if(frame){ frame.style.display = 'flex'; if(fi){ fi.src = heatDataUrl; fi.style.display = 'block'; } }
+                } else {
+                  if(side) side.style.display = 'none';
+                  if(frame){ frame.style.display = 'flex'; if(fi){ fi.src = origDataUrl; fi.style.display = 'block'; } }
+                }
+              });
+            });
+          }
+        };
+        reader.readAsDataURL(blob);
+      }
+    }
+  });
 };
 window.__ns_printReport = function(id){ window.__ns_viewReport(id); setTimeout(()=>printBtn.click(), 200); };
 window.__ns_deleteReport = function(id){
   sessionReports = sessionReports.filter(r=>r.id!==id);
+  _deleteScanImage(id);
   saveReports();
   renderHistory(); refreshDashboard();
   toast('Report removed from this session.','info');
@@ -5880,10 +6107,10 @@ window.__ns_showTimeline = function(patientId){
 
 /* ===================== SYNTHETIC DEMO CASE ===================== */
 var SYNTH_DEMO_CASES = [
-  { key:'kidney_stone', label:'Kidney Stone', img:'demo_assets/kidney_stone.png', scanType:'kidney', prediction:'stone', confidence:95.2, category:'abnormal', patientName:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', indication:'Haematuria — investigate renal cause', model:'kidney_stone_resnet18.pth', riskLevel:'high' },
+  { key:'kidney_stone', label:'Kidney Stone', img:'demo_assets/kidney_stone_real.jpg', scanType:'kidney', prediction:'stone', confidence:95.2, category:'abnormal', patientName:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', indication:'Haematuria — investigate renal cause', model:'kidney_stone_resnet18.pth', riskLevel:'high' },
   { key:'chest_pneumonia', label:'Chest Pneumonia', img:'demo_assets/chest_pneumonia.png', scanType:'chest_xray', prediction:'pneumonia', confidence:92.5, category:'abnormal', patientName:'Demo Patient (Chest)', age:'62', gender:'Female', doctor:'Dr. S. Patel', symptoms:'Fever, cough', indication:'Fever and productive cough for 1 week', model:'chest_pneumonia_resnet18.pth', riskLevel:'high' },
   { key:'brain_glioma', label:'Brain Glioma', img:'demo_assets/brain_tumor.png', scanType:'brain_mri', prediction:'glioma', confidence:99.7, category:'abnormal', patientName:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures', indication:'New-onset seizures — evaluate for lesion', model:'brain_mri_resnet18.pth', riskLevel:'high' },
-  { key:'heart_cardio', label:'Heart Cardiomegaly', img:'demo_assets/heart_cardio.png', scanType:'heart', prediction:'true', confidence:88.1, category:'abnormal', patientName:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Breathlessness, leg swelling', indication:'Dyspnoea on exertion — assess cardiac silhouette', model:'heart_cardiomegaly_resnet18_improved.pth', riskLevel:'high' }
+  { key:'heart_cardio', label:'Heart Cardiomegaly', img:'demo_assets/heart_cardiomegaly_real.png', scanType:'heart', prediction:'true', confidence:88.1, category:'abnormal', patientName:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Breathlessness, leg swelling', indication:'Dyspnoea on exertion — assess cardiac silhouette', model:'heart_cardiomegaly_resnet18_improved.pth', riskLevel:'high' }
 ];
 function _loadSynthDemoByKey(key){
   var pick = SYNTH_DEMO_CASES.find(function(c){ return c.key === key; });
