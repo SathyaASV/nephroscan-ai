@@ -5184,10 +5184,10 @@ function resetPlaceholder(){
 
 /* ===================== DEMO CASE ===================== */
 var DEMO_CASES = [
-  { key:'kidney_stone', label:'Abnormal Kidney CT (Stone)', img:'demo_assets/kidney_stone_real.jpg', scanType:'ct_kub', indication:'Haematuria for 2 weeks — investigate renal cause.', patient:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', name:'kidney_stone_real.jpg' },
+  { key:'kidney_stone', label:'Abnormal Kidney CT (Stone)', img:'demo_assets/kidney_stones_abdominal_xray.jpg', scanType:'ct_kub', indication:'Haematuria for 2 weeks — investigate renal cause.', patient:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', name:'kidney_stones_abdominal_xray.jpg' },
   { key:'chest_normal', label:'Normal Chest / Lungs', img:'demo_assets/chest_normal_real.png', scanType:'chest_xray', indication:'Annual health checkup — rule out pneumonia.', patient:'Demo Patient (Chest)', age:'45', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Mild cough for 3 days', name:'chest_normal_real.png' },
   { key:'brain_glioma', label:'Abnormal Brain (Glioma)', img:'demo_assets/brain_glioma_real.jpg', scanType:'mri_brain', indication:'New-onset seizures — evaluate for intracranial lesion.', patient:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures, progressive headache', name:'brain_glioma_real.jpg' },
-  { key:'heart_cardio', label:'Abnormal Heart (Cardiomegaly)', img:'demo_assets/heart_cardiomegaly_real.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'heart_cardiomegaly_real.png' }
+  { key:'heart_cardio', label:'Abnormal Heart (Cardiomegaly)', img:'demo_assets/cardiomegally.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'cardiomegally.png' }
 ];
 
 async function loadDemoAsset(path, name) {
@@ -6126,10 +6126,10 @@ window.__ns_showTimeline = function(patientId){
 
 /* ===================== SYNTHETIC DEMO CASE ===================== */
 var SYNTH_DEMO_CASES = [
-  { key:'kidney_stone', label:'Kidney Stone', img:'demo_assets/kidney_stone_real.jpg', scanType:'kidney', prediction:'stone', confidence:95.2, category:'abnormal', patientName:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', indication:'Haematuria — investigate renal cause', model:'kidney_stone_resnet18.pth', riskLevel:'high' },
+  { key:'kidney_stone', label:'Kidney Stone', img:'demo_assets/kidney_stones_abdominal_xray.jpg', scanType:'kidney', prediction:'stone', confidence:95.2, category:'abnormal', patientName:'Demo Patient (Kidney)', age:'52', gender:'Male', doctor:'Dr. A. Sharma', symptoms:'Flank pain', indication:'Haematuria — investigate renal cause', model:'kidney_stone_resnet18.pth', riskLevel:'high' },
   { key:'chest_pneumonia', label:'Chest Pneumonia', img:'demo_assets/chest_pneumonia.png', scanType:'chest_xray', prediction:'pneumonia', confidence:92.5, category:'abnormal', patientName:'Demo Patient (Chest)', age:'62', gender:'Female', doctor:'Dr. S. Patel', symptoms:'Fever, cough', indication:'Fever and productive cough for 1 week', model:'chest_pneumonia_resnet18.pth', riskLevel:'high' },
   { key:'brain_glioma', label:'Brain Glioma', img:'demo_assets/brain_tumor.png', scanType:'brain_mri', prediction:'glioma', confidence:99.7, category:'abnormal', patientName:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures', indication:'New-onset seizures — evaluate for lesion', model:'brain_mri_resnet18.pth', riskLevel:'high' },
-  { key:'heart_cardio', label:'Heart Cardiomegaly', img:'demo_assets/heart_cardiomegaly_real.png', scanType:'heart', prediction:'true', confidence:88.1, category:'abnormal', patientName:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Breathlessness, leg swelling', indication:'Dyspnoea on exertion — assess cardiac silhouette', model:'heart_cardiomegaly_resnet18_improved.pth', riskLevel:'high' }
+  { key:'heart_cardio', label:'Heart Cardiomegaly', img:'demo_assets/cardiomegally.png', scanType:'heart', prediction:'true', confidence:88.1, category:'abnormal', patientName:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Breathlessness, leg swelling', indication:'Dyspnoea on exertion — assess cardiac silhouette', model:'heart_cardiomegaly_resnet18_improved.pth', riskLevel:'high' }
 ];
 function _loadSynthDemoByKey(key){
   var pick = SYNTH_DEMO_CASES.find(function(c){ return c.key === key; });
