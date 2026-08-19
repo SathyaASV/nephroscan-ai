@@ -1573,193 +1573,12 @@ table.data-table tr:hover td {
 }
 
 /* ---------- NEPHROBOT ---------- */
-.bot-fab {
-  position: fixed;
-  bottom: 22px;
-  right: 22px;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  border: none;
-  color: #fff;
-  font-size: 1.4rem;
-  cursor: pointer;
-  box-shadow: 0 10px 34px rgba(22, 103, 217, .4);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: botPulse 3s infinite;
-}
+/* (floating bot removed — AI Health Guide moved to sidebar) */
 
-@keyframes botPulse {
-  0%, 100% { box-shadow: 0 10px 34px rgba(22, 103, 217, .4); }
-  50% { box-shadow: 0 10px 44px rgba(123, 74, 255, .55); }
-}
-
-.bot-panel {
-  position: fixed;
-  bottom: 92px;
-  right: 22px;
-  width: 360px;
-  max-width: 92vw;
-  height: 520px;
-  max-height: 75vh;
-  background: linear-gradient(145deg, #eaf7fb, #f7fbfd 48%, #fff4d8);
-  border: 1px solid rgba(96, 170, 190, .35);
-  border-radius: 24px;
-  z-index: 200;
-  display: none;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 24px 60px rgba(40, 88, 108, .22);
-}
-
-.bot-panel.open {
-  display: flex;
-}
-
-.bot-panel > * {
-  position: relative;
-  z-index: 1;
-}
-
-.bot-header {
-  padding: .9rem 1.1rem;
-  background: linear-gradient(110deg, rgba(24, 111, 178, .96), rgba(25, 151, 148, .92) 62%, rgba(218, 169, 59, .84));
-  border-bottom: 1px solid rgba(255, 255, 255, .4);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #fff;
-}
-
-.bot-header .bi {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, .2);
-  border: 1px solid rgba(255, 255, 255, .35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  color: #fff;
-}
-
-.bot-header .bt strong {
-  display: block;
-  font-size: .85rem;
-  color: #fff;
-}
-
-.bot-header .bt span {
-  font-size: .65rem;
-  color: rgba(255, 255, 255, .78);
-}
-
-.bot-header .close-bot {
-  margin-left: auto;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, .86);
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.bot-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 247, 222, .18));
-}
-
-.bot-msg {
-  max-width: 85%;
-  padding: .6rem .85rem;
-  border-radius: 16px;
-  font-size: .78rem;
-  line-height: 1.55;
-}
-
-.bot-msg.bot {
-  background: rgba(255, 255, 255, .82);
-  align-self: flex-start;
-  border-bottom-left-radius: 4px;
-  color: #294c61;
-  border: 1px solid rgba(112, 176, 191, .22);
-  box-shadow: 0 4px 12px rgba(46, 95, 113, .06);
-}
-
-.bot-msg.user {
-  background: linear-gradient(135deg, #1667d9, #159b9d);
-  align-self: flex-end;
-  border-bottom-right-radius: 4px;
-  color: #fff;
-  box-shadow: 0 5px 14px rgba(22, 103, 217, .18);
-}
-
-.bot-quick {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: .6rem 1rem;
-  border-top: 1px solid rgba(112, 176, 191, .18);
-  background: rgba(255, 255, 255, .5);
-}
-
-.bot-quick button {
-  background: #fff;
-  border: 1px solid #c9e1e7;
-  color: #356378;
-  font-size: .66rem;
-  padding: .32rem .7rem;
-  border-radius: 60px;
-  cursor: pointer;
-}
-
-.bot-quick button:hover {
-  background: #eaf8fa;
-  border-color: #83c7d0;
-  color: #185a70;
-}
-
-.bot-input-row {
-  display: flex;
-  gap: 6px;
-  padding: .7rem;
-  border-top: 1px solid rgba(112, 176, 191, .2);
-  background: rgba(255, 255, 255, .72);
-}
-
-.bot-input-row input {
-  flex: 1;
-  background: #fff;
-  border: 1px solid #c8dfe6;
-  border-radius: 14px;
-  padding: .55rem .9rem;
-  color: #294c61;
-  font-size: .8rem;
-}
-
-.bot-input-row input::placeholder {
-  color: #849aa6;
-}
-
-.bot-input-row button {
-  background: linear-gradient(135deg, #1667d9, #159b9d);
-  border: none;
-  color: #fff;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  cursor: pointer;
-  box-shadow: 0 5px 14px rgba(22, 103, 217, .18);
-}
+/* AI Health Guide message styles */
+.bot-msg { max-width: 85%; padding: .6rem .85rem; border-radius: 16px; font-size: .78rem; line-height: 1.55; }
+.bot-msg.bot { background: rgba(255,255,255,.82); align-self: flex-start; border-bottom-left-radius: 4px; color: #294c61; border: 1px solid rgba(112,176,191,.22); box-shadow: 0 4px 12px rgba(46,95,113,.06); }
+.bot-msg.user { background: linear-gradient(135deg, #1667d9, #159b9d); align-self: flex-end; border-bottom-right-radius: 4px; color: #fff; box-shadow: 0 5px 14px rgba(22,103,217,.18); }
 
 /* ---------- TOASTS ---------- */
 .toast-stack {
@@ -2108,6 +1927,7 @@ table.data-table tr:hover td {
       <div class="nav-label">Intelligence</div>
       <button class="nav-item" data-view="performance"><i class="fas fa-chart-line"></i> Model Performance</button>
       <button class="nav-item" data-view="assistant"><i class="fas fa-comment-medical"></i> AI Assistant</button>
+      <button class="nav-item" data-view="health-guide"><i class="fas fa-heart-pulse"></i> AI Health Guide</button>
       <button class="nav-item" data-view="about"><i class="fas fa-circle-info"></i> Why NephroScan?</button>
     </nav>
     <nav class="nav-group">
@@ -2686,6 +2506,9 @@ table.data-table tr:hover td {
           <div class="field-group"><label><i class="fas fa-calendar"></i> Collection Date</label><input type="date" id="labCollectDate"/></div>
           <div class="field-group" style="grid-column:1/-1;"><label><i class="fas fa-comment-dots"></i> Symptoms</label><input type="text" id="labSymptoms" placeholder="e.g. fatigue, frequent urination"/></div>
           <div class="field-group" style="grid-column:1/-1;"><label><i class="fas fa-stethoscope"></i> Clinical Indication</label><input type="text" id="labIndication" placeholder="e.g. annual checkup, follow-up diabetes"/></div>
+          <div class="field-group"><label><i class="fas fa-phone"></i> Mobile Number</label><input type="tel" id="labMobileNumber" placeholder="+91 9876543210"/></div>
+          <div class="field-group"><label><i class="fas fa-envelope"></i> Email Address</label><input type="email" id="labEmailAddress" placeholder="you@example.com"/></div>
+          <div class="field-group" style="grid-column:1/-1;display:flex;align-items:center;gap:.5rem;"><input type="checkbox" id="labShareConsent" style="width:auto;"/><label for="labShareConsent" style="margin:0;font-size:.76rem;color:#475569;">I agree to prepare this report for sharing.</label></div>
         </div>
         <div style="margin-top:.8rem;text-align:right;">
           <button id="labAnalyzeBtn" class="btn btn-primary" style="padding:.5rem 1.4rem;"><i class="fas fa-microchip"></i> Analyze Lab Report</button>
@@ -2714,8 +2537,8 @@ table.data-table tr:hover td {
             <button class="btn btn-secondary" id="labListenBtn"><i class="fas fa-volume-high"></i> Listen to Report</button>
             <button class="btn btn-secondary" id="labPauseBtn" style="display:none;"><i class="fas fa-pause"></i> Pause</button>
             <button class="btn btn-secondary" id="labStopBtn" style="display:none;"><i class="fas fa-stop"></i> Stop</button>
-            <button class="btn btn-secondary" id="labWhatsAppBtn"><i class="fab fa-whatsapp"></i> Share via WhatsApp</button>
-            <button class="btn btn-secondary" id="labEmailBtn"><i class="fas fa-envelope"></i> Share via Email</button>
+            <button class="btn btn-secondary" id="labWhatsAppBtn" disabled title="Enter mobile number and agree to sharing"><i class="fab fa-whatsapp"></i> Share via WhatsApp</button>
+            <button class="btn btn-secondary" id="labEmailBtn" disabled title="Enter email address and agree to sharing"><i class="fas fa-envelope"></i> Share via Email</button>
             <button class="btn btn-secondary" id="labCopyBtn"><i class="fas fa-copy"></i> Copy Report</button>
             <button class="btn btn-secondary" id="labPrintBtn"><i class="fas fa-print"></i> Print / Save PDF</button>
           </div>
@@ -2808,9 +2631,9 @@ table.data-table tr:hover td {
     <!-- ===================== ASSISTANT (FULL PAGE) VIEW ===================== -->
     <section class="view" id="view-assistant">
       <div class="card">
-        <div class="section-heading"><i class="fas fa-comment-medical"></i> NephroBot — AI Health Assistant</div>
-        <p style="font-size:.8rem;color:#5a6b7a;margin-bottom:1rem;">Open the chat panel in the corner to ask about your most recent report, medical terms, or general health questions. NephroBot explains — it does not diagnose or prescribe.</p>
-        <button class="btn btn-primary" id="openBotFromView"><i class="fas fa-comments"></i> Open NephroBot</button>
+        <div class="section-heading"><i class="fas fa-comment-medical"></i> AI Assistant</div>
+        <p style="font-size:.8rem;color:#5a6b7a;margin-bottom:1rem;">Use the AI Health Guide in the sidebar for general health guidance, explaining lab terminology, diet and lifestyle habits, and preparing for a doctor visit.</p>
+        <button class="btn btn-primary" onclick="showView('health-guide')"><i class="fas fa-heart-pulse"></i> Open AI Health Guide</button>
       </div>
     </section>
 
@@ -4704,28 +4527,29 @@ body.ns-compact .ns-settings{
 </section>
 <!-- ===================== END SETTINGS VIEW ===================== -->
 
-<!-- ===================== NEPHROBOT WIDGET ===================== -->
-<button class="bot-fab" id="botFab" aria-label="Open NephroBot"><i class="fas fa-robot"></i></button>
-<div class="bot-panel" id="botPanel">
-  <div class="bot-header">
-    <div class="bi"><i class="fas fa-robot"></i></div>
-    <div class="bt"><strong>NephroBot</strong><span>AI Health Assistant</span></div>
-    <button class="close-bot" id="closeBotBtn"><i class="fas fa-xmark"></i></button>
+<!-- ===================== AI HEALTH GUIDE VIEW ===================== -->
+<section class="view" id="view-health-guide">
+  <div class="card">
+    <div class="section-heading"><i class="fas fa-heart-pulse"></i> AI Health Guide</div>
+    <div style="font-size:.78rem;color:#5a6b7a;margin-bottom:.6rem;">Ask about health topics, lab terminology, diet, lifestyle, or preparing for a doctor visit.</div>
+    <div id="healthGuideMessages" style="max-height:400px;overflow-y:auto;padding:.5rem;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:.6rem;display:flex;flex-direction:column;gap:8px;"></div>
+    <div id="healthGuideQuick" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.6rem;">
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="Explain my lab result">Explain my lab result</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="What should I ask my doctor?">What should I ask my doctor?</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="General diet guidance">General diet guidance</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="Healthy lifestyle habits">Healthy lifestyle habits</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="Explain a medical term">Explain a medical term</button>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <input type="text" id="healthGuideInput" placeholder="Ask a health question..." style="flex:1;padding:.5rem .8rem;border:1px solid #c8dfe6;border-radius:10px;font-size:.82rem;"/>
+      <button class="btn btn-primary" id="healthGuideSendBtn" style="padding:.5rem 1rem;"><i class="fas fa-paper-plane"></i> Send</button>
+    </div>
+    <div style="margin-top:.6rem;font-size:.68rem;color:#6b7f8d;border-top:1px solid #edf2f5;padding-top:.5rem;"><i class="fas fa-shield-halved" style="margin-right:.3rem;"></i> Educational health guidance only. It does not replace examination or advice from a qualified healthcare professional.</div>
   </div>
-  <div style="padding:.35rem .7rem;background:#f0faf6;border-top:1px solid #c2e8d6;font-size:.62rem;color:#2d536b;text-align:center;">NephroBot provides educational suggestions, not a diagnosis or treatment plan.</div>
-  <div class="bot-messages" id="botMessages"></div>
-  <div class="bot-quick" id="botQuick">
-    <button data-q="explain">💡 Explain my result</button>
-    <button data-q="summarize">📄 Summarize my report</button>
-    <button data-q="disease">🧠 What does this mean?</button>
-    <button data-q="watch">⚠ What should I watch for?</button>
-    <button data-q="ask">👨‍⚕ What should I ask my doctor?</button>
-  </div>
-  <div class="bot-input-row">
-    <input type="text" id="botInput" placeholder="Ask NephroBot..."/>
-    <button id="botSendBtn"><i class="fas fa-paper-plane"></i></button>
-  </div>
-</div>
+</section>
+<!-- ===================== END AI HEALTH GUIDE VIEW ===================== -->
+
+<!-- (floating NephroBot widget removed — AI Health Guide is now a sidebar page) -->
 
 
 <script>
@@ -4879,7 +4703,8 @@ const viewTitles = {
   lab:['fa-vials','Lab Test Analysis'],
   history:['fa-clock-rotate-left','Report History'], patients:['fa-user-injured','Patients'],
   compare:['fa-code-compare','Compare Scans'], performance:['fa-chart-line','Model Performance'],
-  assistant:['fa-comment-medical','AI Assistant'], about:['fa-circle-info','Why NephroScan?'],
+  assistant:['fa-comment-medical','AI Assistant'], 'health-guide':['fa-heart-pulse','AI Health Guide'],
+  about:['fa-circle-info','Why NephroScan?'],
   settings:['fa-gear','Settings']
 };
 function showView(name){
@@ -4898,7 +4723,7 @@ document.querySelectorAll('.nav-item').forEach(btn=>btn.addEventListener('click'
 document.querySelectorAll('[data-view-go]').forEach(el=>el.addEventListener('click',()=>showView(el.dataset.viewGo)));
 document.getElementById('heroStartBtn').addEventListener('click',()=>showView('analysis'));
 document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analysis'); loadDemoCase(); });
-document.getElementById('openBotFromView').addEventListener('click',()=>openBot());
+/* (openBotFromView removed — AI Health Guide is a sidebar page) */
 
 /* mobile sidebar */
 const sidebar = document.getElementById('sidebar');
@@ -5809,190 +5634,69 @@ document.getElementById('compareBtn').addEventListener('click', ()=>{
   <div class="disclaimer-box">This comparison is a simple rule applied to demo prediction categories — it does not represent a clinically validated assessment of disease progression.</div></div>`;
 });
 
-/* ===================== NEPHROBOT ===================== */
-const botPanel = document.getElementById('botPanel');
-const botMessages = document.getElementById('botMessages');
-function openBot(){ botPanel.classList.add('open'); if(botMessages.children.length===0){ addBotMsg("Hi, I'm NephroBot. I can help explain your report, medical terms, and general health questions. I can't diagnose or prescribe — for that, please see a qualified healthcare professional.", 'bot'); } }
-document.getElementById('botFab').addEventListener('click', ()=> botPanel.classList.contains('open') ? botPanel.classList.remove('open') : openBot());
-document.getElementById('closeBotBtn').addEventListener('click', ()=>botPanel.classList.remove('open'));
-function addBotMsg(text, who){ const el=document.createElement('div'); el.className='bot-msg '+who; el.textContent=text; botMessages.appendChild(el); botMessages.scrollTop = botMessages.scrollHeight; }
+/* ===================== AI HEALTH GUIDE ===================== */
+var healthGuideMessages = document.getElementById('healthGuideMessages');
+var healthGuideInput = document.getElementById('healthGuideInput');
 
-const SAFE_DISCLAIMER = "NephroBot provides educational suggestions, not a diagnosis or treatment plan.";
-
-function _reportContext(){
-  const r = sessionReports.find(function(x){ return x.id === currentOpenReportId; });
-  if(!r) return null;
-  var mod = {ct_kub:'Kidney Scan', chest_xray:'Chest X-ray', mri_brain:'Brain MRI', heart:'Heart X-ray'}[r.scanType] || r.scanType.replace('_',' ');
-  return { scanType:r.scanType, modality:mod, prediction:r.prediction, confidence:r.confidence, uncertain:r.uncertain, riskLevel:r.riskLevel, category:r.category };
+function _healthGuideAddMsg(text, who){
+  var el = document.createElement('div');
+  el.className = 'bot-msg ' + who;
+  el.textContent = text;
+  healthGuideMessages.appendChild(el);
+  healthGuideMessages.scrollTop = healthGuideMessages.scrollHeight;
 }
 
-function _nutritionAdvice(scanType, prediction, uncertain){
-  if(uncertain) return 'General balanced nutrition and adequate hydration are supportive for overall health. Clinician review is recommended before making any dietary changes specific to this result.';
-  if(scanType==='ct_kub') return 'Fluid intake, sodium, protein, potassium, and oxalate management depend on individual kidney function and stone type. Specific dietary guidance should be determined by your treating clinician or a registered dietitian based on lab results and clinical context.';
-  if(scanType==='heart') return 'Discussing a heart-healthy eating pattern with your clinician or a registered dietitian may be beneficial. General approaches include balanced portions, reduced sodium, and emphasis on whole foods — but any changes should be guided by your clinical profile.';
-  if(scanType==='chest_xray') return 'General balanced nutrition and adequate hydration support overall respiratory and immune health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins as tolerated.';
-  if(scanType==='mri_brain') return 'General balanced nutrition and adequate hydration support overall neurological and metabolic health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins as tolerated.';
-  return 'General balanced nutrition and adequate hydration support overall health. Maintain a varied diet as tolerated.';
-}
+var _HG_DISCLAIMER = 'Educational health guidance only. It does not replace examination or advice from a qualified healthcare professional.';
+var _HG_URGENT = 'If you or someone near you is experiencing chest pain, severe breathing difficulty, fainting, sudden weakness or numbness, confusion, or uncontrolled bleeding, seek urgent medical care immediately or call your local emergency number.';
 
-function _watchFor(scanType){
-  if(scanType==='mri_brain') return 'Seizure, new weakness or numbness, confusion, difficulty speaking, loss of consciousness, or a severe rapidly worsening headache.';
-  if(scanType==='chest_xray') return 'Severe breathing difficulty, blue lips or face, confusion, chest pain, coughing blood, or rapidly worsening symptoms.';
-  if(scanType==='ct_kub') return 'Fever with flank pain, inability to pass urine, uncontrolled vomiting, or severe worsening pain.';
-  if(scanType==='heart') return 'Chest pain, shortness of breath, rapid or irregular heartbeat, swelling in legs or ankles, or fainting.';
-  return 'Worsening pain, new fever, breathing difficulty, confusion, or any rapidly worsening symptom.';
-}
-
-function _askDoctor(scanType){
-  if(scanType==='mri_brain') return 'What does this MRI classification mean in my clinical context? Is formal radiology review or additional imaging needed? Which symptoms require urgent attention?';
-  if(scanType==='chest_xray') return 'Does the chest X-ray support the AI screening result? Do my symptoms require examination, testing, or follow-up?';
-  if(scanType==='ct_kub') return 'What does this kidney screening result mean for my kidney function? Do I need additional testing or follow-up?';
-  if(scanType==='heart') return 'What does this heart screening result mean for my cardiac health? Do I need additional testing or follow-up?';
-  return 'What does this result mean in my clinical context? Do I need additional testing or follow-up?';
-}
-
-function botReply(userText){
+function _healthGuideReply(userText){
   var t = userText.toLowerCase();
-  var ctx = _reportContext();
 
-  var hasReport = !!ctx;
-  var isAbnormal = hasReport && (ctx.category==='abnormal' || ctx.riskLevel==='high');
-  var isLowConf = hasReport && ctx.confidence < 60;
-  var isUncertain = hasReport && ctx.uncertain;
-
-  if(t.includes('explain') || t==='explain'){
-    if(!hasReport) return "You haven't generated a report yet. Run an analysis first, then ask me to explain it.";
-    var scope = ctx.scanType==='mri_brain' ? 'This four-class prototype classifies MRI images; it does not localize or diagnose a brain tumor.'
-      : ctx.scanType==='chest_xray' ? 'This is a binary pneumonia-screening prototype and does not assess every chest abnormality.'
-      : ctx.scanType==='heart' ? 'This is a binary cardiomegaly-screening prototype and does not measure heart size or function.'
-      : 'This is a binary kidney-stone screening prototype and does not measure stone size or obstruction.';
-    var lines = [];
-    lines.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" with ' + ctx.confidence + '% confidence. ' + scope);
-    if(isUncertain) lines.push('Review status: The result is marked uncertain and needs clinical review.');
-    lines.push('Helpful next steps: ' + _askDoctor(ctx.scanType));
-    lines.push('General nutrition guidance: ' + _nutritionAdvice(ctx.scanType, ctx.prediction, isUncertain));
-    lines.push('Questions to ask a clinician: ' + _askDoctor(ctx.scanType));
-    if(isAbnormal || isLowConf) lines.push('This result may benefit from clinician review.');
-    lines.push(SAFE_DISCLAIMER);
-    return lines.join('\n\n');
+  if(t.includes('explain') && (t.includes('lab') || t.includes('result') || t.includes('test'))){
+    return 'Lab test names and values can seem confusing. Here is a simple way to read them:\n\n1. Test name — what was measured (e.g. hemoglobin, glucose, creatinine).\n2. Your value — the number from your report.\n3. Unit — how the value is measured (e.g. g/dL, mg/dL).\n4. Reference range — the "normal" range printed on your report.\n5. Status — whether your value is within, above, or below that range.\n\nIf a value is outside the reference range, it does not automatically mean you have a disease. Many factors — hydration, recent meals, stress, exercise, and medication — can affect results. Share the full report with your clinician for proper interpretation.\n\n' + _HG_DISCLAIMER;
   }
 
-  if(t.includes('summar')){
-    if(!hasReport) return "There's no report open yet. Generate one from New Analysis first.";
-    var s = [];
-    s.push('What the report says: ' + ctx.modality + ', "' + ctx.prediction + '", confidence ' + ctx.confidence + '%, risk ' + ctx.riskLevel + '.');
-    s.push('Helpful next steps: ' + _askDoctor(ctx.scanType));
-    s.push('General nutrition guidance: ' + _nutritionAdvice(ctx.scanType, ctx.prediction, isUncertain));
-    if(isAbnormal || isLowConf) s.push('This result may benefit from clinician review.');
-    s.push(SAFE_DISCLAIMER);
-    return s.join('\n\n');
+  if(t.includes('ask') && (t.includes('doctor') || t.includes('clinician') || t.includes('appointment'))){
+    return 'Good questions to ask your doctor about any health result:\n\n1. What does this result mean for me specifically?\n2. Are any follow-up tests needed?\n3. Should I make any lifestyle or diet changes?\n4. Are any of my current medications affecting this result?\n5. When should I schedule a follow-up?\n6. What symptoms should I watch for?\n7. Is this result urgent or can it wait until my next visit?\n\nWriting your questions before the appointment helps you remember everything you want to discuss.\n\n' + _HG_DISCLAIMER;
   }
 
-  if(t.includes('what should i watch') || t.includes('watch')){
-    var signs = hasReport ? _watchFor(ctx.scanType) : 'Worsening pain, new fever, breathing difficulty, confusion, or any rapidly worsening symptom.';
-    var w = [];
-    if(hasReport) w.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
-    w.push('Helpful next steps: Seek urgent local medical care if you experience: ' + signs);
-    if(hasReport) w.push('Questions to ask a clinician: ' + _askDoctor(ctx.scanType));
-    w.push(SAFE_DISCLAIMER);
-    return w.join('\n\n');
+  if(t.includes('diet') || t.includes('food') || t.includes('eat') || t.includes('nutrition') || t.includes('meal')){
+    return 'General diet guidance for overall health:\n\n- Eat a variety of fruits, vegetables, whole grains, and lean proteins.\n- Stay well-hydrated — water is the best choice for most people.\n- Limit highly processed foods, added sugars, and excessive salt.\n- Include sources of fiber (beans, oats, vegetables) for digestive health.\n- Choose healthy fats (olive oil, nuts, fatty fish) over saturated fats.\n- Eat at regular intervals to maintain steady energy.\n\nThese are general suggestions only. Individual dietary needs vary based on your health conditions, medications, and lab results. Please discuss any significant diet changes with your clinician or a registered dietitian.\n\n' + _HG_DISCLAIMER;
   }
 
-  if(t.includes('ask my doctor') || t.includes('doctor')){
-    if(!hasReport) return "Generate a report first, then I can suggest questions for your doctor.";
-    var d = [];
-    d.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
-    d.push('Questions to ask a clinician: ' + _askDoctor(ctx.scanType));
-    d.push(SAFE_DISCLAIMER);
-    return d.join('\n\n');
+  if(t.includes('lifestyle') || t.includes('habit') || t.includes('exercise') || t.includes('sleep') || t.includes('stress')){
+    return 'Healthy lifestyle habits that support overall well-being:\n\n- Aim for 7-9 hours of sleep per night.\n- Stay physically active as tolerated — even short daily walks help.\n- Manage stress through relaxation techniques, hobbies, or talking to someone you trust.\n- Avoid smoking and limit alcohol consumption.\n- Maintain social connections — they support mental health.\n- Keep regular check-ups with your healthcare provider.\n\nThese are general supportive habits. If you have specific health conditions, ask your clinician what activities are safe for you.\n\n' + _HG_DISCLAIMER;
   }
 
-  if(t.includes('mean') || t.includes('disease') || t.includes('what does')){
-    if(!hasReport) return 'Generate a report first and I can explain what the result means in general terms.';
-    var m = [];
-    m.push('What the report says: The result is an AI-assisted prototype classification for ' + ctx.modality + '. It is a starting point for discussion with a qualified clinician, not a diagnosis.');
-    m.push('Helpful next steps: ' + _askDoctor(ctx.scanType));
-    m.push(SAFE_DISCLAIMER);
-    return m.join('\n\n');
+  if(t.includes('medical term') || t.includes('terminology') || t.includes('what does') || t.includes('meaning of')){
+    return 'Common medical terms explained simply:\n\n- Reference range — the range of values considered "normal" for a test in a healthy population.\n- Abnormal — a result outside the reference range. This does not always mean disease.\n- Benign — not cancerous or harmful.\n- Prognosis — the likely course or outcome of a condition.\n- Chronic — a condition that develops slowly and may be long-lasting.\n- Acute — a condition that comes on suddenly and may need prompt attention.\n- Inflammation — the body\'s response to injury or infection; may cause redness, swelling, or pain.\n- Prophylaxis — preventive treatment or action.\n\nIf you encounter a term on your report that you do not understand, ask your healthcare provider for an explanation.\n\n' + _HG_DISCLAIMER;
   }
 
-  if(t.includes('confiden')){
-    return "Model confidence reflects how strongly the model favored one class over alternatives. It is not medical certainty and does not measure disease severity. " + SAFE_DISCLAIMER;
+  if(t.includes('chest pain') || t.includes('breathing') || t.includes('faint') || t.includes('weakness') || t.includes('confusion') || t.includes('bleeding') || t.includes('emergency') || t.includes('urgent')){
+    return _HG_URGENT + '\n\n' + _HG_DISCLAIMER;
   }
 
-  if(t.includes('medication') || t.includes('dose') || t.includes('prescri') || t.includes('stop taking') || t.includes('medicine') || t.includes('drug')){
-    return "I can't recommend or adjust medications or dosages. Please discuss medication questions directly with your doctor or pharmacist. " + SAFE_DISCLAIMER;
-  }
-
-  if(t.includes('supplement') || t.includes('vitamin') || t.includes('mineral')){
-    return "I can't recommend specific supplements. Individualized supplement needs depend on your lab results, medical history, and clinical context. Please discuss with your clinician or registered dietitian. " + SAFE_DISCLAIMER;
-  }
-
-  if(t.includes('diet') || t.includes('food') || t.includes('eat') || t.includes('nutrition') || t.includes('meal') || t.includes('hydrat')){
-    var n = [];
-    if(hasReport) n.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
-    n.push('General nutrition guidance: ' + (hasReport ? _nutritionAdvice(ctx.scanType, ctx.prediction, isUncertain) : 'General balanced nutrition and adequate hydration support overall health. Maintain a varied diet as tolerated. Individualized dietary advice depends on your clinical history and a clinician or registered dietitian.'));
-    n.push(SAFE_DISCLAIMER);
-    return n.join('\n\n');
-  }
-
-  if(t.includes('kidney') || t.includes('renal')){
-    var k = [];
-    if(hasReport) k.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
-    k.push('General nutrition guidance: For kidney health, fluid intake, sodium, protein, potassium, and oxalate management depend on individual kidney function and stone type. Specific dietary guidance should be determined by your treating clinician or a registered dietitian based on lab results and clinical context.');
-    k.push('Helpful next steps: ' + (hasReport ? _askDoctor(ctx.scanType) : 'Discuss any kidney-related questions with your clinician.'));
-    k.push(SAFE_DISCLAIMER);
-    return k.join('\n\n');
-  }
-
-  if(t.includes('heart') || t.includes('cardiac') || t.includes('cardio')){
-    var h = [];
-    if(hasReport) h.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
-    h.push('General nutrition guidance: Discussing a heart-healthy eating pattern with your clinician or a registered dietitian may be beneficial. General approaches include balanced portions, reduced sodium, and emphasis on whole foods — but any changes should be guided by your clinical profile.');
-    h.push('Helpful next steps: ' + (hasReport ? _askDoctor(ctx.scanType) : 'Discuss any heart-related questions with your clinician.'));
-    h.push(SAFE_DISCLAIMER);
-    return h.join('\n\n');
-  }
-
-  if(t.includes('brain') || t.includes('neuro') || t.includes('mri')){
-    var b = [];
-    if(hasReport) b.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
-    b.push('General nutrition guidance: General balanced nutrition and adequate hydration support overall neurological and metabolic health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins as tolerated. Individualized advice depends on your clinical history and a clinician.');
-    b.push('Helpful next steps: ' + (hasReport ? _askDoctor(ctx.scanType) : 'Discuss any neurological questions with your clinician.'));
-    b.push(SAFE_DISCLAIMER);
-    return b.join('\n\n');
-  }
-
-  if(t.includes('chest') || t.includes('lung') || t.includes('pneumonia') || t.includes('x-ray') || t.includes('xray')){
-    var c = [];
-    if(hasReport) c.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
-    c.push('General nutrition guidance: General balanced nutrition and adequate hydration support overall respiratory and immune health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins as tolerated.');
-    c.push('Helpful next steps: ' + (hasReport ? _askDoctor(ctx.scanType) : 'Discuss any chest or respiratory questions with your clinician.'));
-    c.push(SAFE_DISCLAIMER);
-    return c.join('\n\n');
-  }
-
-  var fallback = [];
-  if(hasReport) fallback.push('What the report says: ' + ctx.modality + ' — "' + ctx.prediction + '" (' + ctx.confidence + '%).');
-  fallback.push('I can explain your report, suggest questions for your doctor, or discuss general nutrition and health topics. I cannot diagnose, prescribe, or replace a qualified healthcare professional.');
-  fallback.push(SAFE_DISCLAIMER);
-  return fallback.join('\n\n');
+  return 'I can help with general health guidance, explaining lab terminology, diet and lifestyle habits, and preparing for a doctor visit. Please describe what you would like to know.\n\nRemember: I provide educational information only. For any personal health concerns, diagnosis, or treatment decisions, please consult a qualified healthcare professional.\n\n' + _HG_DISCLAIMER;
 }
-document.getElementById('botQuick').addEventListener('click', e=>{
-  const btn = e.target.closest('button'); if(!btn) return;
-  const map = {explain:'Explain my result', summarize:'Summarize my report', disease:'What does this disease mean?', watch:'What should I watch for?', ask:'What should I ask my doctor?'};
-  const q = map[btn.dataset.q];
-  addBotMsg(q,'user');
-  setTimeout(()=>addBotMsg(botReply(btn.dataset.q==='explain'?'explain':btn.dataset.q==='summarize'?'summarize':btn.dataset.q==='disease'?'mean':btn.dataset.q==='watch'?'watch':'ask my doctor'),'bot'), 350);
+
+document.getElementById('healthGuideSendBtn').addEventListener('click', function(){
+  var val = healthGuideInput.value.trim();
+  if(!val) return;
+  _healthGuideAddMsg(val, 'user');
+  healthGuideInput.value = '';
+  setTimeout(function(){ _healthGuideAddMsg(_healthGuideReply(val), 'bot'); }, 350);
 });
-function sendBotInput(){
-  const input = document.getElementById('botInput');
-  const val = input.value.trim(); if(!val) return;
-  addBotMsg(val,'user'); input.value='';
-  setTimeout(()=>addBotMsg(botReply(val),'bot'), 350);
-}
-document.getElementById('botSendBtn').addEventListener('click', sendBotInput);
-document.getElementById('botInput').addEventListener('keydown', e=>{ if(e.key==='Enter') sendBotInput(); });
+healthGuideInput.addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('healthGuideSendBtn').click(); });
+
+document.getElementById('healthGuideQuick').addEventListener('click', function(e){
+  var btn = e.target.closest('button');
+  if(!btn) return;
+  var q = btn.dataset.q;
+  _healthGuideAddMsg(q, 'user');
+  setTimeout(function(){ _healthGuideAddMsg(_healthGuideReply(q), 'bot'); }, 350);
+});
+
+/* (NephroBot floating widget removed — functionality moved to AI Health Guide sidebar) */
 
 
 
@@ -6007,6 +5711,7 @@ const labReport = {
   sourceMimeType: '',
   context: {},
   tests: [],
+  findings: [],
   overallSummary: '',
   possibleProblems: [],
   whatCanBeDone: [],
@@ -6105,6 +5810,7 @@ document.getElementById('labAnalyzeBtn').addEventListener('click', async functio
         return { name: t.name||'', value: t.value||'', unit: t.unit||'', refLow: t.refLow||'', refHigh: t.refHigh||'', status: t.status||'Needs review', confidence: t.confidence||'' };
       });
       labReport.overallSummary = data.overallSummary || '';
+      labReport.findings = data.findings || [];
       labReport.possibleProblems = data.possibleProblems || [];
       labReport.whatCanBeDone = data.whatCanBeDone || [];
       labReport.dietGuidance = data.dietGuidance || [];
@@ -6268,6 +5974,7 @@ function _labRenderReport(){
 
   document.getElementById('labReportBody').innerHTML = html;
   document.getElementById('labActionsBar').style.display = 'flex';
+  _labValidateShareFields();
 
   var reportRecord = {
     id: reportId,
@@ -6365,6 +6072,22 @@ var _labSpeechText = '';
 var _labSpeaking = false;
 var _labSpeechPaused = false;
 
+function _labValidateShareFields(){
+  var mobile = (document.getElementById('labMobileNumber').value || '').trim();
+  var email = (document.getElementById('labEmailAddress').value || '').trim();
+  var consent = document.getElementById('labShareConsent').checked;
+  var validMobile = mobile.length >= 7 && /^\+?[\d\s\-()]{7,}$/.test(mobile);
+  var validEmail = email.length >= 5 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  var canShare = consent && (validMobile || validEmail);
+  var waBtn = document.getElementById('labWhatsAppBtn');
+  var emBtn = document.getElementById('labEmailBtn');
+  if(waBtn){ waBtn.disabled = !canShare || !validMobile; waBtn.title = canShare && validMobile ? 'Share via WhatsApp' : 'Enter mobile number, email, and agree to sharing'; }
+  if(emBtn){ emBtn.disabled = !canShare || !validEmail; emBtn.title = canShare && validEmail ? 'Share via Email' : 'Enter mobile number, email, and agree to sharing'; }
+}
+document.getElementById('labMobileNumber').addEventListener('input', _labValidateShareFields);
+document.getElementById('labEmailAddress').addEventListener('input', _labValidateShareFields);
+document.getElementById('labShareConsent').addEventListener('change', _labValidateShareFields);
+
 function _labBuildSpeechText(){
   var r = labReport;
   var txt = 'Lab Analysis Report. ';
@@ -6428,7 +6151,8 @@ document.getElementById('labStopBtn').addEventListener('click', _labStopSpeech);
 
 document.getElementById('labWhatsAppBtn').addEventListener('click', function(){
   var txt = _labBuildShareText();
-  var url = 'https://wa.me/?text=' + encodeURIComponent(txt);
+  var mobile = (document.getElementById('labMobileNumber').value || '').replace(/[\s\-()]/g, '');
+  var url = mobile ? 'https://wa.me/' + mobile.replace(/^\+/, '') + '?text=' + encodeURIComponent(txt) : 'https://wa.me/?text=' + encodeURIComponent(txt);
   window.open(url, '_blank');
   toast('WhatsApp message prepared — press Send in WhatsApp.', 'info');
 });
