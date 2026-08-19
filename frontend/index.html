@@ -1369,12 +1369,11 @@ body.mode-patient .mode-patient-only { display: block; }
 
 .attention-heatmap-frame img {
   display: block;
-  width: auto;
+  width: min(100%, 700px);
   height: auto;
-  max-width: 100%;
-  max-height: 700px;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
-  aspect-ratio: auto;
+  image-rendering: auto;
   margin: 0 auto;
 }
 
@@ -1409,9 +1408,12 @@ body.mode-patient .mode-patient-only { display: block; }
   cursor: zoom-out;
 }
 .ns-heatmap-overlay img {
-  max-width: 95vw;
-  max-height: 92vh;
+  display: block;
+  width: min(90vw, 900px);
+  height: auto;
+  max-height: 85vh;
   object-fit: contain;
+  margin: auto;
   border-radius: 10px;
   box-shadow: 0 20px 60px rgba(0,0,0,.5);
 }
@@ -1433,7 +1435,7 @@ body.mode-patient .mode-patient-only { display: block; }
 }
 @media(max-width:700px){
   .attention-heatmap-frame { min-height: 260px; max-height: 520px; }
-  .attention-heatmap-frame img { max-height: 500px; }
+  .attention-heatmap-frame img { width: min(100%, 340px); }
 }
 
 /* Loading / spinner */
