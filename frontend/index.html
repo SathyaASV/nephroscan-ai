@@ -5189,11 +5189,21 @@ var DEMO_CASES = [
   { key:'brain_glioma', label:'Abnormal Brain (Glioma)', img:'demo_assets/brain_glioma_real.jpg', scanType:'mri_brain', indication:'New-onset seizures — evaluate for intracranial lesion.', patient:'Demo Patient (Brain)', age:'55', gender:'Female', doctor:'Dr. K. Singh', symptoms:'Seizures, progressive headache', name:'brain_glioma_real.jpg' },
   { key:'heart_cardio', label:'Abnormal Heart (Cardiomegaly)', img:'demo_assets/heart_cardiomegaly_real.png', scanType:'heart', indication:'Dyspnoea on exertion — assess cardiac silhouette.', patient:'Demo Patient (Heart)', age:'68', gender:'Female', doctor:'Dr. D. Verma', symptoms:'Progressive breathlessness, leg swelling', name:'heart_cardiomegaly_real.png' }
 ];
-function _loadDemoByKey(key, autoRun){
+
+async function loadDemoAsset(path, name) {
+  var response = await fetch(path + '?v=' + Date.now(), { cache: 'no-store' });
+  if (!response.ok) throw new Error('Demo asset HTTP ' + response.status + ': ' + path);
+  var blob = await response.blob();
+  if (!blob.size) throw new Error('Demo asset is 0 KB: ' + path);
+  if (!blob.type.startsWith('image/')) throw new Error('Invalid image MIME type: ' + blob.type + ' for ' + path);
+  return new File([blob], name, { type: blob.type });
+}
+
+async function _loadDemoByKey(key, autoRun){
   var pick = DEMO_CASES.find(function(c){ return c.key === key; });
   if(!pick) return;
-  fetch(pick.img).then(function(r){ return r.blob(); }).then(function(blob){
-    var file = new File([blob], pick.name, {type:'image/png'});
+  try {
+    var file = await loadDemoAsset(pick.img, pick.name);
     uploadedFiles = [file];
     renderPreviews();
     var demoBadge = document.getElementById('demoBadge');
@@ -5203,7 +5213,7 @@ function _loadDemoByKey(key, autoRun){
       demoBadge.style.cssText = 'text-align:center;margin-bottom:.5rem;';
       previewGrid.parentNode.insertBefore(demoBadge, previewGrid);
     }
-    demoBadge.innerHTML = '<span style="display:inline-block;padding:.2rem .7rem;border-radius:60px;font-size:.62rem;font-weight:700;background:rgba(22,103,217,.1);color:#1667d9;border:1px solid rgba(22,103,217,.2);">DEMO: ' + pick.label.toUpperCase() + ' — real model inference</span>';
+    demoBadge.innerHTML = '<span style="display:inline-block;padding:.2rem .7rem;border-radius:60px;font-size:.62rem;font-weight:700;background:rgba(22,103,217,.1);color:#1667d9;border:1px solid rgba(22,103,217,.2);">DEMO: ' + pick.label.toUpperCase() + ' — real model inference (' + (file.size/1024).toFixed(0) + ' KB)</span>';
     clinicalIndication.value = pick.indication;
     scanTypeSelect.value = pick.scanType;
     document.getElementById('patientName').value = pick.patient;
@@ -5211,11 +5221,14 @@ function _loadDemoByKey(key, autoRun){
     document.getElementById('patientGender').value = pick.gender;
     document.getElementById('doctorName').value = pick.doctor;
     document.getElementById('symptomsField').value = pick.symptoms;
-    toast('Demo loaded: ' + pick.label + (autoRun ? ' — running analysis...' : ' — click Run Analysis'), 'info');
+    toast('Demo loaded: ' + pick.label + ' (' + (file.size/1024).toFixed(0) + ' KB)' + (autoRun ? ' — running analysis...' : ' — click Run Analysis'), 'info');
     if(autoRun){
       setTimeout(function(){ document.getElementById('generateBtn').click(); }, 350);
     }
-  });
+  } catch(err) {
+    console.error('Demo load failed:', err);
+    toast('Demo load failed: ' + err.message, 'error');
+  }
 }
 function loadDemoCase(){
   var existing = document.getElementById('demoCaseDropdown');
@@ -5310,9 +5323,15 @@ document.getElementById('generateBtn').addEventListener('click', runAnalysis);
 
 function runAnalysis(){
   if(uploadedFiles.length===0){ toast('Please upload at least one scan image.','error'); return; }
+  var emptyFiles = uploadedFiles.filter(function(f){ return f.size === 0; });
+  if(emptyFiles.length){
+    toast('One or more files are empty (0 KB). Remove them and re-upload.', 'error');
+    return;
+  }
   const scanType = scanTypeSelect.value;
   const indication = clinicalIndication.value.trim() || 'Not specified.';
 
+  reportBody.innerHTML = '';
   generateBtn.disabled = true;
   generateBtn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Analyzing...`;
 
