@@ -5340,6 +5340,24 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   const doctorActionBlock = `<div class="report-section doctor-note"><div class="section-title"><i class="fas fa-user-doctor"></i> DOCTOR ACTIONS</div><div class="content">Review the original ${inputLabel} and confirm the AI output with the clinical history, examination, and complete study. Document the final clinician interpretation separately. Do not use this prototype result alone for diagnosis or treatment decisions.</div></div>`;
   const patientGuidanceBlock = `<div class="report-section"><div class="section-title"><i class="fas fa-person"></i> PATIENT GUIDANCE</div><div class="content">This is an AI-assisted educational screening or classification result, not a diagnosis. Share it with a qualified healthcare professional and follow the clinical advice you receive. ${emergency}</div></div>`;
   const uncertainBlock = uncertain ? `<div class="doctor-note"><strong><i class="fas fa-circle-question"></i> UNCERTAIN RESULT</strong><br/>Confidence is below the configured threshold (${confThreshold}%). Qualified clinical review is recommended.</div>` : '';
+
+  const attentionBlock = `<div class="report-section" id="reportAttentionSection"><div class="section-title"><i class="fas fa-fire-flame-curved"></i> AI ATTENTION VISUALIZATION</div><div class="content" id="reportAttentionContent"><div style="text-align:center;padding:1rem;color:#8493a0;"><i class="fas fa-circle-notch fa-spin" style="font-size:1.4rem;"></i><br/><span style="font-size:.72rem;">Generating attention heatmap…</span></div></div></div>`;
+
+  var nutritionText = '';
+  if(uncertain){
+    nutritionText = 'General balanced nutrition and adequate hydration are supportive for overall health. Clinician review is recommended before making any dietary changes specific to this result.';
+  } else if(isKidney){
+    nutritionText = 'Fluid intake, sodium, protein, potassium, and oxalate management depend on individual kidney function and stone type. Specific dietary guidance should be determined by your treating clinician or a registered dietitian based on lab results and clinical context.';
+  } else if(isHeart){
+    nutritionText = 'Discussing a heart-healthy eating pattern with your clinician or a registered dietitian may be beneficial. General approaches include balanced portions, reduced sodium, and emphasis on whole foods — but any changes should be guided by your clinical profile.';
+  } else if(isChest){
+    nutritionText = 'General balanced nutrition and adequate hydration support overall respiratory and immune health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins as tolerated.';
+  } else if(isBrain){
+    nutritionText = 'General balanced nutrition and adequate hydration support overall neurological and metabolic health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins as tolerated.';
+  } else {
+    nutritionText = 'General balanced nutrition and adequate hydration support overall health. Maintain a varied diet as tolerated.';
+  }
+  const nutritionBlock = `<div class="report-section" style="border-left:4px solid #0e7490;background:linear-gradient(135deg,#f0f9fb,#f7fbfd);"><div class="section-title"><i class="fas fa-apple-whole"></i> GENERAL NUTRITION GUIDANCE</div><div class="content">${nutritionText}<br/><br/><em style="font-size:.72rem;color:#6b7f8d;">General supportive information only. Discuss dietary decisions with a qualified clinician or registered dietitian.</em></div></div>`;
   const evidenceSummaryBlock = `<div class="doctor-note" style="border-left:4px solid #2b8cc4;background:linear-gradient(135deg,#eef9fb,#fff8e8);"><div class="section-title"><i class="fas fa-sparkles"></i> AI EVIDENCE SUMMARY <span style="font-size:.58rem;opacity:.7;margin-left:auto;">REPORT ENGINE 3.0</span></div><div class="content"><b>Input:</b> ${inputLabel} · <b>Output:</b> ${outputLabel} · <b>Confidence:</b> ${confidence}%<br/><b>What this means:</b> The model produced an educational prototype result for the selected modality. It does not replace clinical interpretation.</div></div>`;
   const provenanceDebugBlock = '<div style="margin-top:.5rem;padding:.5rem .7rem;border-radius:8px;background:#f0f4f7;border:1px solid #d7e0e8;font:500 .62rem/1.5 JetBrains Mono,monospace;color:#4a5568;word-break:break-all;"><i class="fas fa-fingerprint" style="margin-right:.3rem;color:#6b7280;"></i> <b style="color:#2d3748;">Provenance:</b> Model: ' + provModel + ' | Class: ' + prediction + ' | Confidence: ' + confidence + '% | Field: ' + provField + ' | Inference: ' + provInference + '</div>';
   const reportHTML = `
@@ -5355,6 +5373,8 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
     ${doctorActionBlock}
     ${patientGuidanceBlock}
     ${emergencyBlock}
+    ${attentionBlock}
+    ${nutritionBlock}
     <div class="disclaimer-box">NephroScan AI provides educational AI-assisted imaging support. This is not a medical diagnosis and should not replace evaluation by a qualified healthcare professional.</div>
     <div class="ai-meta"><span><i class="fas fa-hashtag"></i> ${reportId}</span><span><i class="fas fa-cube"></i> AI-assisted analysis · Report Engine 3.0</span><span><i class="fas fa-clock"></i> ${nowStr}</span><span><i class="fas fa-file"></i> ${uploadedFiles.length} scan(s)</span></div>`;
 
@@ -5366,6 +5386,32 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   refreshDashboard();
   toast('Analysis complete — organ-specific report generated.', 'info');
   _smsEnable(scanType, uncertain ? 'Uncertain' : label, confidence, uncertain, nowStr, recommendations);
+
+  /* Fetch real attention heatmap for the report */
+  (async function() {
+    var attContent = document.getElementById('reportAttentionContent');
+    if(!attContent) return;
+    var explainFile = uploadedFiles.find(function(f){ return f.type && f.type.startsWith('image/'); });
+    var backendType = SCAN_TYPE_TO_BACKEND[scanType];
+    if(!explainFile || !backendType){
+      attContent.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div><div style="font-size:.68rem;color:#8493a0;margin-top:.3rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
+      return;
+    }
+    try {
+      var fd = new FormData();
+      fd.append('image', explainFile);
+      fd.append('scan_type', backendType);
+      var resp = await fetch(EXPLAIN_URL, { method: 'POST', body: fd });
+      var data = await resp.json();
+      if(data.status === 'ok' && data.heatmap_image){
+        attContent.innerHTML = '<div style="text-align:center;"><img src="' + data.heatmap_image + '" alt="AI Attention Heatmap" style="max-width:100%;border-radius:10px;border:1px solid #d0dde4;" /></div><div style="font-size:.68rem;color:#8493a0;margin-top:.5rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
+      } else {
+        attContent.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div><div style="font-size:.68rem;color:#8493a0;margin-top:.3rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
+      }
+    } catch(err) {
+      attContent.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div><div style="font-size:.68rem;color:#8493a0;margin-top:.3rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
+    }
+  })();
 }
 
 /* explainability toggle */
