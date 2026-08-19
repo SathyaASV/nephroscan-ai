@@ -351,48 +351,7 @@ button {
   cursor: pointer;
 }
 
-.demo-mode-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #fff7e7;
-  border: 1px solid #f0d59a;
-  color: #a56d08;
-  font-size: .68rem;
-  font-weight: 700;
-  padding: .3rem .8rem;
-  border-radius: 60px;
-  letter-spacing: .03em;
-}
 
-.demo-mode-badge i {
-  font-size: .7rem;
-}
-
-.pill-toggle {
-  display: flex;
-  background: #f2f6f8;
-  border: 1px solid var(--border);
-  border-radius: 60px;
-  padding: 3px;
-  font-size: .72rem;
-}
-
-.pill-toggle button {
-  border: none;
-  background: none;
-  color: #6e7f8d;
-  padding: .35rem .9rem;
-  border-radius: 60px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: .2s;
-}
-
-.pill-toggle button.active {
-  background: var(--primary);
-  color: #fff;
-}
 
 .icon-btn {
   background: #f5f9fb;
@@ -411,27 +370,6 @@ button {
 .icon-btn:hover {
   background: #eaf3f7;
   color: #29465e;
-}
-
-.expo-btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: .5rem 1.1rem;
-  border-radius: 60px;
-  font-weight: 700;
-  font-size: .78rem;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 6px 16px rgba(22, 103, 217, .18);
-  transition: transform .16s ease, box-shadow .16s ease;
-}
-
-.expo-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(22, 103, 217, .25);
 }
 
 /* ---------- VIEW VISIBILITY ---------- */
@@ -1013,7 +951,6 @@ button {
 }
 
 .btn:active,
-.expo-btn:active,
 .nav-item:active {
   transform: scale(.98);
 }
@@ -1922,78 +1859,6 @@ table.data-table tr:hover td {
 .toast.warn i { color: var(--warning); }
 .toast.error i { color: var(--danger); }
 
-/* ---------- EXPO MODE ---------- */
-.expo-overlay {
-  position: fixed;
-  inset: 0;
-  background: #05070c;
-  z-index: 500;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 2rem;
-}
-
-.expo-overlay.active {
-  display: flex;
-}
-
-.expo-overlay .expo-close {
-  position: absolute;
-  top: 20px;
-  right: 24px;
-  background: rgba(255, 255, 255, .06);
-  border: 1px solid rgba(255, 255, 255, .12);
-  color: #fff;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.1rem;
-}
-
-.expo-overlay h2 {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: .6rem;
-  background: linear-gradient(135deg, #fff, #a8c8ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.expo-steps {
-  display: flex;
-  flex-direction: column;
-  gap: .7rem;
-  margin-top: 1.6rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: .9rem;
-}
-
-.expo-steps .es {
-  color: rgba(255, 255, 255, .25);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: center;
-}
-
-.expo-steps .es.active { color: var(--accent); }
-.expo-steps .es.done { color: var(--success); }
-
-/* Expo presence grid */
-.expo-presence-grid .expo-video-panel {
-  background: #f7fbfd;
-  border: 1px solid #d7e5eb;
-  border-radius: 14px;
-}
-
-.expo-panel-title {
-  color: #1e5871;
-}
 
 /* ---------- SETTINGS CONTROLS ---------- */
 .settings-row {
@@ -2214,16 +2079,6 @@ table.data-table tr:hover td {
   .two-col {
     grid-template-columns: 1fr;
   }
-  .demo-mode-badge {
-    font-size: .58rem;
-  }
-  .pill-toggle button {
-    padding: .3rem .55rem;
-  }
-  .expo-btn {
-    padding: .48rem .72rem;
-    font-size: .68rem;
-  }
 }
 
 /* ---------- ACCESSIBILITY ---------- */
@@ -2290,12 +2145,7 @@ table.data-table tr:hover td {
       <button class="hamburger" id="hamburgerBtn" aria-label="Open menu"><i class="fas fa-bars"></i></button>
       <div class="view-title" id="viewTitle"><i class="fas fa-gauge-high"></i> Dashboard</div>
       <div class="topbar-right">
-        <span class="demo-mode-badge"><i class="fas fa-camera"></i> LIVE CAMERA ACTIVE</span>
-        <div class="pill-toggle" id="modeToggle">
-          <button class="active" data-mode="doctor">Doctor Mode</button>
-          <button data-mode="patient">Patient Mode</button>
-        </div>
-        <button class="expo-btn" id="expoBtn"><i class="fas fa-rocket"></i> Expo Mode</button>
+
       </div>
     </div>
 
@@ -3044,14 +2894,13 @@ table.data-table tr:hover td {
   border-radius:24px;
 
   background:
-    radial-gradient(
-      circle at 50% 25%,
-      rgba(91,75,255,.12),
-      transparent 35%
-    ),
-    #0b1222;
+    linear-gradient(
+      135deg,
+      #f0f7fa,
+      #f7fbfd
+    );
 
-  border:1px solid rgba(100,140,220,.15);
+  border:1px solid #d0dde4;
 }
 
 .ns-settings-header{
@@ -3063,7 +2912,7 @@ table.data-table tr:hover td {
 }
 
 .ns-kicker{
-  color:#4edcff;
+  color:#0e7490;
   font-size:9px;
   font-weight:900;
   letter-spacing:2px;
@@ -3071,13 +2920,13 @@ table.data-table tr:hover td {
 
 .ns-settings-header h2{
   margin:5px 0 0;
-  color:#eef3ff;
+  color:#1d3c55;
   font-size:25px;
 }
 
 .ns-settings-header p{
   margin:5px 0 0;
-  color:#71809a;
+  color:#6b7f8d;
   font-size:11px;
 }
 
@@ -3090,9 +2939,9 @@ table.data-table tr:hover td {
 
   border-radius:20px;
 
-  color:#42e5b0;
-  background:rgba(66,229,176,.07);
-  border:1px solid rgba(66,229,176,.18);
+  color:#0e7c62;
+  background:rgba(14,124,98,.07);
+  border:1px solid rgba(14,124,98,.18);
 
   font-size:9px;
   font-weight:900;
@@ -3102,8 +2951,8 @@ table.data-table tr:hover td {
   width:7px;
   height:7px;
   border-radius:50%;
-  background:#42e5b0;
-  box-shadow:0 0 12px #42e5b0;
+  background:#0e7c62;
+  box-shadow:0 0 12px rgba(14,124,98,.5);
 
   animation:nsLive 1.2s infinite;
 }
@@ -3134,17 +2983,17 @@ table.data-table tr:hover td {
   background:
     radial-gradient(
       circle at 50% 50%,
-      rgba(88,70,255,.17),
+      rgba(14,116,144,.06),
       transparent 38%
     ),
     linear-gradient(
       120deg,
-      #091326,
-      #11152b,
-      #091323
+      #f0f7fa,
+      #e8f4f8,
+      #f0f7fa
     );
 
-  border:1px solid rgba(80,160,255,.15);
+  border:1px solid #d0dde4;
 }
 
 
@@ -3156,12 +3005,12 @@ table.data-table tr:hover td {
 
   background-image:
     linear-gradient(
-      rgba(70,180,255,.1) 1px,
+      rgba(14,116,144,.06) 1px,
       transparent 1px
     ),
     linear-gradient(
       90deg,
-      rgba(70,180,255,.1) 1px,
+      rgba(14,116,144,.06) 1px,
       transparent 1px
     );
 
@@ -3187,10 +3036,10 @@ table.data-table tr:hover td {
 
   border-radius:50%;
 
-  background:#4ddcff;
+  background:#0e7490;
 
   box-shadow:
-    0 0 10px #4ddcff;
+    0 0 10px rgba(14,116,144,.5);
 
   animation:nsParticle 4s ease-in-out infinite;
 }
@@ -3224,7 +3073,7 @@ table.data-table tr:hover td {
 .ns-ai-title span{
   display:block;
 
-  color:#4edcff;
+  color:#0e7490;
 
   font-size:8px;
   font-weight:900;
@@ -3236,7 +3085,7 @@ table.data-table tr:hover td {
 
   margin-top:4px;
 
-  color:#edf3ff;
+  color:#1d3c55;
 
   font-size:15px;
 }
@@ -3246,7 +3095,7 @@ table.data-table tr:hover td {
 
   margin-top:3px;
 
-  color:#68768f;
+  color:#6b7f8d;
 
   font-size:8px;
 }
@@ -3286,9 +3135,9 @@ table.data-table tr:hover td {
 
   border-radius:12px;
 
-  background:rgba(13,24,44,.92);
+  background:rgba(255,255,255,.85);
 
-  border:1px solid rgba(80,170,255,.18);
+  border:1px solid #d0dde4;
 
   z-index:5;
 
@@ -3317,20 +3166,20 @@ table.data-table tr:hover td {
 
   border-radius:9px;
 
-  background:rgba(60,150,255,.13);
+  background:rgba(14,116,144,.08);
 
-  color:#53ddff;
+  color:#0e7490;
 }
 
 .ns-module:last-child .ns-module-icon{
-  color:#ff69ca;
-  background:rgba(255,70,190,.1);
+  color:#b45309;
+  background:rgba(180,83,9,.08);
 }
 
 .ns-module strong{
   display:block;
 
-  color:#e6edf9;
+  color:#1d3c55;
 
   font-size:8px;
   letter-spacing:1px;
@@ -3341,7 +3190,7 @@ table.data-table tr:hover td {
 
   margin-top:4px;
 
-  color:#6e7c95;
+  color:#6b7f8d;
 
   font-size:8px;
 }
@@ -3357,7 +3206,7 @@ table.data-table tr:hover td {
 
   margin:0 8px;
 
-  background:rgba(75,170,255,.12);
+  background:rgba(14,116,144,.12);
 }
 
 .ns-data-dot{
@@ -3373,9 +3222,9 @@ table.data-table tr:hover td {
 
   border-radius:50%;
 
-  background:#4ddcff;
+  background:#0e7490;
 
-  box-shadow:0 0 12px #4ddcff;
+  box-shadow:0 0 12px rgba(14,116,144,.5);
 
   animation:nsData 1.8s linear infinite;
 }
@@ -3441,7 +3290,7 @@ table.data-table tr:hover td {
   width:75px;
   height:75px;
 
-  border:1px solid rgba(70,220,255,.4);
+  border:1px solid rgba(14,116,144,.35);
 
   border-left-color:transparent;
 
@@ -3452,7 +3301,7 @@ table.data-table tr:hover td {
   width:90px;
   height:90px;
 
-  border:1px solid rgba(150,80,255,.3);
+  border:1px solid rgba(180,83,9,.25);
 
   border-right-color:transparent;
 
@@ -3496,13 +3345,13 @@ table.data-table tr:hover td {
   background:
     radial-gradient(
       circle,
-      #786aff,
-      #3e2da2
+      #0e7490,
+      #0c5a6e
     );
 
   box-shadow:
-    0 0 25px rgba(100,80,255,.7),
-    0 0 55px rgba(100,80,255,.2);
+    0 0 25px rgba(14,116,144,.5),
+    0 0 55px rgba(14,116,144,.15);
 
   animation:nsPulse 2s ease-in-out infinite;
 }
@@ -3547,9 +3396,9 @@ table.data-table tr:hover td {
 
   border-radius:9px;
 
-  background:rgba(5,12,25,.72);
+  background:rgba(255,255,255,.72);
 
-  border:1px solid rgba(80,150,220,.1);
+  border:1px solid #d0dde4;
 }
 
 .ns-processing{
@@ -3557,7 +3406,7 @@ table.data-table tr:hover td {
   align-items:center;
   gap:6px;
 
-  color:#8190a9;
+  color:#4a6670;
 
   font-size:7px;
   font-weight:800;
@@ -3571,9 +3420,9 @@ table.data-table tr:hover td {
 
   border-radius:50%;
 
-  background:#42e5b0;
+  background:#0e7c62;
 
-  box-shadow:0 0 8px #42e5b0;
+  box-shadow:0 0 8px rgba(14,124,98,.5);
 
   animation:nsLive 1s infinite;
 }
@@ -3596,7 +3445,7 @@ table.data-table tr:hover td {
 
   border-radius:4px;
 
-  background:#4ddcff;
+  background:#0e7490;
 
   animation:nsWave .9s ease-in-out infinite;
 }
@@ -3620,7 +3469,7 @@ table.data-table tr:hover td {
 .ns-percent{
   min-width:30px;
 
-  color:#4ee0bc;
+  color:#0e7c62;
 
   text-align:right;
 
@@ -3636,7 +3485,7 @@ table.data-table tr:hover td {
 .ns-section-title{
   margin:20px 0 10px;
 
-  color:#dce5f5;
+  color:#1d3c55;
 
   font-size:12px;
   font-weight:900;
@@ -3644,7 +3493,7 @@ table.data-table tr:hover td {
 
 .ns-section-title i{
   margin-right:7px;
-  color:#4edcff;
+  color:#0e7490;
 }
 
 .ns-settings-grid{
@@ -3665,9 +3514,9 @@ table.data-table tr:hover td {
 
   border-radius:13px;
 
-  background:rgba(17,27,47,.78);
+  background:rgba(255,255,255,.78);
 
-  border:1px solid rgba(100,140,190,.12);
+  border:1px solid #d0dde4;
 
   transition:.25s;
 }
@@ -3675,7 +3524,7 @@ table.data-table tr:hover td {
 .ns-setting:hover{
   transform:translateY(-2px);
 
-  border-color:rgba(80,190,255,.28);
+  border-color:#a9d7df;
 }
 
 .ns-setting-icon{
@@ -3690,9 +3539,9 @@ table.data-table tr:hover td {
 
   border-radius:9px;
 
-  background:rgba(80,100,255,.12);
+  background:rgba(14,116,144,.08);
 
-  color:#7388ff;
+  color:#0e7490;
 
   font-size:13px;
 }
@@ -3704,7 +3553,7 @@ table.data-table tr:hover td {
 .ns-setting-info strong{
   display:block;
 
-  color:#e8eef8;
+  color:#1d3c55;
 
   font-size:10px;
 }
@@ -3714,7 +3563,7 @@ table.data-table tr:hover td {
 
   margin-top:3px;
 
-  color:#6f7d95;
+  color:#6b7f8d;
 
   font-size:8px;
 }
@@ -3734,9 +3583,9 @@ table.data-table tr:hover td {
 
   border-radius:20px;
 
-  background:#263348;
+  background:#c8d6df;
 
-  border:1px solid rgba(255,255,255,.08);
+  border:1px solid #b0bfca;
 
   cursor:pointer;
 
@@ -3766,12 +3615,12 @@ table.data-table tr:hover td {
 .ns-toggle.active{
   background:linear-gradient(
     90deg,
-    #405cff,
-    #7650ff
+    #0e7490,
+    #0c5a6e
   );
 
   box-shadow:
-    0 0 12px rgba(90,80,255,.3);
+    0 0 12px rgba(14,116,144,.3);
 }
 
 .ns-toggle.active::after{
@@ -3786,9 +3635,9 @@ table.data-table tr:hover td {
 .ns-preferences{
   border-radius:14px;
 
-  background:rgba(17,27,47,.78);
+  background:rgba(255,255,255,.78);
 
-  border:1px solid rgba(100,140,190,.12);
+  border:1px solid #d0dde4;
 }
 
 .ns-preference{
@@ -3798,7 +3647,7 @@ table.data-table tr:hover td {
 
   padding:14px;
 
-  border-bottom:1px solid rgba(255,255,255,.05);
+  border-bottom:1px solid rgba(0,0,0,.05);
 }
 
 .ns-preference:last-child{
@@ -3808,7 +3657,7 @@ table.data-table tr:hover td {
 .ns-preference strong{
   display:block;
 
-  color:#e7edf7;
+  color:#1d3c55;
 
   font-size:10px;
 }
@@ -3818,7 +3667,7 @@ table.data-table tr:hover td {
 
   margin-top:3px;
 
-  color:#6f7d95;
+  color:#6b7f8d;
 
   font-size:8px;
 }
@@ -3832,7 +3681,7 @@ table.data-table tr:hover td {
 
   border-radius:18px;
 
-  background:#202b40;
+  background:#e8eef3;
 }
 
 .ns-buttons button{
@@ -3844,7 +3693,7 @@ table.data-table tr:hover td {
 
   background:transparent;
 
-  color:#7d899d;
+  color:#5a7080;
 
   font-size:8px;
   font-weight:800;
@@ -3857,8 +3706,8 @@ table.data-table tr:hover td {
 
   background:linear-gradient(
     90deg,
-    #405cff,
-    #7650ff
+    #0e7490,
+    #0c5a6e
   );
 }
 
@@ -3878,13 +3727,13 @@ table.data-table tr:hover td {
 
   border-radius:12px;
 
-  background:rgba(255,255,255,.025);
+  background:rgba(255,255,255,.5);
 
-  border:1px solid rgba(100,140,190,.1);
+  border:1px solid #d0dde4;
 }
 
 .ns-sound-test span{
-  color:#77859c;
+  color:#4a6670;
   font-size:8px;
 }
 
@@ -3899,8 +3748,8 @@ table.data-table tr:hover td {
 
   background:linear-gradient(
     90deg,
-    #405cff,
-    #7650ff
+    #0e7490,
+    #0c5a6e
   );
 
   cursor:pointer;
@@ -3925,13 +3774,13 @@ table.data-table tr:hover td {
 
   margin-top:15px;
 
-  color:#69778e;
+  color:#5a7080;
 
   font-size:8px;
 }
 
 .ns-footer i{
-  color:#42e5b0;
+  color:#0e7c62;
   margin-right:5px;
 }
 
@@ -3942,9 +3791,9 @@ table.data-table tr:hover td {
 
   border-radius:8px;
 
-  background:rgba(255,255,255,.05);
+  background:rgba(0,0,0,.05);
 
-  color:#8794a9;
+  color:#4a6670;
 
   cursor:pointer;
 
@@ -4325,10 +4174,16 @@ table.data-table tr:hover td {
       Preferences are saved automatically
     </span>
 
-    <button id="nsReset">
-      <i class="fas fa-rotate-left"></i>
-      Reset Settings
-    </button>
+    <div style="display:flex;gap:8px;">
+      <button id="nsClearReports" style="border:0;padding:7px 11px;border-radius:8px;background:rgba(180,50,50,.08);color:#9b2c2c;cursor:pointer;font-size:8px;">
+        <i class="fas fa-trash"></i>
+        Clear Saved Reports
+      </button>
+      <button id="nsReset">
+        <i class="fas fa-rotate-left"></i>
+        Reset Settings
+      </button>
+    </div>
 
   </div>
 
@@ -4769,6 +4624,23 @@ table.data-table tr:hover td {
   }
 
 
+  /* ================= CLEAR SAVED REPORTS ================= */
+
+  const clearReportsBtn = document.getElementById('nsClearReports');
+  if(clearReportsBtn){
+    clearReportsBtn.addEventListener('click', function(){
+      if(!confirm('Delete all saved reports from local storage? This cannot be undone.')) return;
+      try { localStorage.removeItem(LS_KEY); } catch(e) {}
+      sessionReports = [];
+      reportCounter = 1;
+      refreshDashboard();
+      renderHistory();
+      renderPatients();
+      toast('All saved reports cleared.', 'info');
+    });
+  }
+
+
   /* ================= INITIAL STATE ================= */
 
   const visual =
@@ -4857,27 +4729,6 @@ body.ns-compact .ns-settings{
   padding:22px;
 }
 
-/* ===================== EXPO PRESENCE ===================== */
-#view-expo-presence .expo-presence-card{margin-bottom:1rem}
-.expo-presence-lead{color:#557183!important;font-size:.82rem;line-height:1.7;margin-bottom:1rem}
-.expo-presence-actions{display:flex;gap:.65rem;flex-wrap:wrap;margin-bottom:1rem}
-.expo-presence-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
-.expo-video-panel{border:1px solid #d7e5eb;border-radius:16px;padding:.7rem;background:linear-gradient(145deg,#f7fbfd,#edf7fa)}
-.expo-panel-title{font-size:.76rem;font-weight:800;color:#1e5871;margin-bottom:.6rem}
-.expo-video-frame{position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:#0b1825;border:1px solid #bed5df}
-.expo-video-frame video,.expo-video-frame canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.expo-video-frame video{transform:none}
-#presenceThermalCanvas{/* Inferno colormap applied by JS — no CSS filter */}
-.expo-camera-placeholder{position:absolute;inset:0;display:grid;place-items:center;color:#b8d5e0;font-size:.8rem;background:rgba(8,23,36,.82)}
-.expo-thermal-label{position:absolute;left:.6rem;bottom:.6rem;color:#8fffd4;background:rgba(0,0,0,.62);padding:.35rem .5rem;border-radius:6px;font:700 .62rem JetBrains Mono,monospace;letter-spacing:.04em}
-.expo-status-row{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-top:1rem;padding:.75rem 1rem;border:1px solid #d7e5eb;border-radius:12px;background:#f4fafc;color:#367086;font:600 .68rem JetBrains Mono,monospace}
-.expo-disclaimer{margin-top:1rem;padding:.85rem 1rem;border-left:3px solid #d59c2a;border-radius:8px;background:#fff8e8;color:#745d29;font-size:.76rem;line-height:1.65}
-.expo-table-wrap{overflow-x:auto}
-.expo-presence-table{width:100%;border-collapse:collapse;font-size:.74rem}
-.expo-presence-table th,.expo-presence-table td{padding:.7rem .65rem;text-align:left;border-bottom:1px solid #e2ebef;white-space:nowrap;color:#486271}
-.expo-presence-table th{color:#1f526b;background:#f0f6f9;font-weight:700}
-.expo-empty-log{color:#999;font-style:italic;text-align:center}
-
 </style>
 
 </section>
@@ -4905,21 +4756,6 @@ body.ns-compact .ns-settings{
   </div>
 </div>
 
-<!-- ===================== EXPO MODE OVERLAY ===================== -->
-<div class="expo-overlay" id="expoOverlay">
-  <button class="expo-close" id="expoCloseBtn"><i class="fas fa-xmark"></i></button>
-  <div class="hero-eyebrow" style="color:var(--accent);">EXPO DEMONSTRATION MODE</div>
-  <h2>NephroScan AI</h2>
-  <div style="font-size:1rem;color:#5a6b7a;font-style:italic;">"From Image to Insight."</div>
-  <div class="expo-steps" id="expoSteps">
-    <div class="es" data-i="0"><i class="fas fa-circle-notch"></i> Image received</div>
-    <div class="es" data-i="1"><i class="fas fa-circle-notch"></i> AI preprocessing</div>
-    <div class="es" data-i="2"><i class="fas fa-circle-notch"></i> Feature extraction</div>
-    <div class="es" data-i="3"><i class="fas fa-circle-notch"></i> Disease classification (simulated)</div>
-    <div class="es" data-i="4"><i class="fas fa-circle-notch"></i> Explainable AI</div>
-    <div class="es" data-i="5"><i class="fas fa-circle-notch"></i> Clinical report</div>
-  </div>
-</div>
 
 <script>
 (function(){
@@ -4928,16 +4764,24 @@ body.ns-compact .ns-settings{
 /* ===================== STATE ===================== */
 let uploadedFiles = [];
 let sessionReports = [];   // {id, patientName, patientId, age, gender, doctor, hospital, scanType, indication, symptoms,
-                            //  prediction, confidence, uncertain, quality, riskLevel, riskWhy, reportHTML, date, imgURL}
+                            //  prediction, confidence, uncertain, quality, riskLevel, riskWhy, reportHTML, date, dateStr, category}
+const LS_KEY = 'nephroscan_report_history_v1';
 try {
-  const saved = JSON.parse(sessionStorage.getItem('ns_reports') || '[]');
-  if (saved.length) {
+  const saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+  if (Array.isArray(saved) && saved.length) {
     sessionReports = saved.map(function(r) { r.date = new Date(r.date); return r; });
     reportCounter = sessionReports.length + 1;
   }
 } catch(e) { sessionReports = []; }
 function _saveReports() {
-  try { sessionStorage.setItem('ns_reports', JSON.stringify(sessionReports)); } catch(e) {}
+  try {
+    var toSave = sessionReports.map(function(r) {
+      var copy = Object.assign({}, r);
+      delete copy.imgURL;
+      return copy;
+    });
+    localStorage.setItem(LS_KEY, JSON.stringify(toSave));
+  } catch(e) {}
 }
 let reportCounter = 1;
 let currentMode = 'doctor';
@@ -5016,9 +4860,7 @@ function setMode(m){
   currentMode = m;
   document.body.classList.toggle('mode-doctor', m==='doctor');
   document.body.classList.toggle('mode-patient', m==='patient');
-  document.querySelectorAll('#modeToggle button, #settingsModeToggle button').forEach(b=>b.classList.toggle('active', b.dataset.mode===m));
 }
-document.querySelectorAll('#modeToggle button, #settingsModeToggle button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
 
 const confThresholdEl = document.getElementById('confThreshold');
 
@@ -6049,30 +5891,7 @@ function sendBotInput(){
 document.getElementById('botSendBtn').addEventListener('click', sendBotInput);
 document.getElementById('botInput').addEventListener('keydown', e=>{ if(e.key==='Enter') sendBotInput(); });
 
-/* ===================== EXPO MODE ===================== */
-document.getElementById('expoBtn').addEventListener('click', runExpoMode);
-document.getElementById('expoCloseBtn').addEventListener('click', ()=>document.getElementById('expoOverlay').classList.remove('active'));
-function runExpoMode(){
-  showView('analysis');
-  _loadDemoByKey('kidney_normal', false);
-  const overlay = document.getElementById('expoOverlay');
-  overlay.classList.add('active');
-  const steps = [...document.querySelectorAll('#expoSteps .es')];
-  steps.forEach(s=>s.classList.remove('active','done'));
-  let i=0;
-  const timer = setInterval(()=>{
-    if(i>0) steps[i-1].classList.replace('active','done');
-    if(i<steps.length){ steps[i].classList.add('active'); i++; }
-    else{
-      clearInterval(timer);
-      setTimeout(()=>{
-        overlay.classList.remove('active');
-        runAnalysis();
-        setTimeout(openBot, 1800);
-      }, 500);
-    }
-  }, 550);
-}
+
 
 /* ===================== INIT ===================== */
 renderPreviews();
