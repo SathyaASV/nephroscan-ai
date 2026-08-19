@@ -487,9 +487,175 @@ _LAB_TEST_RE = re.compile(
 )
 
 _LAB_DISCLAIMER = (
-    "Educational decision support only. This is not a diagnosis "
-    "and does not replace a qualified healthcare professional."
+    "Educational guidance only. Please confirm important results "
+    "with a qualified healthcare professional."
 )
+
+
+def _lab_finding_for_test(t: dict) -> dict:
+    """Build a per-finding card for one abnormal or noteworthy test."""
+    name = t["name"]
+    value = t["value"]
+    unit = t["unit"]
+    status = t["status"]
+    ref_low = t.get("refLow", "")
+    ref_high = t.get("refHigh", "")
+    lo = name.lower()
+
+    direction = "above" if status == "Above stated range" else "below" if status == "Below stated range" else None
+    range_str = f"{ref_low} – {ref_high}" if ref_low and ref_high else "not stated on report"
+
+    finding_text = (
+        f"{name}: {value} {unit} ({direction} the reference range {range_str})"
+        if direction
+        else f"{name}: {value} {unit} (reference range {range_str})"
+    )
+
+    # Possible meaning — cautious, never confirm a disease
+    meaning = ""
+    diet = []
+    lifestyle = []
+    discussion = []
+
+    if "hemoglobin" in lo or "haemoglobin" in lo:
+        meaning = (
+            f"Hemoglobin is {direction or 'within'} the reference range printed on this report. "
+            "Please consult a doctor to discuss possible causes and whether follow-up testing is needed."
+        )
+        diet = [
+            "Include iron-rich foods such as beans, lentils, leafy greens, eggs, fish, or lean meat if suitable for you.",
+            "Pair plant-based iron sources with vitamin-C foods such as citrus, tomatoes, or peppers to support absorption.",
+            "Ensure adequate folate and vitamin B12 sources.",
+            "Try not to drink tea or coffee immediately with iron-rich meals because they may reduce iron absorption.",
+            "Do not start iron supplements unless a healthcare professional recommends them.",
+        ]
+        discussion = [
+            "What could be causing this result in my case?",
+            "Should I have repeat testing or additional blood work?",
+            "Are there signs or symptoms I should watch for?",
+        ]
+    elif "glucose" in lo or "blood sugar" in lo or "fasting" in lo:
+        meaning = (
+            f"Glucose is {direction or 'within'} the reference range. "
+            "This may reflect recent food intake, stress, or other factors. "
+            "Please discuss with your doctor whether follow-up testing (e.g. HbA1c) is appropriate."
+        )
+        diet = [
+            "Focus on balanced meals with complex carbohydrates, lean protein, and healthy fats.",
+            "Limit sugary drinks and highly processed foods.",
+            "Eat at regular intervals to avoid large swings in blood sugar.",
+        ]
+        discussion = [
+            "Should I repeat this test or have additional glucose testing?",
+            "What lifestyle changes could help manage this?",
+        ]
+    elif "cholesterol" in lo or "lipid" in lo or "triglyceride" in lo:
+        meaning = (
+            f"{name} is {direction or 'within'} the reference range. "
+            "Cholesterol and lipid levels can be influenced by diet, exercise, genetics, and medication. "
+            "Please discuss with your doctor."
+        )
+        diet = [
+            "Reduce saturated fats and trans fats; choose olive oil, nuts, and fatty fish.",
+            "Increase dietary fiber from oats, legumes, vegetables, and fruits.",
+        ]
+        lifestyle = [
+            "Regular physical activity (at least 150 minutes per week) can help improve lipid levels.",
+        ]
+        discussion = [
+            "Should I have a full lipid panel or repeat testing?",
+            "Do I need to discuss medication options with my doctor?",
+        ]
+    elif "creatinine" in lo or "egfr" in lo or "urea" in lo or "bun" in lo or "blood urea" in lo:
+        meaning = (
+            f"{name} is {direction or 'within'} the reference range. "
+            "Kidney function markers can be affected by hydration, muscle mass, diet, and medications. "
+            "Please consult your doctor for interpretation."
+        )
+        diet = [
+            "Stay well-hydrated unless your doctor advises otherwise.",
+            "Moderate protein intake if advised by your doctor.",
+            "Reduce salt if recommended for your health profile.",
+        ]
+        discussion = [
+            "Should I repeat kidney function testing?",
+            "Are there medications I should avoid?",
+        ]
+    elif "calcium" in lo:
+        meaning = (
+            f"Calcium is {direction or 'within'} the reference range. "
+            "Levels can be affected by parathyroid function, vitamin D, and diet. "
+            "Discuss with your doctor."
+        )
+        diet = [
+            "Maintain adequate calcium intake through dairy or fortified alternatives if appropriate.",
+            "Ensure adequate vitamin-D intake for calcium absorption.",
+        ]
+    elif "sodium" in lo or "potassium" in lo:
+        meaning = (
+            f"{name} is {direction or 'within'} the reference range. "
+            "Electrolyte levels can be affected by diet, hydration, and medications. "
+            "Please consult your doctor."
+        )
+        lifestyle = [
+            "Maintain balanced hydration and dietary salt intake.",
+            "Avoid excessive use of salt substitutes unless approved by your doctor.",
+        ]
+    elif "tsh" in lo or "thyroid" in lo:
+        meaning = (
+            f"Thyroid marker is {direction or 'within'} the reference range. "
+            "Thyroid function can be influenced by stress, illness, and medication. "
+            "Please discuss with your doctor whether further evaluation is needed."
+        )
+        discussion = [
+            "Should I have additional thyroid tests (Free T4, Free T3)?",
+        ]
+    elif "wbc" in lo or "white blood" in lo or "leukocyte" in lo:
+        meaning = (
+            f"White blood cell count is {direction or 'within'} the reference range. "
+            "This may be affected by infection, inflammation, stress, or medication. "
+            "Please consult your doctor."
+        )
+    elif "platelet" in lo:
+        meaning = (
+            f"Platelet count is {direction or 'within'} the reference range. "
+            "This may be affected by infection, medication, or other conditions. "
+            "Please consult your doctor."
+        )
+    else:
+        meaning = (
+            f"{name} is {direction or 'within'} the reference range printed on this report. "
+            "Please discuss this result with your doctor to understand what it means for your health."
+        )
+
+    if not lifestyle:
+        lifestyle = [
+            "Maintain regular sleep (7-9 hours for most adults).",
+            "Stay physically active as tolerated and as advised by your clinician.",
+            "Avoid smoking and limit alcohol consumption.",
+        ]
+
+    if not discussion:
+        discussion = [
+            "What does this result mean in the context of my symptoms and history?",
+            "Are follow-up tests needed to confirm or investigate this finding?",
+            "When should I schedule a follow-up appointment?",
+        ]
+
+    return {
+        "testName": name,
+        "value": value,
+        "unit": unit,
+        "refLow": ref_low,
+        "refHigh": ref_high,
+        "status": status,
+        "rangeText": range_str,
+        "finding": finding_text,
+        "meaning": meaning,
+        "dietGuidance": diet,
+        "lifestyleGuidance": lifestyle,
+        "doctorDiscussionPoints": discussion,
+    }
 
 
 def _lab_parse_tests(text: str) -> list[dict]:
@@ -538,70 +704,50 @@ def _lab_parse_tests(text: str) -> list[dict]:
 
 def _lab_build_report(tests: list[dict], context: dict, filename: str) -> dict:
     """Build the full lab analysis report JSON from extracted tests."""
-    problems = []
-    details_for_summary = []
-    for t in tests:
-        if t["status"] == "Above stated range":
-            problems.append(f"{t['name']} is above the stated reference range ({t['value']} {t['unit']}).")
-            details_for_summary.append(f"{t['name']}: {t['value']} {t['unit']} (high)")
-        elif t["status"] == "Below stated range":
-            problems.append(f"{t['name']} is below the stated reference range ({t['value']} {t['unit']}).")
-            details_for_summary.append(f"{t['name']}: {t['value']} {t['unit']} (low)")
+    abnormal = [t for t in tests if t["status"] in ("Above stated range", "Below stated range")]
+    normal = [t for t in tests if t["status"] == "Within stated range"]
 
-    if problems:
+    # Per-finding cards (only for abnormal values)
+    findings = [_lab_finding_for_test(t) for t in abnormal]
+
+    # Collect unique diet, lifestyle, discussion items across all findings
+    all_diet = []
+    all_lifestyle = []
+    all_discussion = []
+    for f in findings:
+        for d in f["dietGuidance"]:
+            if d not in all_diet:
+                all_diet.append(d)
+        for l in f["lifestyleGuidance"]:
+            if l not in all_lifestyle:
+                all_lifestyle.append(l)
+        for disc in f["doctorDiscussionPoints"]:
+            if disc not in all_discussion:
+                all_discussion.append(disc)
+
+    if abnormal:
         summary = (
-            f"Analysis of {filename} identified {len(problems)} value(s) outside "
-            f"the laboratory's printed reference range: "
-            + "; ".join(details_for_summary[:5])
-            + ". A qualified clinician should review these results in the context of your clinical history."
+            f"Analysis of {filename} found {len(abnormal)} value(s) outside "
+            f"the laboratory's printed reference range."
         )
     elif tests:
         summary = (
             f"Analysis of {filename} found {len(tests)} test value(s), "
-            "all within the laboratory's printed reference ranges. "
-            "This does not rule out all conditions — share the full report with your clinician."
+            "all within the laboratory's printed reference ranges."
         )
     else:
         summary = (
             f"Analysis of {filename} could not extract structured test values. "
-            "The report may be handwritten, low-resolution, or in an unsupported format. "
-            "Please upload a clearer image or PDF, or bring the original to your clinician."
+            "Please upload a clearer printed report or bring the original to your clinician."
         )
 
-    what_can_be_done = [
-        "Share this report with a qualified clinician for interpretation.",
-        "Bring a copy of the original lab report to your next appointment.",
-        "If values are flagged, ask your clinician whether repeat testing is advised.",
-        "Note any symptoms, medications, or recent changes in health to discuss.",
-    ]
-
-    diet_guidance = [
-        "General balanced nutrition supports overall health — no specific diet changes are recommended based on lab values alone.",
-        "Stay well-hydrated unless otherwise advised by your clinician.",
-        "Discuss any dietary supplements or changes with your healthcare provider before making them.",
-    ]
-
-    lifestyle_guidance = [
-        "Maintain regular sleep patterns (7-9 hours for most adults).",
-        "Stay physically active as tolerated and as advised by your clinician.",
-        "Avoid smoking and limit alcohol consumption.",
-        "Keep a record of symptoms, medications, and lifestyle changes for your clinician review.",
-    ]
-
     urgency = "Routine follow-up with your clinician is recommended to discuss these results."
-    if problems:
+    if abnormal:
         urgency = (
             "Some values are outside the stated reference range. "
             "Prompt review by a clinician is recommended, especially if you have symptoms. "
             "Seek urgent care if you experience severe symptoms."
         )
-
-    discussion = [
-        "What do these results mean in the context of my symptoms and medical history?",
-        "Are any follow-up tests needed to confirm or investigate these findings?",
-        "Should any medications or supplements be adjusted based on these results?",
-        "When should I schedule a follow-up appointment?",
-    ]
 
     uncertainty = []
     if not tests:
@@ -622,13 +768,29 @@ def _lab_build_report(tests: list[dict], context: dict, filename: str) -> dict:
     return {
         "status": "ok",
         "tests": tests,
+        "findings": findings,
         "overallSummary": summary,
-        "possibleProblems": problems,
-        "whatCanBeDone": what_can_be_done,
-        "dietGuidance": diet_guidance,
-        "lifestyleGuidance": lifestyle_guidance,
+        "possibleProblems": [f["finding"] for f in findings],
+        "whatCanBeDone": [
+            "Share this report with a qualified clinician for interpretation.",
+            "Bring a copy of the original lab report to your next appointment.",
+            "If values are flagged, ask your clinician whether repeat testing is advised.",
+            "Note any symptoms, medications, or recent changes in health to discuss.",
+        ],
+        "dietGuidance": all_diet or [
+            "General balanced nutrition supports overall health.",
+            "Stay well-hydrated unless otherwise advised by your clinician.",
+        ],
+        "lifestyleGuidance": all_lifestyle or [
+            "Maintain regular sleep patterns (7-9 hours for most adults).",
+            "Stay physically active as tolerated and as advised by your clinician.",
+        ],
         "urgencyGuidance": urgency,
-        "doctorDiscussionPoints": discussion,
+        "doctorDiscussionPoints": all_discussion or [
+            "What do these results mean in the context of my symptoms and medical history?",
+            "Are any follow-up tests needed to confirm or investigate these findings?",
+            "When should I schedule a follow-up appointment?",
+        ],
         "uncertainty": uncertainty,
         "disclaimer": _LAB_DISCLAIMER,
     }

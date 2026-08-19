@@ -2061,6 +2061,15 @@ table.data-table tr:hover td {
 .lab-list { padding-left: 1.2rem; margin: 0; }
 .lab-list li { margin-bottom: .3rem; }
 .lab-disclaimer { border-left: 4px solid #b87908; background: #fffbeb; padding: .6rem .8rem; border-radius: 0 8px 8px 0; font-size: .76rem; color: #78350f; margin-top: .8rem; }
+.lab-finding-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: .8rem 1rem; margin-bottom: .7rem; background: #f8fafc; }
+.lab-finding-card .lab-finding-title { font-weight: 700; font-size: .8rem; color: #1d3c55; margin-bottom: .3rem; }
+.lab-finding-card .lab-finding-sub { font-size: .74rem; color: #475569; margin-bottom: .2rem; line-height: 1.5; }
+.lab-finding-card .lab-finding-sub b { color: #1d3c55; }
+.lab-finding-card .lab-finding-list { padding-left: 1.1rem; margin: .3rem 0 0; font-size: .74rem; color: #475569; }
+.lab-finding-card .lab-finding-list li { margin-bottom: .2rem; }
+.lab-actions-bar { display: flex; gap: .4rem; flex-wrap: wrap; padding: .6rem 0; border-top: 1px solid #edf2f5; margin-top: .6rem; }
+.lab-actions-bar .btn { font-size: .68rem; padding: .35rem .7rem; }
+.lab-review-note { border-left: 3px solid #168e99; background: #f0f9ff; padding: .5rem .7rem; border-radius: 0 6px 6px 0; font-size: .72rem; color: #0c4a6e; margin-top: .6rem; }
 
 </style>
 
@@ -2701,6 +2710,15 @@ table.data-table tr:hover td {
         <div class="card">
           <div class="section-heading"><i class="fas fa-file-medical"></i> Lab Analysis Report</div>
           <div id="labReportBody" style="font-size:.82rem;line-height:1.65;color:#1a2d3d;"></div>
+          <div class="lab-actions-bar" id="labActionsBar" style="display:none;">
+            <button class="btn btn-secondary" id="labListenBtn"><i class="fas fa-volume-high"></i> Listen to Report</button>
+            <button class="btn btn-secondary" id="labPauseBtn" style="display:none;"><i class="fas fa-pause"></i> Pause</button>
+            <button class="btn btn-secondary" id="labStopBtn" style="display:none;"><i class="fas fa-stop"></i> Stop</button>
+            <button class="btn btn-secondary" id="labWhatsAppBtn"><i class="fab fa-whatsapp"></i> Share via WhatsApp</button>
+            <button class="btn btn-secondary" id="labEmailBtn"><i class="fas fa-envelope"></i> Share via Email</button>
+            <button class="btn btn-secondary" id="labCopyBtn"><i class="fas fa-copy"></i> Copy Report</button>
+            <button class="btn btn-secondary" id="labPrintBtn"><i class="fas fa-print"></i> Print / Save PDF</button>
+          </div>
         </div>
         <div style="margin-top:.8rem;text-align:center;">
           <button id="labContinueImagingBtn" class="btn btn-primary" style="padding:.5rem 1.6rem;"><i class="fas fa-arrow-right"></i> Continue with Imaging Review</button>
@@ -5997,7 +6015,7 @@ const labReport = {
   urgencyGuidance: '',
   doctorDiscussionPoints: [],
   uncertainty: [],
-  disclaimer: 'Educational decision support only. This is not a diagnosis and does not replace a qualified healthcare professional.'
+  disclaimer: 'Educational guidance only. Please confirm important results with a qualified healthcare professional.'
 };
 
 function _labRenderChips(){
@@ -6170,34 +6188,53 @@ document.getElementById('labFinalizeBtn').addEventListener('click', function(){
 
 function _labRenderReport(){
   var r = labReport;
+  var findings = r.findings || [];
   var html = '';
+
   html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-clipboard-list"></i> OVERALL SUMMARY</div><p>' + _labEsc(r.overallSummary || 'No summary generated.') + '</p></div>';
 
-  if(r.possibleProblems.length){
-    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-triangle-exclamation"></i> POSSIBLE PROBLEMS</div><ul class="lab-list">';
-    r.possibleProblems.forEach(function(p){ html += '<li>' + _labEsc(p) + '</li>'; });
-    html += '</ul></div>';
+  if(findings.length){
+    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-triangle-exclamation"></i> ABNORMAL FINDINGS (' + findings.length + ')</div>';
+    findings.forEach(function(f){
+      var dirLabel = f.status === 'Above stated range' ? 'Above range' : 'Below range';
+      var dirColor = f.status === 'Above stated range' ? 'var(--danger)' : '#b87908';
+      html += '<div class="lab-finding-card">';
+      html += '<div class="lab-finding-title"><span style="color:' + dirColor + ';">' + _labEsc(f.testName) + '</span> — ' + _labEsc(f.value) + ' ' + _labEsc(f.unit) + ' <span style="font-weight:400;font-size:.72rem;color:' + dirColor + ';">(' + dirLabel + ')</span></div>';
+      html += '<div class="lab-finding-sub"><b>Finding:</b> ' + _labEsc(f.finding) + '</div>';
+      html += '<div class="lab-finding-sub"><b>What it may mean:</b> ' + _labEsc(f.meaning) + '</div>';
+      if(f.dietGuidance.length){
+        html += '<div class="lab-finding-sub"><b>Diet guidance:</b></div><ul class="lab-finding-list">';
+        f.dietGuidance.forEach(function(d){ html += '<li>' + _labEsc(d) + '</li>'; });
+        html += '</ul>';
+      }
+      if(f.lifestyleGuidance.length){
+        html += '<div class="lab-finding-sub"><b>Lifestyle guidance:</b></div><ul class="lab-finding-list">';
+        f.lifestyleGuidance.forEach(function(l){ html += '<li>' + _labEsc(l) + '</li>'; });
+        html += '</ul>';
+      }
+      if(f.doctorDiscussionPoints.length){
+        html += '<div class="lab-finding-sub"><b>Doctor discussion points:</b></div><ul class="lab-finding-list">';
+        f.doctorDiscussionPoints.forEach(function(d){ html += '<li>' + _labEsc(d) + '</li>'; });
+        html += '</ul>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
   }
 
   if(r.tests.length){
-    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-table"></i> RESULT DETAILS</div><div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Test</th><th>Value</th><th>Unit</th><th>Reference Range</th><th>Status</th><th>Confidence</th></tr></thead><tbody>';
+    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-table"></i> RESULT DETAILS</div><div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Test</th><th>Value</th><th>Unit</th><th>Reference Range</th><th>Status</th></tr></thead><tbody>';
     r.tests.forEach(function(t){
       var sc = t.status === 'Within stated range' ? 'lab-status-within' : t.status === 'Above stated range' ? 'lab-status-above' : t.status === 'Below stated range' ? 'lab-status-below' : 'lab-status-review';
-      html += '<tr><td>' + _labEsc(t.name) + '</td><td>' + _labEsc(t.value) + '</td><td>' + _labEsc(t.unit) + '</td><td>' + _labEsc(t.refLow) + ' – ' + _labEsc(t.refHigh) + '</td><td><span class="' + sc + '">' + _labEsc(t.status) + '</span></td><td>' + _labEsc(t.confidence) + '</td></tr>';
+      html += '<tr><td>' + _labEsc(t.name) + '</td><td>' + _labEsc(t.value) + '</td><td>' + _labEsc(t.unit) + '</td><td>' + _labEsc(t.refLow) + ' – ' + _labEsc(t.refHigh) + '</td><td><span class="' + sc + '">' + _labEsc(t.status) + '</span></td></tr>';
     });
     html += '</tbody></table></div></div>';
-  }
-
-  if(r.whatCanBeDone.length){
-    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-list-check"></i> WHAT CAN BE DONE</div><ul class="lab-list">';
-    r.whatCanBeDone.forEach(function(p){ html += '<li>' + _labEsc(p) + '</li>'; });
-    html += '</ul></div>';
   }
 
   if(r.dietGuidance.length){
     html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-apple-whole"></i> DIET GUIDANCE</div><ul class="lab-list">';
     r.dietGuidance.forEach(function(p){ html += '<li>' + _labEsc(p) + '</li>'; });
-    html += '</ul><div style="font-size:.68rem;color:#6b7f8d;margin-top:.3rem;">General supportive suggestions only — not a treatment plan.</div></div>';
+    html += '</ul></div>';
   }
 
   if(r.lifestyleGuidance.length){
@@ -6222,16 +6259,17 @@ function _labRenderReport(){
     html += '</ul></div>';
   }
 
-  html += '<div class="lab-disclaimer"><i class="fas fa-shield-halved" style="margin-right:.3rem;"></i> <b>Clinical Disclaimer:</b> ' + _labEsc(r.disclaimer) + '</div>';
+  html += '<div class="lab-disclaimer"><i class="fas fa-shield-halved" style="margin-right:.3rem;"></i> ' + _labEsc(r.disclaimer) + '</div>';
 
   var now = new Date();
   var nowStr = now.toLocaleString('en-US', {dateStyle:'long', timeStyle:'short'});
   var reportId = 'NSAI-LAB-' + String(reportCounter++).padStart(6, '0');
-  html += '<div class="ai-meta"><span><i class="fas fa-hashtag"></i> ' + reportId + '</span><span><i class="fas fa-cube"></i> Lab Analysis · Report Engine 1.0</span><span><i class="fas fa-clock"></i> ' + nowStr + '</span><span><i class="fas fa-file"></i> ' + r.sourceFileName + '</span></div>';
+  html += '<div class="ai-meta"><span><i class="fas fa-hashtag"></i> ' + reportId + '</span><span><i class="fas fa-cube"></i> Lab Analysis · Report Engine 1.0</span><span><i class="fas fa-clock"></i> ' + nowStr + '</span><span><i class="fas fa-file"></i> ' + _labEsc(r.sourceFileName) + '</span></div>';
 
   document.getElementById('labReportBody').innerHTML = html;
+  document.getElementById('labActionsBar').style.display = 'flex';
 
-  sessionReports.push({
+  var reportRecord = {
     id: reportId,
     patientName: labReport.context.symptoms || 'Lab Patient',
     patientId: 'LAB-' + reportId,
@@ -6242,7 +6280,7 @@ function _labRenderReport(){
     symptoms: labReport.context.symptoms || '',
     scanType: 'lab',
     indication: labReport.context.indication || '',
-    prediction: r.possibleProblems.length ? r.possibleProblems[0] : 'Lab review complete',
+    prediction: findings.length ? findings[0].testName + ': ' + findings[0].value + ' ' + findings[0].unit : 'Lab review complete',
     confidence: '',
     uncertain: false,
     quality: 100,
@@ -6250,16 +6288,240 @@ function _labRenderReport(){
     reportHTML: html,
     date: now,
     dateStr: nowStr,
-    category: 'lab'
-  });
+    category: 'lab',
+    labReportData: {
+      tests: r.tests,
+      findings: findings,
+      overallSummary: r.overallSummary,
+      possibleProblems: r.possibleProblems,
+      whatCanBeDone: r.whatCanBeDone,
+      dietGuidance: r.dietGuidance,
+      lifestyleGuidance: r.lifestyleGuidance,
+      urgencyGuidance: r.urgencyGuidance,
+      doctorDiscussionPoints: r.doctorDiscussionPoints,
+      uncertainty: r.uncertainty,
+      disclaimer: r.disclaimer,
+      sourceFileName: r.sourceFileName,
+      context: labReport.context
+    }
+  };
+  sessionReports.push(reportRecord);
+  _pendingLabFile = labFiles.length ? labFiles[0] : null;
+  _pendingLabReportId = reportId;
   saveReports();
+  _labStoreFileForReport(reportId);
   refreshDashboard();
   toast('Lab report generated and saved.', 'info');
 }
 
+/* ===================== LAB FILE IndexedDB ===================== */
+var _labDBName = 'nephroscan_lab_files';
+var _labDBStore = 'labfiles';
+var _labDBVersion = 1;
+var _pendingLabFile = null;
+var _pendingLabReportId = null;
+
+function _openLabDB(){
+  return new Promise(function(resolve, reject){
+    if(!window.indexedDB){ reject(new Error('no IndexedDB')); return; }
+    var req = indexedDB.open(_labDBName, _labDBVersion);
+    req.onupgradeneeded = function(e){ var db=e.target.result; if(!db.objectStoreNames.contains(_labDBStore)) db.createObjectStore(_labDBStore); };
+    req.onsuccess = function(e){ resolve(e.target.result); };
+    req.onerror = function(e){ reject(e.target.error); };
+  });
+}
+
+function _labStoreFileForReport(reportId){
+  if(!_pendingLabFile) return;
+  var file = _pendingLabFile;
+  _openLabDB().then(function(db){
+    var tx = db.transaction(_labDBStore, 'readwrite');
+    tx.objectStore(_labDBStore).put({ name: file.name, type: file.type, size: file.size, ts: Date.now() }, reportId);
+  }).catch(function(){});
+  var reader = new FileReader();
+  reader.onload = function(){
+    _openLabDB().then(function(db){
+      var tx = db.transaction(_labDBStore, 'readwrite');
+      tx.objectStore(_labDBStore).put(reader.result, reportId + '_blob');
+    }).catch(function(){});
+  };
+  reader.readAsArrayBuffer(file);
+  _pendingLabFile = null;
+}
+
+function _labLoadFileForReport(reportId){
+  return _openLabDB().then(function(db){
+    return new Promise(function(resolve){
+      var tx = db.transaction(_labDBStore, 'readonly');
+      var req = tx.objectStore(_labDBStore).get(reportId + '_blob');
+      req.onsuccess = function(){ resolve(req.result || null); };
+      req.onerror = function(){ resolve(null); };
+    });
+  }).catch(function(){ return null; });
+}
+
+/* ===================== LAB REPORT ACTIONS ===================== */
+var _labSpeechText = '';
+var _labSpeaking = false;
+var _labSpeechPaused = false;
+
+function _labBuildSpeechText(){
+  var r = labReport;
+  var txt = 'Lab Analysis Report. ';
+  txt += 'Summary: ' + (r.overallSummary || '') + '. ';
+  if(r.findings && r.findings.length){
+    txt += 'Abnormal findings: ';
+    r.findings.forEach(function(f){ txt += f.testName + ' ' + f.value + ' ' + f.unit + ', ' + f.meaning + '. '; });
+  }
+  txt += 'Urgency: ' + (r.urgencyGuidance || '') + '. ';
+  txt += 'Discussion points: ';
+  (r.doctorDiscussionPoints || []).forEach(function(d){ txt += d + '. '; });
+  txt += r.disclaimer || '';
+  return txt;
+}
+
+function _labBuildShareText(){
+  var r = labReport;
+  var txt = 'Lab Analysis Report\n';
+  txt += 'Summary: ' + (r.overallSummary || '') + '\n';
+  if(r.findings && r.findings.length){
+    txt += '\nAbnormal findings:\n';
+    r.findings.forEach(function(f){ txt += '- ' + f.testName + ': ' + f.value + ' ' + f.unit + ' (' + (f.status === 'Above stated range' ? 'above' : 'below') + ' range)\n'; });
+    txt += '\nWhat it may mean:\n';
+    r.findings.forEach(function(f){ txt += '- ' + f.testName + ': ' + f.meaning + '\n'; });
+  }
+  txt += '\nDoctor discussion points:\n';
+  (r.doctorDiscussionPoints || []).forEach(function(d){ txt += '- ' + d + '\n'; });
+  txt += '\n' + (r.disclaimer || '');
+  return txt;
+}
+
+function _labSpeak(){
+  _labStopSpeech();
+  _labSpeechText = _labBuildSpeechText();
+  var u = new SpeechSynthesisUtterance(_labSpeechText);
+  u.lang = 'en-US'; u.rate = 1;
+  u.onend = function(){ _labSpeaking=false; var b=document.getElementById('labListenBtn'); if(b){b.style.display='inline-flex';} var p=document.getElementById('labPauseBtn'); if(p){p.style.display='none';p.innerHTML='<i class=\"fas fa-pause\"></i> Pause';} var s=document.getElementById('labStopBtn'); if(s) s.style.display='none'; };
+  window.speechSynthesis.speak(u);
+  _labSpeaking = true;
+  var b=document.getElementById('labListenBtn'); if(b) b.style.display='none';
+  var p=document.getElementById('labPauseBtn'); if(p){p.style.display='inline-flex';p.innerHTML='<i class="fas fa-pause"></i> Pause';}
+  var s=document.getElementById('labStopBtn'); if(s) s.style.display='inline-flex';
+}
+
+function _labStopSpeech(){
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  _labSpeaking=false; _labSpeechPaused=false;
+  var b=document.getElementById('labListenBtn'); if(b) b.style.display='inline-flex';
+  var p=document.getElementById('labPauseBtn'); if(p){p.style.display='none';p.innerHTML='<i class="fas fa-pause"></i> Pause';}
+  var s=document.getElementById('labStopBtn'); if(s) s.style.display='none';
+}
+
+document.getElementById('labListenBtn').addEventListener('click', _labSpeak);
+document.getElementById('labPauseBtn').addEventListener('click', function(){
+  if(_labSpeaking && 'speechSynthesis' in window){
+    if(_labSpeechPaused){ window.speechSynthesis.resume(); _labSpeechPaused=false; this.innerHTML='<i class="fas fa-pause"></i> Pause'; }
+    else { window.speechSynthesis.pause(); _labSpeechPaused=true; this.innerHTML='<i class="fas fa-play"></i> Resume'; }
+  }
+});
+document.getElementById('labStopBtn').addEventListener('click', _labStopSpeech);
+
+document.getElementById('labWhatsAppBtn').addEventListener('click', function(){
+  var txt = _labBuildShareText();
+  var url = 'https://wa.me/?text=' + encodeURIComponent(txt);
+  window.open(url, '_blank');
+  toast('WhatsApp message prepared — press Send in WhatsApp.', 'info');
+});
+
+document.getElementById('labEmailBtn').addEventListener('click', function(){
+  var txt = _labBuildShareText();
+  var subject = encodeURIComponent('Lab Analysis Report — ' + (labReport.sourceFileName || 'Report'));
+  var body = encodeURIComponent(txt);
+  window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
+  toast('Email prepared in your mail app — press Send.', 'info');
+});
+
+document.getElementById('labCopyBtn').addEventListener('click', function(){
+  var txt = _labBuildShareText();
+  var btn = this;
+  navigator.clipboard.writeText(txt).then(function(){
+    var orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check" style="color:var(--success);"></i>';
+    setTimeout(function(){ btn.innerHTML = orig; }, 1500);
+    toast('Report copied to clipboard.', 'info');
+  }).catch(function(){
+    toast('Copy failed — please select and copy manually.', 'error');
+  });
+});
+
+document.getElementById('labPrintBtn').addEventListener('click', function(){
+  window.print();
+});
+
+/* ===================== CONTINUE WITH IMAGING ===================== */
+var _labReviewSessionId = 'LAB-REVIEW-' + Date.now();
 document.getElementById('labContinueImagingBtn').addEventListener('click', function(){
   showView('analysis');
 });
+
+/* ===================== LAB HISTORY REOPENING ===================== */
+var _originalViewReport = window.__ns_viewReport;
+window.__ns_viewReport = function(id){
+  var r = sessionReports.find(function(x){ return x.id === id; });
+  if(!r) return;
+  if(r.category === 'lab' && r.labReportData){
+    _labReopenReport(r);
+    return;
+  }
+  if(_originalViewReport) _originalViewReport(id);
+};
+
+function _labReopenReport(record){
+  currentOpenReportId = record.id;
+  var d = record.labReportData;
+  if(!d){ showView('analysis'); return; }
+
+  labReport.sourceFileName = d.sourceFileName || '';
+  labReport.context = d.context || {};
+  labReport.tests = d.tests || [];
+  labReport.findings = d.findings || [];
+  labReport.overallSummary = d.overallSummary || '';
+  labReport.possibleProblems = d.possibleProblems || [];
+  labReport.whatCanBeDone = d.whatCanBeDone || [];
+  labReport.dietGuidance = d.dietGuidance || [];
+  labReport.lifestyleGuidance = d.lifestyleGuidance || [];
+  labReport.urgencyGuidance = d.urgencyGuidance || '';
+  labReport.doctorDiscussionPoints = d.doctorDiscussionPoints || [];
+  labReport.uncertainty = d.uncertainty || [];
+  labReport.disclaimer = d.disclaimer || '';
+  labReport.tests = d.tests || [];
+
+  _labRenderReport();
+  showView('lab');
+  document.getElementById('labReportContainer').style.display = 'block';
+  document.getElementById('labReportContainer').scrollIntoView({behavior:'smooth'});
+}
+
+/* ===================== CLEAR SAVED REPORTS (PATCH) ===================== */
+var _origClearHandler = document.getElementById('nsClearReports');
+if(_origClearHandler){
+  _origClearHandler.removeEventListener('click', function(){});
+  _origClearHandler.addEventListener('click', function(){
+    if(!confirm('Delete all saved reports from local storage? This cannot be undone.')) return;
+    try { localStorage.removeItem(REPORT_STORAGE_KEY); } catch(e) {}
+    _deleteAllScanImages();
+    _openLabDB().then(function(db){
+      var tx = db.transaction(_labDBStore, 'readwrite');
+      tx.objectStore(_labDBStore).clear();
+    }).catch(function(){});
+    sessionReports = [];
+    reportCounter = 1;
+    refreshDashboard();
+    renderHistory();
+    renderPatients();
+    toast('All saved reports cleared.', 'info');
+  });
+}
 
 /* ===================== INIT ===================== */
 renderPreviews();
