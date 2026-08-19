@@ -1354,26 +1354,30 @@ body.mode-patient .mode-patient-only { display: block; }
 }
 
 /* AI Attention Heatmap — full-width report card */
-#reportAttentionSection .content {
-  padding-left: 0;
-  border-left: none;
-  background: #f7fafb;
-  border: 1px solid #d0dde4;
-  border-radius: 14px;
-  padding: 1rem;
-  min-height: 520px;
-}
-#reportAttentionContent img {
-  display: block;
+.attention-heatmap-frame {
   width: 100%;
-  height: auto;
+  min-height: 360px;
   max-height: 720px;
-  object-fit: contain;
-  margin: 0 auto;
-  border-radius: 10px;
-  border: 1px solid #c5d4dc;
-  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #f1f6f8;
+  border: 1px solid #c8d8de;
+  border-radius: 12px;
 }
+
+.attention-heatmap-frame img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 700px;
+  object-fit: contain;
+  aspect-ratio: auto;
+  margin: 0 auto;
+}
+
 .ns-heatmap-enlarge {
   display: inline-flex;
   align-items: center;
@@ -1427,8 +1431,9 @@ body.mode-patient .mode-patient-only { display: block; }
   align-items: center;
   justify-content: center;
 }
-@media(max-width:620px){
-  #reportAttentionSection .content { min-height: 360px; }
+@media(max-width:700px){
+  .attention-heatmap-frame { min-height: 260px; max-height: 520px; }
+  .attention-heatmap-frame img { max-height: 500px; }
 }
 
 /* Loading / spinner */
@@ -5483,7 +5488,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
       var resp = await fetch(EXPLAIN_URL, { method: 'POST', body: fd });
       var data = await resp.json();
       if(data.status === 'ok' && data.heatmap_image){
-        attContent.innerHTML = '<div style="text-align:center;"><img src="' + data.heatmap_image + '" alt="AI Attention Heatmap" id="reportHeatmapImg" /></div><div style="text-align:center;margin-top:.5rem;"><button class="ns-heatmap-enlarge" onclick="window.__nsEnlargeHeatmap(this)"><i class="fas fa-up-right-and-down-left-from-center"></i> Enlarge heatmap</button></div><div style="font-size:.68rem;color:#8493a0;margin-top:.5rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
+        attContent.innerHTML = '<div class="attention-heatmap-frame"><img src="' + data.heatmap_image + '" alt="AI Attention Heatmap" id="reportHeatmapImg" /></div><div style="text-align:center;margin-top:.5rem;"><button class="ns-heatmap-enlarge" onclick="window.__nsEnlargeHeatmap(this)"><i class="fas fa-up-right-and-down-left-from-center"></i> Enlarge heatmap</button></div><div style="font-size:.68rem;color:#8493a0;margin-top:.5rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
       } else {
         attContent.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div><div style="font-size:.68rem;color:#8493a0;margin-top:.3rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div>';
       }
