@@ -1115,70 +1115,6 @@ button {
 .risk-high { background: rgba(201, 76, 93, .1); color: var(--danger); }
 .risk-uncertain { background: rgba(150, 150, 180, .15); color: #5b6b7c; }
 
-/* ---------- EXPLAINABILITY ---------- */
-.explain-viewer {
-  position: relative;
-  border-radius: 18px;
-  overflow: hidden;
-  background: linear-gradient(145deg, #071522, #0f293c);
-  border: 1px solid rgba(103, 216, 255, .16);
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.explain-viewer img {
-  width: 100%;
-  display: block;
-  object-fit: contain;
-}
-
-.explain-viewer .heatmap-overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 60% 45%, rgba(255, 60, 60, .55), rgba(255, 180, 0, .35) 35%, rgba(0, 212, 255, .12) 60%, transparent 75%);
-  mix-blend-mode: screen;
-  opacity: 0;
-  transition: opacity .5s;
-}
-
-#explainHeatmap {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  z-index: 1;
-}
-
-.explain-viewer.show-heat .heatmap-overlay {
-  opacity: 1;
-}
-
-.explain-toggle {
-  display: flex;
-  gap: 6px;
-  margin-top: .7rem;
-}
-
-.explain-toggle button {
-  flex: 1;
-  background: #f0f7fa;
-  border: 1px solid var(--border);
-  color: #5a6b7a;
-  padding: .4rem;
-  border-radius: 12px;
-  font-size: .7rem;
-  cursor: pointer;
-}
-
-.explain-toggle button.active {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: #fff;
-  border-color: transparent;
-}
-
 /* Doctor / Patient mode visibility */
 .mode-doctor-only,
 .mode-patient-only {
@@ -1352,142 +1288,6 @@ body.mode-patient .mode-patient-only { display: block; }
 .ai-meta span i {
   margin-right: 4px;
   color: #168e99;
-}
-
-/* Saved-report scan preview */
-.saved-scan-preview {
-  width: 100%;
-  max-height: 420px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: #f1f6f8;
-  border: 1px solid #c8d8de;
-  border-radius: 12px;
-  margin-bottom: .6rem;
-}
-.saved-scan-preview img {
-  display: block;
-  max-width: 100%;
-  max-height: 400px;
-  object-fit: contain;
-  margin: 0 auto;
-}
-
-/* Attention heatmap three-view layout */
-.ns-heatmap-views {
-  display: flex;
-  gap: 10px;
-  margin-bottom: .5rem;
-}
-.ns-heatmap-views .ns-heatmap-col {
-  flex: 1;
-  text-align: center;
-  min-width: 0;
-}
-.ns-heatmap-views .ns-heatmap-col-label {
-  font-size: .66rem;
-  font-weight: 600;
-  color: #4a6577;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: .03em;
-}
-.ns-heatmap-views img {
-  display: block;
-  max-width: 100%;
-  max-height: 400px;
-  object-fit: contain;
-  margin: 0 auto;
-  border-radius: 8px;
-  border: 1px solid #dce6ec;
-  background: #f1f6f8;
-}
-
-/* AI Attention Heatmap — full-width report card */
-.attention-heatmap-frame {
-  width: 100%;
-  min-height: 360px;
-  max-height: 720px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: #f1f6f8;
-  border: 1px solid #c8d8de;
-  border-radius: 12px;
-}
-
-.attention-heatmap-frame img {
-  display: block;
-  width: min(100%, 700px);
-  height: auto;
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
-  image-rendering: auto;
-  margin: 0 auto;
-}
-
-.ns-heatmap-enlarge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: .6rem;
-  padding: .45rem 1rem;
-  border: 1px solid #c5d4dc;
-  border-radius: 8px;
-  background: #fff;
-  color: #2d536b;
-  font-size: .72rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: .2s;
-}
-.ns-heatmap-enlarge:hover {
-  background: #eaf3f7;
-  border-color: #a0c0d0;
-}
-.ns-heatmap-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  background: rgba(5,12,25,.88);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  cursor: zoom-out;
-}
-.ns-heatmap-overlay img {
-  display: block;
-  width: min(90vw, 900px);
-  height: auto;
-  max-height: 85vh;
-  object-fit: contain;
-  margin: auto;
-  border-radius: 10px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.5);
-}
-.ns-heatmap-overlay .close-overlay {
-  position: absolute;
-  top: 1rem;
-  right: 1.2rem;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.2);
-  color: #fff;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-@media(max-width:700px){
-  .attention-heatmap-frame { min-height: 260px; max-height: 520px; }
-  .attention-heatmap-frame img { width: min(100%, 340px); }
 }
 
 /* Loading / spinner */
@@ -2228,6 +2028,40 @@ table.data-table tr:hover td {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ---------- LAB TEST ANALYSIS ---------- */
+#labUploadBox:hover { border-color: #168e99; }
+#labUploadBox.dragover { background: #f0f7fb; border-color: #168e99; }
+.lab-file-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: .25rem .7rem; border-radius: 60px; font-size: .7rem;
+  font-weight: 500; color: #3d5a6e; background: #f0f7fa;
+  border: 1px solid #dce6ec;
+}
+.lab-file-chip i { color: #168e99; }
+.lab-file-chip .lab-rm { background: none; border: none; color: #91a2ae; cursor: pointer; font-size: .85rem; }
+.lab-file-chip .lab-rm:hover { color: var(--danger); }
+#labExtractionTable { width: 100%; border-collapse: collapse; font-size: .76rem; }
+#labExtractionTable th { background: #f0f7fa; padding: .5rem .6rem; text-align: left; font-weight: 600; color: #3d5a6e; border-bottom: 2px solid #dce6ec; white-space: nowrap; }
+#labExtractionTable td { padding: .4rem .5rem; border-bottom: 1px solid #edf2f5; }
+#labExtractionTable input, #labExtractionTable select {
+  width: 100%; padding: .3rem .4rem; border: 1px solid #dce6ec; border-radius: 6px;
+  font-size: .74rem; background: #fff; color: #1a2d3d;
+}
+#labExtractionTable input:focus, #labExtractionTable select:focus {
+  outline: none; border-color: #168e99; box-shadow: 0 0 0 2px rgba(22,142,153,.15);
+}
+.lab-status-within { color: var(--success); font-weight: 600; }
+.lab-status-above { color: var(--danger); font-weight: 600; }
+.lab-status-below { color: #b87908; font-weight: 600; }
+.lab-status-review { color: #7c3aed; font-weight: 600; }
+.lab-section { margin-bottom: 1rem; }
+.lab-section-title { font-weight: 700; font-size: .82rem; color: #1d3c55; margin-bottom: .4rem; display: flex; align-items: center; gap: 6px; }
+.lab-section-title i { color: #168e99; }
+.lab-list { padding-left: 1.2rem; margin: 0; }
+.lab-list li { margin-bottom: .3rem; }
+.lab-disclaimer { border-left: 4px solid #b87908; background: #fffbeb; padding: .6rem .8rem; border-radius: 0 8px 8px 0; font-size: .76rem; color: #78350f; margin-top: .8rem; }
+
 </style>
 
 </head>
@@ -2256,6 +2090,10 @@ table.data-table tr:hover td {
       <button class="nav-item" data-view="history"><i class="fas fa-clock-rotate-left"></i> Report History</button>
       <button class="nav-item" data-view="patients"><i class="fas fa-user-injured"></i> Patients</button>
       <button class="nav-item" data-view="compare"><i class="fas fa-code-compare"></i> Compare Scans</button>
+    </nav>
+    <nav class="nav-group">
+      <div class="nav-label">Diagnostics</div>
+      <button class="nav-item" data-view="lab"><i class="fas fa-vials"></i> Lab Test Analysis</button>
     </nav>
     <nav class="nav-group">
       <div class="nav-label">Intelligence</div>
@@ -2616,83 +2454,6 @@ table.data-table tr:hover td {
     style="display:none;"
   >
 
-    <!-- IMAGE -->
-    <div class="card">
-
-      <div class="section-heading">
-
-        <i class="fas fa-image"></i>
-        Scan Preview
-
-      </div>
-
-
-      <div
-        class="explain-viewer"
-        id="explainViewer"
-      >
-
-        <img
-          id="explainImg"
-          alt="Uploaded scan preview"
-          style="display:none;"
-        />
-
-        <img
-          id="explainHeatmap"
-          alt="Attention heatmap overlay"
-          style="display:none;"
-        />
-
-        <div class="heatmap-overlay"></div>
-
-        <div
-          class="placeholder"
-          id="explainPlaceholder"
-          style="position:absolute;"
-        >
-
-          <i
-            class="fas fa-image"
-            style="font-size:2.2rem;"
-          ></i>
-
-          <span style="font-size:.72rem;">
-            No preview available
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <div class="explain-toggle">
-
-        <button
-          class="active"
-          data-explain="original"
-        >
-          Original
-        </button>
-
-        <button
-          data-explain="heatmap" style="display:none"
-        >
-          Attention Heatmap
-        </button>
-
-      </div>
-
-
-      <div class="disclaimer-box">
-
-        Attention visualization, not a lesion segmentation or diagnosis.
-
-      </div>
-
-    </div>
-
-
     <!-- AI RESULT -->
     <div class="card">
 
@@ -2893,6 +2654,59 @@ table.data-table tr:hover td {
   </div>
 
 </section>
+
+    <!-- ===================== LAB TEST ANALYSIS VIEW ===================== -->
+    <section class="view" id="view-lab">
+      <div class="card">
+        <div class="section-heading"><i class="fas fa-vials"></i> Lab Report Upload</div>
+        <div id="labUploadBox" style="border:2px dashed #c8d8de;border-radius:14px;padding:2rem 1rem;text-align:center;cursor:pointer;transition:background .2s;" onmouseover="this.style.background='#f0f7fb'" onmouseout="this.style.background=''">
+          <i class="fas fa-file-medical" style="font-size:2rem;color:#168e99;margin-bottom:.5rem;"></i>
+          <div style="font-weight:600;font-size:.88rem;color:#1d3c55;">Upload Lab Report</div>
+          <div style="font-size:.72rem;color:#6b7f8d;margin-top:.3rem;">JPG, PNG, or PDF — lab test results only</div>
+          <input type="file" id="labFileInput" accept="image/jpeg,image/png,application/pdf" style="display:none;" multiple/>
+        </div>
+        <div id="labFileChips" style="margin-top:.7rem;display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+
+      <div class="card" id="labContextCard" style="display:none;">
+        <div class="section-heading"><i class="fas fa-user-pen"></i> Clinical Context (Optional)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;">
+          <div class="field-group"><label><i class="fas fa-users"></i> Age Group</label><select id="labAgeGroup"><option value="">Not specified</option><option value="child">Child (0-12)</option><option value="teen">Teen (13-17)</option><option value="adult">Adult (18-64)</option><option value="senior">Senior (65+)</option></select></div>
+          <div class="field-group"><label><i class="fas fa-venus-mars"></i> Sex</label><select id="labSex"><option value="">Not specified</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
+          <div class="field-group"><label><i class="fas fa-utensils"></i> Fasting Status</label><select id="labFasting"><option value="">Not specified</option><option value="fasting">Fasting (8-12 hrs)</option><option value="non-fasting">Non-fasting</option><option value="unknown">Unknown</option></select></div>
+          <div class="field-group"><label><i class="fas fa-calendar"></i> Collection Date</label><input type="date" id="labCollectDate"/></div>
+          <div class="field-group" style="grid-column:1/-1;"><label><i class="fas fa-comment-dots"></i> Symptoms</label><input type="text" id="labSymptoms" placeholder="e.g. fatigue, frequent urination"/></div>
+          <div class="field-group" style="grid-column:1/-1;"><label><i class="fas fa-stethoscope"></i> Clinical Indication</label><input type="text" id="labIndication" placeholder="e.g. annual checkup, follow-up diabetes"/></div>
+        </div>
+        <div style="margin-top:.8rem;text-align:right;">
+          <button id="labAnalyzeBtn" class="btn btn-primary" style="padding:.5rem 1.4rem;"><i class="fas fa-microchip"></i> Analyze Lab Report</button>
+        </div>
+      </div>
+
+      <div class="card" id="labExtractionCard" style="display:none;">
+        <div class="section-heading"><i class="fas fa-table"></i> Extracted Lab Values — Edit Before Finalizing</div>
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="labExtractionTable">
+            <thead><tr><th>Test Name</th><th>Value</th><th>Unit</th><th>Ref Low</th><th>Ref High</th><th>Status</th><th>Confidence</th><th></th></tr></thead>
+            <tbody id="labExtractionBody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:.7rem;display:flex;gap:.5rem;justify-content:flex-end;">
+          <button id="labAddRowBtn" class="btn btn-secondary" style="padding:.4rem .8rem;font-size:.72rem;"><i class="fas fa-plus"></i> Add Row</button>
+          <button id="labFinalizeBtn" class="btn btn-primary" style="padding:.5rem 1.4rem;"><i class="fas fa-file-lines"></i> Generate Report</button>
+        </div>
+      </div>
+
+      <div id="labReportContainer" style="display:none;">
+        <div class="card">
+          <div class="section-heading"><i class="fas fa-file-medical"></i> Lab Analysis Report</div>
+          <div id="labReportBody" style="font-size:.82rem;line-height:1.65;color:#1a2d3d;"></div>
+        </div>
+        <div style="margin-top:.8rem;text-align:center;">
+          <button id="labContinueImagingBtn" class="btn btn-primary" style="padding:.5rem 1.6rem;"><i class="fas fa-arrow-right"></i> Continue with Imaging Review</button>
+        </div>
+      </div>
+    </section>
 
     <!-- ===================== REPORT HISTORY VIEW ===================== -->
     <section class="view" id="view-history">
@@ -4946,8 +4760,6 @@ let sessionReports = [];
 let currentMode = 'doctor';
 let currentOpenReportId = null;
 let confThreshold = 60;
-let currentExplainImgFile = null;
-let currentExplainOriginalSrc = null;
 let _pendingScanBlob = null;
 
 /* ===================== INDEXEDDB SCAN IMAGE STORE ===================== */
@@ -5012,7 +4824,6 @@ function _deleteAllScanImages() {
   }).catch(function() {});
 }
 
-const EXPLAIN_URL = '/api/explain';
 const SCAN_TYPE_TO_BACKEND = {
   ct_kub: 'kidney',
   chest_xray: 'chest',
@@ -5047,6 +4858,7 @@ function toast(msg, type){
 /* ===================== NAVIGATION ===================== */
 const viewTitles = {
   dashboard:['fa-gauge-high','Dashboard'], analysis:['fa-circle-notch','New Analysis'],
+  lab:['fa-vials','Lab Test Analysis'],
   history:['fa-clock-rotate-left','Report History'], patients:['fa-user-injured','Patients'],
   compare:['fa-code-compare','Compare Scans'], performance:['fa-chart-line','Model Performance'],
   assistant:['fa-comment-medical','AI Assistant'], about:['fa-circle-info','Why NephroScan?'],
@@ -5345,9 +5157,6 @@ function runAnalysis(){
   resetPlaceholder();
   reportBody.innerHTML = `<div class="loading-report"><div class="spinner-ring"></div><div class="progress-bar"><div class="fill"></div></div><p><i class="fas fa-microchip"></i> Analysis in progress</p><div style="font-size:.68rem;color:#9aa7b2;">Preparing an illustrative report for clinical review</div></div>`;
   document.getElementById('resultsGrid').style.display='none';
-  document.getElementById('explainViewer').style.display='';
-  var _explTgl = document.querySelector('.explain-toggle');
-  if(_explTgl) _explTgl.style.display='';
 
   let i=0;
   const interval = setInterval(()=>{
@@ -5538,13 +5347,6 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   const now = new Date();
   const nowStr = now.toLocaleString('en-US', {dateStyle:'long', timeStyle:'short'});
   const imgFile = uploadedFiles.find(f => f.type && f.type.startsWith('image/'));
-  let imgURL = null;
-  const explainImg = document.getElementById('explainImg');
-  const explainPh = document.getElementById('explainPlaceholder');
-  if(imgFile){ imgURL = URL.createObjectURL(imgFile); explainImg.src = imgURL; currentExplainImgFile = imgFile; currentExplainOriginalSrc = imgURL; explainImg.style.display = 'block'; explainPh.style.display = 'none'; }
-  else { explainImg.style.display = 'none'; explainPh.style.display = 'flex'; currentExplainImgFile = null; currentExplainOriginalSrc = null; }
-  document.getElementById('explainViewer').classList.remove('show-heat');
-  document.querySelectorAll('.explain-toggle button').forEach(b => b.classList.toggle('active', b.dataset.explain === 'original'));
 
   document.getElementById('resultsGrid').style.display = 'grid';
   document.getElementById('qualityScoreVal').textContent = quality + ' / 100';
@@ -5570,7 +5372,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   const patientGuidanceBlock = `<div class="report-section"><div class="section-title"><i class="fas fa-person"></i> PATIENT GUIDANCE</div><div class="content">This is an AI-assisted educational screening or classification result, not a diagnosis. Share it with a qualified healthcare professional and follow the clinical advice you receive. ${emergency}</div></div>`;
   const uncertainBlock = uncertain ? `<div class="doctor-note"><strong><i class="fas fa-circle-question"></i> UNCERTAIN RESULT</strong><br/>Confidence is below the configured threshold (${confThreshold}%). Qualified clinical review is recommended.</div>` : '';
 
-  const attentionBlock = `<div class="report-section" id="reportAttentionSection"><div class="section-title"><i class="fas fa-fire-flame-curved"></i> AI ATTENTION VISUALIZATION</div><div class="content" id="reportAttentionContent"><div class="saved-scan-preview" id="savedScanPreview"><img alt="Original scan" style="display:none;"/></div><div id="reportHeatmapViews"><div style="text-align:center;padding:1rem;color:#8493a0;"><i class="fas fa-circle-notch fa-spin" style="font-size:1.4rem;"></i><br/><span style="font-size:.72rem;">Generating attention heatmap…</span></div></div><div style="font-size:.68rem;color:#8493a0;margin-top:.3rem;">Highlighted regions show image areas that influenced the model output. They are not lesion boundaries, segmentation, or proof of disease.</div></div></div>`;
+  const attentionBlock = `<div class="report-section"><div class="section-title"><i class="fas fa-clipboard-list"></i> AI ANALYSIS SUMMARY</div><div class="content"><b>Prediction:</b> ${label}<br/><b>Confidence:</b> ${confidence}%<br/><b>Model:</b> ${provModel} (v${prov.version || '—'})<br/><br/><b>Limitations:</b> This is an AI-assisted educational screening or classification result. It does not measure disease severity, localize lesions, or replace clinical interpretation. The model outputs are based on pattern recognition in the uploaded image and should be interpreted alongside the full clinical context.<br/><br/><b>Clinician Review:</b> A qualified healthcare professional must review the original scan and correlate the AI output with the patient's history, examination findings, and complete study. Do not use this prototype result alone for diagnosis or treatment decisions.</div></div>`;
 
   var nutritionText = '';
   if(uncertain){
@@ -5610,187 +5412,13 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   reportBody.innerHTML = reportHTML;
   document.getElementById('reportContainer').scrollIntoView({behavior:'smooth', block:'start'});
   _pendingScanBlob = imgFile || null;
-  sessionReports.push({id:reportId, patientName, patientId, age, gender, doctor, hospital, symptoms, scanType, indication, prediction: uncertain ? 'Uncertain' : label, confidence, uncertain, quality, riskLevel, reportHTML, date:now, dateStr:nowStr, category:uncertain ? 'uncertain' : diseaseCategory, imgURL});
+  sessionReports.push({id:reportId, patientName, patientId, age, gender, doctor, hospital, symptoms, scanType, indication, prediction: uncertain ? 'Uncertain' : label, confidence, uncertain, quality, riskLevel, reportHTML, date:now, dateStr:nowStr, category:uncertain ? 'uncertain' : diseaseCategory});
   saveReports();
   currentOpenReportId = reportId;
   refreshDashboard();
   toast('Analysis complete — organ-specific report generated.', 'info');
   _smsEnable(scanType, uncertain ? 'Uncertain' : label, confidence, uncertain, nowStr, recommendations);
-
-  /* Fetch real attention heatmap for the report */
-  (async function() {
-    var attContent = document.getElementById('reportAttentionContent');
-    if(!attContent) return;
-    var explainFile = uploadedFiles.find(function(f){ return f.type && f.type.startsWith('image/'); });
-    var backendType = SCAN_TYPE_TO_BACKEND[scanType];
-    var scanPreviewEl = document.getElementById('savedScanPreview');
-    var viewsEl = document.getElementById('reportHeatmapViews');
-    if(explainFile && scanPreviewEl){
-      var origUrl = URL.createObjectURL(explainFile);
-      var origImg = scanPreviewEl.querySelector('img');
-      if(origImg){ origImg.src = origUrl; origImg.style.display = 'block'; }
-    }
-    if(!explainFile || !backendType){
-      if(viewsEl) viewsEl.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div>';
-      return;
-    }
-    try {
-      var fd = new FormData();
-      fd.append('image', explainFile);
-      fd.append('scan_type', backendType);
-      var resp = await fetch(EXPLAIN_URL, { method: 'POST', body: fd });
-      var data = await resp.json();
-      if(data.status === 'ok' && data.heatmap_image){
-        var heatDataUrl = data.heatmap_image;
-        var origDataUrl = null;
-        if(explainFile){ origDataUrl = await new Promise(function(res){ var fr = new FileReader(); fr.onload = function(){ res(fr.result); }; fr.readAsDataURL(explainFile); }); }
-        if(viewsEl){
-          viewsEl.innerHTML = '<div class="explain-toggle" id="reportHeatmapToggle" style="margin-bottom:.5rem;"><button class="active" data-heatview="original">Original</button><button data-heatview="attention">AI Attention</button><button data-heatview="overlay">Overlay</button></div><div class="attention-heatmap-frame" id="nsHeatmapFrame"><img id="nsHeatmapFrameImg" alt="AI Attention Heatmap" style="display:none;"/></div><div class="ns-heatmap-views" id="nsHeatmapSideBySide" style="display:none;"><div class="ns-heatmap-col"><div class="ns-heatmap-col-label">Original</div><img id="nsHeatmapOrigImg" alt="Original scan"/></div><div class="ns-heatmap-col"><div class="ns-heatmap-col-label">AI Attention</div><img id="nsHeatmapAttnImg" alt="AI Attention Heatmap"/></div></div>';
-          var frameImg = document.getElementById('nsHeatmapFrameImg');
-          var origImgEl = document.getElementById('nsHeatmapOrigImg');
-          var attnImgEl = document.getElementById('nsHeatmapAttnImg');
-          if(frameImg) frameImg.src = heatDataUrl;
-          if(origImgEl && origDataUrl) origImgEl.src = origDataUrl;
-          if(attnImgEl) attnImgEl.src = heatDataUrl;
-          var toggleEl = document.getElementById('reportHeatmapToggle');
-          if(toggleEl){
-            toggleEl.querySelectorAll('button').forEach(function(b){
-              b.addEventListener('click', function(){
-                toggleEl.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
-                b.classList.add('active');
-                var mode = b.dataset.heatview;
-                var frame = document.getElementById('nsHeatmapFrame');
-                var side = document.getElementById('nsHeatmapSideBySide');
-                var fi = document.getElementById('nsHeatmapFrameImg');
-                if(mode === 'overlay' && origDataUrl){
-                  if(frame) frame.style.display = 'none';
-                  if(side) side.style.display = 'flex';
-                } else if(mode === 'attention'){
-                  if(side) side.style.display = 'none';
-                  if(frame){ frame.style.display = 'flex'; if(fi){ fi.src = heatDataUrl; fi.style.display = 'block'; } }
-                } else {
-                  if(side) side.style.display = 'none';
-                  if(frame){ frame.style.display = 'flex'; if(fi && origDataUrl){ fi.src = origDataUrl; fi.style.display = 'block'; } else if(fi){ fi.src = heatDataUrl; fi.style.display = 'block'; } }
-                }
-              });
-            });
-          }
-        }
-      } else {
-        if(viewsEl) viewsEl.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div>';
-      }
-    } catch(err) {
-      if(viewsEl) viewsEl.innerHTML = '<div style="text-align:center;padding:.8rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-circle-info" style="margin-right:.3rem;"></i> Attention visualization unavailable for this scan.</div>';
-    }
-  })();
 }
-
-/* explainability toggle */
-document.querySelectorAll('.explain-toggle button').forEach(btn=>{
-  btn.addEventListener('click', async ()=>{
-    const viewer = document.getElementById('explainViewer');
-    const imgEl = document.getElementById('explainImg');
-    const heatEl = document.getElementById('explainHeatmap');
-    const phEl = document.getElementById('explainPlaceholder');
-    document.querySelectorAll('.explain-toggle button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-
-    if(btn.dataset.explain === 'original'){
-      /* Original: show original image, hide heatmap element */
-      viewer.classList.remove('show-heat');
-      heatEl.style.display = 'none';
-      heatEl.src = '';
-      if(currentExplainOriginalSrc){
-        imgEl.src = currentExplainOriginalSrc;
-        imgEl.style.display = 'block';
-        phEl.style.display = 'none';
-      } else {
-        imgEl.style.display = 'none';
-        phEl.style.display = 'flex';
-        phEl.innerHTML = '<i class="fas fa-image" style="font-size:2.2rem;"></i><span style="font-size:.72rem;">No preview available</span>';
-      }
-    } else {
-      /* Attention Heatmap — POST to /explain */
-      viewer.classList.remove('show-heat');
-
-      if(!currentExplainImgFile){
-        imgEl.style.display = 'none';
-        heatEl.style.display = 'none';
-        phEl.style.display = 'flex';
-        phEl.innerHTML = '<i class="fas fa-triangle-exclamation" style="font-size:2.2rem;"></i><span style="font-size:.72rem;">No image available for heatmap</span>';
-        toast('No image available for attention heatmap.','warn');
-        return;
-      }
-
-      const backendType = SCAN_TYPE_TO_BACKEND[scanTypeSelect.value];
-      if(!backendType){
-        imgEl.style.display = 'block';
-        imgEl.src = currentExplainOriginalSrc;
-        heatEl.style.display = 'none';
-        phEl.style.display = 'none';
-        toast('Scan type not supported for heatmap.','warn');
-        return;
-      }
-
-      /* Loading state */
-      imgEl.style.display = 'none';
-      heatEl.style.display = 'none';
-      phEl.style.display = 'flex';
-      phEl.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size:2.2rem;"></i><span style="font-size:.72rem;">Generating attention heatmap…</span>';
-
-      try{
-        const formData = new FormData();
-        formData.append('image', currentExplainImgFile);
-        formData.append('scan_type', backendType);
-
-        const response = await fetch(EXPLAIN_URL, {
-          method: 'POST',
-          body: formData
-        });
-
-        const data = await response.json();
-
-        if(data.status === 'ok' && data.heatmap_image){
-          /* Place heatmap in separate element — original imgEl never overwritten */
-          heatEl.src = data.heatmap_image;
-          heatEl.style.display = 'block';
-          imgEl.style.display = 'none';
-          phEl.style.display = 'none';
-        } else {
-          /* Heatmap unavailable — restore original, hide heatmap element */
-          heatEl.style.display = 'none';
-          heatEl.src = '';
-          imgEl.src = currentExplainOriginalSrc;
-          imgEl.style.display = currentExplainOriginalSrc ? 'block' : 'none';
-          phEl.style.display = currentExplainOriginalSrc ? 'none' : 'flex';
-          phEl.innerHTML = '<i class="fas fa-image" style="font-size:2.2rem;"></i><span style="font-size:.72rem;">No preview available</span>';
-          toast(data.message || 'Attention heatmap unavailable for this image.','warn');
-        }
-      } catch(error){
-        console.error('EXPLAIN ERROR:', error);
-        /* Network failure — restore original image, hide heatmap element */
-        heatEl.style.display = 'none';
-        heatEl.src = '';
-        imgEl.src = currentExplainOriginalSrc;
-        imgEl.style.display = currentExplainOriginalSrc ? 'block' : 'none';
-        phEl.style.display = currentExplainOriginalSrc ? 'none' : 'flex';
-        phEl.innerHTML = '<i class="fas fa-image" style="font-size:2.2rem;"></i><span style="font-size:.72rem;">No preview available</span>';
-        toast('Could not connect to explainability service.','error');
-      }
-    }
-  });
-});
-
-/* ===================== HEATMAP ENLARGE ===================== */
-window.__nsEnlargeHeatmap = function(btn){
-  var img = document.getElementById('reportHeatmapImg');
-  if(!img || !img.src) return;
-  var overlay = document.createElement('div');
-  overlay.className = 'ns-heatmap-overlay';
-  overlay.innerHTML = '<button class="close-overlay"><i class="fas fa-xmark"></i></button><img src="' + img.src + '" alt="AI Attention Heatmap enlarged" />';
-  overlay.addEventListener('click', function(e){ if(e.target === overlay || e.target.closest('.close-overlay')) overlay.remove(); });
-  document.body.appendChild(overlay);
-};
 
 /* ===================== COPY / PRINT ===================== */
 copyBtn.addEventListener('click', ()=>{
@@ -6006,68 +5634,8 @@ window.__ns_viewReport = function(id){
   showView('analysis');
   document.getElementById('resultsGrid').style.display='none';
   document.getElementById('pipelineCard').style.display='none';
-  document.getElementById('explainViewer').style.display='none';
-  var explToggle = document.querySelector('.explain-toggle');
-  if(explToggle) explToggle.style.display='none';
   reportBody.innerHTML = r.reportHTML;
   document.getElementById('reportContainer').scrollIntoView({behavior:'smooth'});
-  _getScanImage(id).then(function(blob){
-    var viewsEl = document.getElementById('reportHeatmapViews');
-    var scanPreviewEl = document.getElementById('savedScanPreview');
-    if(blob && scanPreviewEl){
-      var url = URL.createObjectURL(blob);
-      var img = scanPreviewEl.querySelector('img');
-      if(img){
-        img.onload = function(){ URL.revokeObjectURL(url); };
-        img.onerror = function(){ scanPreviewEl.innerHTML='<div style="text-align:center;padding:1rem;color:#8493a0;font-size:.78rem;"><i class="fas fa-image-slash"></i> Original scan unavailable</div>'; URL.revokeObjectURL(url); };
-        img.src = url;
-      }
-    } else if(!blob && scanPreviewEl) {
-      scanPreviewEl.innerHTML = '<div style="text-align:center;padding:.6rem;color:#8493a0;font-size:.72rem;">Original scan unavailable</div>';
-    }
-    if(viewsEl && blob){
-      var heatFrame = viewsEl.querySelector('.attention-heatmap-frame');
-      var heatImg = heatFrame ? heatFrame.querySelector('img') : null;
-      if(heatImg){
-        var heatDataUrl = heatImg.src;
-        var reader = new FileReader();
-        reader.onload = function(){
-          var origDataUrl = reader.result;
-          viewsEl.innerHTML = '<div class="explain-toggle" id="reportHeatmapToggle" style="margin-bottom:.5rem;"><button class="active" data-heatview="original">Original</button><button data-heatview="attention">AI Attention</button><button data-heatview="overlay">Overlay</button></div><div class="attention-heatmap-frame" id="nsHeatmapFrame"><img id="nsHeatmapFrameImg" alt="AI Attention Heatmap" style="display:none;"/></div><div class="ns-heatmap-views" id="nsHeatmapSideBySide" style="display:none;"><div class="ns-heatmap-col"><div class="ns-heatmap-col-label">Original</div><img id="nsHeatmapOrigImg" alt="Original scan"/></div><div class="ns-heatmap-col"><div class="ns-heatmap-col-label">AI Attention</div><img id="nsHeatmapAttnImg" alt="AI Attention Heatmap"/></div></div>';
-          var frameImg = document.getElementById('nsHeatmapFrameImg');
-          var origImgEl = document.getElementById('nsHeatmapOrigImg');
-          var attnImgEl = document.getElementById('nsHeatmapAttnImg');
-          if(frameImg) frameImg.src = origDataUrl;
-          if(origImgEl) origImgEl.src = origDataUrl;
-          if(attnImgEl) attnImgEl.src = heatDataUrl;
-          var toggleEl = document.getElementById('reportHeatmapToggle');
-          if(toggleEl){
-            toggleEl.querySelectorAll('button').forEach(function(b){
-              b.addEventListener('click', function(){
-                toggleEl.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
-                b.classList.add('active');
-                var mode = b.dataset.heatview;
-                var frame = document.getElementById('nsHeatmapFrame');
-                var side = document.getElementById('nsHeatmapSideBySide');
-                var fi = document.getElementById('nsHeatmapFrameImg');
-                if(mode === 'overlay'){
-                  if(frame) frame.style.display = 'none';
-                  if(side) side.style.display = 'flex';
-                } else if(mode === 'attention'){
-                  if(side) side.style.display = 'none';
-                  if(frame){ frame.style.display = 'flex'; if(fi){ fi.src = heatDataUrl; fi.style.display = 'block'; } }
-                } else {
-                  if(side) side.style.display = 'none';
-                  if(frame){ frame.style.display = 'flex'; if(fi){ fi.src = origDataUrl; fi.style.display = 'block'; } }
-                }
-              });
-            });
-          }
-        };
-        reader.readAsDataURL(blob);
-      }
-    }
-  });
 };
 window.__ns_printReport = function(id){ window.__ns_viewReport(id); setTimeout(()=>printBtn.click(), 200); };
 window.__ns_deleteReport = function(id){
@@ -6409,6 +5977,287 @@ document.getElementById('botSendBtn').addEventListener('click', sendBotInput);
 document.getElementById('botInput').addEventListener('keydown', e=>{ if(e.key==='Enter') sendBotInput(); });
 
 
+
+/* ===================== LAB TEST ANALYSIS ===================== */
+const LAB_API_URL = '/api/lab/analyze';
+let labFiles = [];
+let labDraftTests = [];
+
+const labReport = {
+  category: 'lab',
+  sourceFileName: '',
+  sourceMimeType: '',
+  context: {},
+  tests: [],
+  overallSummary: '',
+  possibleProblems: [],
+  whatCanBeDone: [],
+  dietGuidance: [],
+  lifestyleGuidance: [],
+  urgencyGuidance: '',
+  doctorDiscussionPoints: [],
+  uncertainty: [],
+  disclaimer: 'Educational decision support only. This is not a diagnosis and does not replace a qualified healthcare professional.'
+};
+
+function _labRenderChips(){
+  var wrap = document.getElementById('labFileChips');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  if(labFiles.length === 0){
+    document.getElementById('labContextCard').style.display = 'none';
+    document.getElementById('labExtractionCard').style.display = 'none';
+    document.getElementById('labReportContainer').style.display = 'none';
+    return;
+  }
+  labFiles.forEach(function(f, i){
+    var chip = document.createElement('span');
+    chip.className = 'lab-file-chip';
+    var icon = f.type === 'application/pdf' ? 'fa-file-pdf' : 'fa-file-image';
+    var name = f.name.length > 22 ? f.name.slice(0,20) + '...' : f.name;
+    chip.innerHTML = '<i class="fas ' + icon + '"></i><span>' + name + '</span><span style="opacity:.3;font-size:.55rem;">' + (f.size/1024).toFixed(0) + ' KB</span><button class="lab-rm" data-idx="' + i + '" title="remove"><i class="fas fa-times-circle"></i></button>';
+    wrap.appendChild(chip);
+  });
+  wrap.querySelectorAll('.lab-rm').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      labFiles.splice(parseInt(this.dataset.idx), 10);
+      _labRenderChips();
+    });
+  });
+  document.getElementById('labContextCard').style.display = 'block';
+}
+
+(function(){
+  var box = document.getElementById('labUploadBox');
+  var inp = document.getElementById('labFileInput');
+  if(!box || !inp) return;
+  box.addEventListener('click', function(){ inp.click(); });
+  box.addEventListener('dragover', function(e){ e.preventDefault(); box.classList.add('dragover'); });
+  box.addEventListener('dragleave', function(){ box.classList.remove('dragover'); });
+  box.addEventListener('drop', function(e){ e.preventDefault(); box.classList.remove('dragover'); _labHandleFiles(e.dataTransfer.files); });
+  inp.addEventListener('change', function(){ _labHandleFiles(inp.files); inp.value=''; });
+})();
+
+function _labHandleFiles(files){
+  if(!files || !files.length) return;
+  var allowed = ['image/jpeg','image/png','application/pdf'];
+  for(var i=0; i<files.length; i++){
+    var f = files[i];
+    if(f.size === 0){ toast('Empty file rejected: ' + f.name, 'error'); continue; }
+    if(!allowed.includes(f.type)){ toast('Unsupported type: ' + f.name + ' (use JPG, PNG, or PDF)', 'error'); continue; }
+    labFiles.push(f);
+  }
+  _labRenderChips();
+}
+
+document.getElementById('labAnalyzeBtn').addEventListener('click', async function(){
+  if(!labFiles.length){ toast('Upload a lab report first.', 'error'); return; }
+  var f = labFiles[0];
+  var btn = this;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analyzing...';
+
+  labReport.sourceFileName = f.name;
+  labReport.sourceMimeType = f.type;
+  labReport.context = {
+    ageGroup: document.getElementById('labAgeGroup').value,
+    sex: document.getElementById('labSex').value,
+    fasting: document.getElementById('labFasting').value,
+    collectDate: document.getElementById('labCollectDate').value,
+    symptoms: document.getElementById('labSymptoms').value.trim(),
+    indication: document.getElementById('labIndication').value.trim()
+  };
+
+  try {
+    var fd = new FormData();
+    fd.append('lab_report', f);
+    fd.append('context', JSON.stringify(labReport.context));
+    var resp = await fetch(LAB_API_URL, { method: 'POST', body: fd });
+    if(resp.status === 404 || resp.status === 501){
+      toast('Lab analysis service is not available yet.', 'warn');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-microchip"></i> Analyze Lab Report';
+      return;
+    }
+    var data = await resp.json();
+    if(data.status === 'ok' && data.tests){
+      labDraftTests = data.tests.map(function(t){
+        return { name: t.name||'', value: t.value||'', unit: t.unit||'', refLow: t.refLow||'', refHigh: t.refHigh||'', status: t.status||'Needs review', confidence: t.confidence||'' };
+      });
+      labReport.overallSummary = data.overallSummary || '';
+      labReport.possibleProblems = data.possibleProblems || [];
+      labReport.whatCanBeDone = data.whatCanBeDone || [];
+      labReport.dietGuidance = data.dietGuidance || [];
+      labReport.lifestyleGuidance = data.lifestyleGuidance || [];
+      labReport.urgencyGuidance = data.urgencyGuidance || '';
+      labReport.doctorDiscussionPoints = data.doctorDiscussionPoints || [];
+      labReport.uncertainty = data.uncertainty || [];
+      _labRenderExtractionTable();
+      document.getElementById('labExtractionCard').style.display = 'block';
+      document.getElementById('labExtractionCard').scrollIntoView({behavior:'smooth'});
+    } else {
+      toast(data.message || 'Lab analysis failed.', 'error');
+    }
+  } catch(err){
+    toast('Lab analysis service is not available yet.', 'warn');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-microchip"></i> Analyze Lab Report';
+});
+
+function _labRenderExtractionTable(){
+  var body = document.getElementById('labExtractionBody');
+  if(!body) return;
+  body.innerHTML = '';
+  labDraftTests.forEach(function(t, i){
+    var tr = document.createElement('tr');
+    var statusClass = t.status === 'Within stated range' ? 'lab-status-within' : t.status === 'Above stated range' ? 'lab-status-above' : t.status === 'Below stated range' ? 'lab-status-below' : 'lab-status-review';
+    tr.innerHTML = '<td><input value="' + _labEsc(t.name) + '" data-col="name" data-idx="' + i + '"/></td>' +
+      '<td><input value="' + _labEsc(t.value) + '" data-col="value" data-idx="' + i + '"/></td>' +
+      '<td><input value="' + _labEsc(t.unit) + '" data-col="unit" data-idx="' + i + '"/></td>' +
+      '<td><input value="' + _labEsc(t.refLow) + '" data-col="refLow" data-idx="' + i + '"/></td>' +
+      '<td><input value="' + _labEsc(t.refHigh) + '" data-col="refHigh" data-idx="' + i + '"/></td>' +
+      '<td><select data-col="status" data-idx="' + i + '">' +
+        '<option value="Within stated range"' + (t.status==='Within stated range'?' selected':'') + '>Within stated range</option>' +
+        '<option value="Above stated range"' + (t.status==='Above stated range'?' selected':'') + '>Above stated range</option>' +
+        '<option value="Below stated range"' + (t.status==='Below stated range'?' selected':'') + '>Below stated range</option>' +
+        '<option value="Needs review"' + (t.status==='Needs review'?' selected':'') + '>Needs review</option>' +
+      '</select></td>' +
+      '<td><span style="font-size:.72rem;color:#6b7f8d;">' + _labEsc(t.confidence) + '</span></td>' +
+      '<td><button class="lab-rm" data-rmidx="' + i + '" title="Remove"><i class="fas fa-trash" style="color:var(--danger);font-size:.75rem;"></i></button></td>';
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('input, select').forEach(function(el){
+    el.addEventListener('change', function(){
+      var idx = parseInt(el.dataset.idx);
+      if(!isNaN(idx) && labDraftTests[idx]) labDraftTests[idx][el.dataset.col] = el.value;
+    });
+  });
+  body.querySelectorAll('[data-rmidx]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      labDraftTests.splice(parseInt(this.dataset.rmidx), 10);
+      _labRenderExtractionTable();
+    });
+  });
+}
+
+function _labEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+document.getElementById('labAddRowBtn').addEventListener('click', function(){
+  labDraftTests.push({ name:'', value:'', unit:'', refLow:'', refHigh:'', status:'Needs review', confidence:'' });
+  _labRenderExtractionTable();
+  var body = document.getElementById('labExtractionBody');
+  if(body) body.lastElementChild.scrollIntoView({behavior:'smooth'});
+});
+
+document.getElementById('labFinalizeBtn').addEventListener('click', function(){
+  labReport.tests = labDraftTests.map(function(t){
+    var low = parseFloat(t.refLow), high = parseFloat(t.refHigh), val = parseFloat(t.value);
+    var status = t.status;
+    if(status === 'Needs review' && !isNaN(low) && !isNaN(high) && !isNaN(val)){
+      if(val < low) status = 'Below stated range';
+      else if(val > high) status = 'Above stated range';
+      else status = 'Within stated range';
+    }
+    return { name:t.name, value:t.value, unit:t.unit, refLow:t.refLow, refHigh:t.refHigh, status:status, confidence:t.confidence };
+  });
+  _labRenderReport();
+  document.getElementById('labReportContainer').style.display = 'block';
+  document.getElementById('labReportContainer').scrollIntoView({behavior:'smooth'});
+});
+
+function _labRenderReport(){
+  var r = labReport;
+  var html = '';
+  html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-clipboard-list"></i> OVERALL SUMMARY</div><p>' + _labEsc(r.overallSummary || 'No summary generated.') + '</p></div>';
+
+  if(r.possibleProblems.length){
+    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-triangle-exclamation"></i> POSSIBLE PROBLEMS</div><ul class="lab-list">';
+    r.possibleProblems.forEach(function(p){ html += '<li>' + _labEsc(p) + '</li>'; });
+    html += '</ul></div>';
+  }
+
+  if(r.tests.length){
+    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-table"></i> RESULT DETAILS</div><div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Test</th><th>Value</th><th>Unit</th><th>Reference Range</th><th>Status</th><th>Confidence</th></tr></thead><tbody>';
+    r.tests.forEach(function(t){
+      var sc = t.status === 'Within stated range' ? 'lab-status-within' : t.status === 'Above stated range' ? 'lab-status-above' : t.status === 'Below stated range' ? 'lab-status-below' : 'lab-status-review';
+      html += '<tr><td>' + _labEsc(t.name) + '</td><td>' + _labEsc(t.value) + '</td><td>' + _labEsc(t.unit) + '</td><td>' + _labEsc(t.refLow) + ' – ' + _labEsc(t.refHigh) + '</td><td><span class="' + sc + '">' + _labEsc(t.status) + '</span></td><td>' + _labEsc(t.confidence) + '</td></tr>';
+    });
+    html += '</tbody></table></div></div>';
+  }
+
+  if(r.whatCanBeDone.length){
+    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-list-check"></i> WHAT CAN BE DONE</div><ul class="lab-list">';
+    r.whatCanBeDone.forEach(function(p){ html += '<li>' + _labEsc(p) + '</li>'; });
+    html += '</ul></div>';
+  }
+
+  if(r.dietGuidance.length){
+    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-apple-whole"></i> DIET GUIDANCE</div><ul class="lab-list">';
+    r.dietGuidance.forEach(function(p){ html += '<li>' + _labEsc(p) + '</li>'; });
+    html += '</ul><div style="font-size:.68rem;color:#6b7f8d;margin-top:.3rem;">General supportive suggestions only — not a treatment plan.</div></div>';
+  }
+
+  if(r.lifestyleGuidance.length){
+    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-person-walking"></i> LIFESTYLE GUIDANCE</div><ul class="lab-list">';
+    r.lifestyleGuidance.forEach(function(p){ html += '<li>' + _labEsc(p) + '</li>'; });
+    html += '</ul></div>';
+  }
+
+  if(r.urgencyGuidance){
+    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-clock"></i> URGENCY GUIDANCE</div><p>' + _labEsc(r.urgencyGuidance) + '</p></div>';
+  }
+
+  if(r.doctorDiscussionPoints.length){
+    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-comments"></i> DOCTOR DISCUSSION POINTS</div><ul class="lab-list">';
+    r.doctorDiscussionPoints.forEach(function(p){ html += '<li>' + _labEsc(p) + '</li>'; });
+    html += '</ul></div>';
+  }
+
+  if(r.uncertainty.length){
+    html += '<div class="lab-section"><div class="lab-section-title"><i class="fas fa-circle-question"></i> UNCERTAINTY AND MISSING DATA</div><ul class="lab-list">';
+    r.uncertainty.forEach(function(p){ html += '<li>' + _labEsc(p) + '</li>'; });
+    html += '</ul></div>';
+  }
+
+  html += '<div class="lab-disclaimer"><i class="fas fa-shield-halved" style="margin-right:.3rem;"></i> <b>Clinical Disclaimer:</b> ' + _labEsc(r.disclaimer) + '</div>';
+
+  var now = new Date();
+  var nowStr = now.toLocaleString('en-US', {dateStyle:'long', timeStyle:'short'});
+  var reportId = 'NSAI-LAB-' + String(reportCounter++).padStart(6, '0');
+  html += '<div class="ai-meta"><span><i class="fas fa-hashtag"></i> ' + reportId + '</span><span><i class="fas fa-cube"></i> Lab Analysis · Report Engine 1.0</span><span><i class="fas fa-clock"></i> ' + nowStr + '</span><span><i class="fas fa-file"></i> ' + r.sourceFileName + '</span></div>';
+
+  document.getElementById('labReportBody').innerHTML = html;
+
+  sessionReports.push({
+    id: reportId,
+    patientName: labReport.context.symptoms || 'Lab Patient',
+    patientId: 'LAB-' + reportId,
+    age: labReport.context.ageGroup || '',
+    gender: labReport.context.sex || '',
+    doctor: '',
+    hospital: '',
+    symptoms: labReport.context.symptoms || '',
+    scanType: 'lab',
+    indication: labReport.context.indication || '',
+    prediction: r.possibleProblems.length ? r.possibleProblems[0] : 'Lab review complete',
+    confidence: '',
+    uncertain: false,
+    quality: 100,
+    riskLevel: r.urgencyGuidance.toLowerCase().includes('urgent') ? 'high' : 'normal',
+    reportHTML: html,
+    date: now,
+    dateStr: nowStr,
+    category: 'lab'
+  });
+  saveReports();
+  refreshDashboard();
+  toast('Lab report generated and saved.', 'info');
+}
+
+document.getElementById('labContinueImagingBtn').addEventListener('click', function(){
+  showView('analysis');
+});
 
 /* ===================== INIT ===================== */
 renderPreviews();
