@@ -439,10 +439,19 @@ def _lab_image_from_bytes(data: bytes, content_type: str) -> Image.Image | None:
 
 
 def _lab_ocr_image(img: Image.Image) -> str:
-    """Run OCR on a PIL Image and return extracted text."""
+    """Run OCR on a PIL Image and return extracted text.
+    
+    Resizes large images to max 2000px on longest side to avoid
+    Tesseract timeouts on Render free tier (30s request limit).
+    """
     if not OCR_AVAILABLE or pytesseract is None:
         return ""
     try:
+        _max = 2000
+        w, h = img.size
+        if max(w, h) > _max:
+            ratio = _max / max(w, h)
+            img = img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
         text = pytesseract.image_to_string(img, lang="eng")
         return text or ""
     except Exception:
