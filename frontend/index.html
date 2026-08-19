@@ -4630,7 +4630,7 @@ table.data-table tr:hover td {
   if(clearReportsBtn){
     clearReportsBtn.addEventListener('click', function(){
       if(!confirm('Delete all saved reports from local storage? This cannot be undone.')) return;
-      try { localStorage.removeItem(LS_KEY); } catch(e) {}
+      try { localStorage.removeItem(REPORT_STORAGE_KEY); } catch(e) {}
       sessionReports = [];
       reportCounter = 1;
       refreshDashboard();
@@ -4763,27 +4763,42 @@ body.ns-compact .ns-settings{
 
 /* ===================== STATE ===================== */
 let uploadedFiles = [];
-let sessionReports = [];   // {id, patientName, patientId, age, gender, doctor, hospital, scanType, indication, symptoms,
-                            //  prediction, confidence, uncertain, quality, riskLevel, riskWhy, reportHTML, date, dateStr, category}
-const LS_KEY = 'nephroscan_report_history_v1';
-try {
-  const saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-  if (Array.isArray(saved) && saved.length) {
-    sessionReports = saved.map(function(r) { r.date = new Date(r.date); return r; });
-    reportCounter = sessionReports.length + 1;
+const REPORT_STORAGE_KEY = 'nephroscan_report_history_v1';
+let reportCounter = 1;
+
+function loadSavedReports() {
+  try {
+    const raw = localStorage.getItem(REPORT_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn('Report history could not be loaded:', error);
+    return [];
   }
-} catch(e) { sessionReports = []; }
-function _saveReports() {
+}
+
+function saveReports() {
   try {
     var toSave = sessionReports.map(function(r) {
       var copy = Object.assign({}, r);
       delete copy.imgURL;
       return copy;
     });
-    localStorage.setItem(LS_KEY, JSON.stringify(toSave));
-  } catch(e) {}
+    localStorage.setItem(REPORT_STORAGE_KEY, JSON.stringify(toSave));
+  } catch (error) {
+    console.warn('Report history could not be saved:', error);
+  }
 }
-let reportCounter = 1;
+
+let sessionReports = [];
+(function _initReports() {
+  var saved = loadSavedReports();
+  if (saved.length) {
+    sessionReports = saved.map(function(r) { r.date = new Date(r.date); return r; });
+    reportCounter = sessionReports.length + 1;
+  }
+})();
 let currentMode = 'doctor';
 let currentOpenReportId = null;
 let confThreshold = 60;
@@ -5346,7 +5361,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   reportBody.innerHTML = reportHTML;
   document.getElementById('reportContainer').scrollIntoView({behavior:'smooth', block:'start'});
   sessionReports.push({id:reportId, patientName, patientId, age, gender, doctor, hospital, symptoms, scanType, indication, prediction: uncertain ? 'Uncertain' : label, confidence, uncertain, quality, riskLevel, reportHTML, date:now, dateStr:nowStr, category:uncertain ? 'uncertain' : diseaseCategory, imgURL});
-  _saveReports();
+  saveReports();
   currentOpenReportId = reportId;
   refreshDashboard();
   toast('Analysis complete — organ-specific report generated.', 'info');
@@ -5669,7 +5684,7 @@ window.__ns_viewReport = function(id){
 window.__ns_printReport = function(id){ window.__ns_viewReport(id); setTimeout(()=>printBtn.click(), 200); };
 window.__ns_deleteReport = function(id){
   sessionReports = sessionReports.filter(r=>r.id!==id);
-  _saveReports();
+  saveReports();
   renderHistory(); refreshDashboard();
   toast('Report removed from this session.','info');
 };
@@ -5759,7 +5774,7 @@ function _loadSynthDemoByKey(key){
       provenance: pick.model + ' / SYNTHETIC DEMO'
     };
     sessionReports.push(demoReport);
-    _saveReports();
+    saveReports();
     renderPatients();
     refreshDashboard();
     toast('Synthetic demo loaded (' + modLabels[pick.scanType] + ').', 'info');
