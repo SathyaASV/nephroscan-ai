@@ -13,10 +13,12 @@ from __future__ import annotations
 
 import hashlib
 import io
+import logging
 import os
 import re
 import sys
 import time
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -391,34 +393,37 @@ _LAB_MAX_BYTES = 20 * 1024 * 1024  # 20 MB
 
 
 def _lab_validate_upload(file_storage) -> str | None:
-    """Return an error message if the lab upload is invalid, else None."""
+    """Return an error message if the lab upload is invalid, else None.
+    
+    Reads the file ONCE into bytes and stores them on file_storage._lab_bytes
+    so downstream helpers avoid re-reading the stream (prevents seek issues).
+    """
     if file_storage is None:
         return "No file uploaded"
     content_type = file_storage.content_type or ""
     filename = (file_storage.filename or "").lower()
-    ext = filename.rsplit(".", 1)[-1] if "." in filename else ""
     if content_type not in _LAB_ALLOWED_TYPES:
         return f"Unsupported type: {content_type}. Accepted: JPG, PNG, PDF"
-    data = file_storage.read()
+    try:
+        data = file_storage.read()
+    except Exception:
+        return "Could not read the uploaded file"
     if len(data) > _LAB_MAX_BYTES:
         return f"File too large: {len(data)} bytes (max {_LAB_MAX_BYTES})"
     if len(data) < 100:
         return "File appears empty or corrupted"
-    file_storage.seek(0)
     if content_type.startswith("image/"):
         try:
             img = Image.open(io.BytesIO(data))
             img.verify()
         except Exception:
             return "Image file appears corrupted or unreadable"
+    file_storage._lab_bytes = data
     return None
 
 
-def _lab_image_from_upload(file_storage) -> Image.Image | None:
-    """Convert an uploaded file (image or PDF first page) to a PIL Image."""
-    content_type = file_storage.content_type or ""
-    data = file_storage.read()
-    file_storage.seek(0)
+def _lab_image_from_bytes(data: bytes, content_type: str) -> Image.Image | None:
+    """Convert uploaded bytes to a PIL Image."""
     if content_type == "application/pdf":
         if not PDF_AVAILABLE or _pdf_to_images is None:
             return None
@@ -769,63 +774,106 @@ def _register_routes(application: Flask) -> None:
 
     @application.route("/api/lab/analyze", methods=["POST"])
     def api_lab_analyze():
-        error = _lab_validate_upload(request.files.get("lab_report"))
-        if error:
-            return jsonify({"status": "error", "message": error}), 400
+        _log = logging.getLogger("nephroscan.lab")
 
-        file_storage = request.files["lab_report"]
-        filename = file_storage.filename or "lab_report"
-        content_type = file_storage.content_type or ""
+        # --- Validation (returns 400 for genuinely bad uploads) ---
+        try:
+            error = _lab_validate_upload(request.files.get("lab_report"))
+            if error:
+                return jsonify({"status": "error", "message": error}), 400
+        except Exception as exc:
+            _log.error("lab validate error: %s %s", type(exc).__name__, exc)
+            return jsonify({"status": "error", "message": "Could not validate the upload"}), 400
 
-        # Parse optional context JSON
+        try:
+            file_storage = request.files["lab_report"]
+            filename = file_storage.filename or "lab_report"
+            content_type = file_storage.content_type or ""
+            raw_data = file_storage._lab_bytes
+        except Exception as exc:
+            _log.error("lab file read error: %s %s", type(exc).__name__, exc)
+            return jsonify({"status": "error", "message": "Could not read the uploaded file"}), 400
+
+        # --- Parse optional context JSON ---
         context = {}
-        ctx_raw = request.form.get("context", "")
-        if ctx_raw:
-            try:
-                import json as _json
-                context = _json.loads(ctx_raw)
-            except Exception:
-                context = {}
+        try:
+            ctx_raw = request.form.get("context", "")
+            if ctx_raw:
+                context = __import__("json").loads(ctx_raw)
+        except Exception as exc:
+            _log.warning("lab context parse error (ignored): %s", exc)
+            context = {}
 
-        # Convert to image (handles both images and PDFs)
-        img = _lab_image_from_upload(file_storage)
+        # --- Convert to image ---
+        try:
+            img = _lab_image_from_bytes(raw_data, content_type)
+        except Exception as exc:
+            _log.error("lab image conversion error: %s %s", type(exc).__name__, exc)
+            img = None
+
         if img is None:
             return jsonify({
-                "status": "error",
-                "message": "Could not process the uploaded file. Ensure it is a valid image or PDF.",
-            }), 400
-
-        # OCR
-        raw_text = _lab_ocr_image(img)
-        if not raw_text or len(raw_text.strip()) < 10:
-            return jsonify({
-                "status": "ok",
+                "status": "needs_review",
                 "tests": [],
-                "overallSummary": (
-                    f"OCR could not extract readable text from {filename}. "
-                    "The report may be handwritten, low-resolution, or in an unsupported format. "
-                    "Please upload a clearer image or PDF."
-                ),
+                "uncertainty": ["The uploaded file could not be processed as a valid image or PDF."],
+                "overallSummary": "The report could not be read reliably. Please upload a clearer printed report or enter the values manually.",
                 "possibleProblems": [],
-                "whatCanBeDone": [
-                    "Upload a clearer, high-resolution image or PDF of the lab report.",
-                    "Ensure the image is well-lit and in focus.",
-                    "Bring the original paper report to your clinician.",
-                ],
+                "whatCanBeDone": ["Check the original report and review it with a qualified clinician."],
                 "dietGuidance": [],
                 "lifestyleGuidance": [],
-                "urgencyGuidance": "Unable to assess urgency from the uploaded file. Consult your clinician.",
+                "urgencyGuidance": "Needs manual review.",
                 "doctorDiscussionPoints": [],
-                "uncertainty": ["OCR failed or produced insufficient readable text."],
                 "disclaimer": _LAB_DISCLAIMER,
-            })
+            }), 200
 
-        # Parse test rows
-        tests = _lab_parse_tests(raw_text)
+        # --- OCR ---
+        try:
+            raw_text = _lab_ocr_image(img)
+        except Exception as exc:
+            _log.error("lab OCR error: %s %s", type(exc).__name__, exc)
+            raw_text = ""
 
-        # Build full report
-        report = _lab_build_report(tests, context, filename)
-        return jsonify(report)
+        if not raw_text or len(raw_text.strip()) < 10:
+            return jsonify({
+                "status": "needs_review",
+                "tests": [],
+                "uncertainty": ["OCR could not read readable laboratory text from this file."],
+                "overallSummary": "The report could not be read reliably. Please upload a clearer printed report or enter the values manually.",
+                "possibleProblems": [],
+                "whatCanBeDone": ["Check the original report and review it with a qualified clinician."],
+                "dietGuidance": [],
+                "lifestyleGuidance": [],
+                "urgencyGuidance": "Needs manual review.",
+                "doctorDiscussionPoints": [],
+                "disclaimer": _LAB_DISCLAIMER,
+            }), 200
+
+        # --- Parse test rows ---
+        try:
+            tests = _lab_parse_tests(raw_text)
+        except Exception as exc:
+            _log.error("lab parse error: %s %s", type(exc).__name__, exc)
+            tests = []
+
+        # --- Build full report ---
+        try:
+            report = _lab_build_report(tests, context, filename)
+            return jsonify(report)
+        except Exception as exc:
+            _log.error("lab report build error: %s %s", type(exc).__name__, exc)
+            return jsonify({
+                "status": "needs_review",
+                "tests": tests or [],
+                "uncertainty": [f"Report generation failed: {type(exc).__name__}"],
+                "overallSummary": "The report could not be completed. Please review the extracted values manually.",
+                "possibleProblems": [],
+                "whatCanBeDone": ["Check the original report and review it with a qualified clinician."],
+                "dietGuidance": [],
+                "lifestyleGuidance": [],
+                "urgencyGuidance": "Needs manual review.",
+                "doctorDiscussionPoints": [],
+                "disclaimer": _LAB_DISCLAIMER,
+            }), 200
 
     # ---- Frontend serving ----
 
