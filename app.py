@@ -423,31 +423,47 @@ def _lab_validate_upload(file_storage) -> str | None:
 
 
 def _lab_image_from_bytes(data: bytes, content_type: str) -> Image.Image | None:
-    """Convert uploaded bytes to a PIL Image."""
+    """Convert uploaded bytes to a PIL Image.
+    
+    Resizes images larger than 1200px on longest side to reduce
+    memory usage and speed up OCR on constrained environments.
+    """
     if content_type == "application/pdf":
         if not PDF_AVAILABLE or _pdf_to_images is None:
             return None
         try:
-            images = _pdf_to_images(data, first_page=1, last_page=1, dpi=300)
-            return images[0].convert("RGB") if images else None
+            images = _pdf_to_images(data, first_page=1, last_page=1, dpi=200)
+            img = images[0].convert("RGB") if images else None
+            if img is None:
+                return None
+        except Exception:
+            return None
+    else:
+        try:
+            img = Image.open(io.BytesIO(data)).convert("RGB")
         except Exception:
             return None
     try:
-        return Image.open(io.BytesIO(data)).convert("RGB")
+        _max = 1200
+        w, h = img.size
+        if max(w, h) > _max:
+            ratio = _max / max(w, h)
+            img = img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
     except Exception:
-        return None
+        pass
+    return img
 
 
 def _lab_ocr_image(img: Image.Image) -> str:
     """Run OCR on a PIL Image and return extracted text.
     
-    Resizes large images to max 2000px on longest side to avoid
+    Resizes large images to max 1200px on longest side to avoid
     Tesseract timeouts on Render free tier (30s request limit).
     """
     if not OCR_AVAILABLE or pytesseract is None:
         return ""
     try:
-        _max = 2000
+        _max = 1200
         w, h = img.size
         if max(w, h) > _max:
             ratio = _max / max(w, h)
