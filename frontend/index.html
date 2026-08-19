@@ -247,41 +247,6 @@ button {
   color: #168e99;
 }
 
-/* Sidebar footer */
-.sidebar-footer {
-  margin-top: auto;
-  padding: .8rem .5rem;
-  border-top: 1px solid #e4edf1;
-}
-
-.mode-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: .68rem;
-  color: #738594;
-  margin-bottom: .5rem;
-}
-
-.mode-status .dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--warning);
-  animation: dotPulse 2s infinite;
-}
-
-@keyframes dotPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .4; transform: scale(.8); }
-}
-
-.sidebar-disclaimer {
-  font-size: .62rem;
-  color: #8b99a4;
-  line-height: 1.5;
-}
-
 /* Sidebar scrim for mobile */
 .sidebar-scrim {
   display: none;
@@ -1580,6 +1545,18 @@ table.data-table tr:hover td {
 .bot-msg.bot { background: rgba(255,255,255,.82); align-self: flex-start; border-bottom-left-radius: 4px; color: #294c61; border: 1px solid rgba(112,176,191,.22); box-shadow: 0 4px 12px rgba(46,95,113,.06); }
 .bot-msg.user { background: linear-gradient(135deg, #1667d9, #159b9d); align-self: flex-end; border-bottom-right-radius: 4px; color: #fff; box-shadow: 0 5px 14px rgba(22,103,217,.18); }
 
+/* ---------- SCAN PREVIEW ---------- */
+.scan-preview-card { border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.scan-preview-card .section-heading { padding: .7rem 1rem; background: #f8fafc; border-bottom: 1px solid #edf2f5; display: flex; align-items: center; gap: .5rem; font-weight: 600; font-size: .82rem; color: #1d3c55; }
+.scan-preview-wrap { padding: 1rem; background: #f1f6f8; display: flex; justify-content: center; align-items: center; min-height: 200px; max-height: 640px; }
+.scan-preview-wrap img { object-fit: contain; max-width: 100%; max-height: 620px; background: #f1f6f8; border-radius: 6px; }
+.scan-preview-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .4rem; color: #9aa7b2; font-size: .78rem; padding: 2rem; }
+
+/* ---------- HEALTH GUIDE FAB ---------- */
+.health-guide-fab { position: fixed; bottom: 22px; right: 22px; width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none; color: #fff; font-size: 1.2rem; cursor: pointer; box-shadow: 0 6px 20px rgba(22,103,217,.28); z-index: 200; display: flex; align-items: center; justify-content: center; transition: transform .2s, box-shadow .2s; }
+.health-guide-fab:hover { transform: scale(1.08); box-shadow: 0 8px 28px rgba(22,103,217,.36); }
+.health-guide-fab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
 /* ---------- TOASTS ---------- */
 .toast-stack {
   position: fixed;
@@ -1935,11 +1912,7 @@ table.data-table tr:hover td {
       <button class="nav-item" data-view="settings"><i class="fas fa-gear"></i> Settings</button>
     </nav>
 
-    <div class="sidebar-footer">
-      <div class="mode-status"><span class="dot"></span> SOFTWARE THERMAL PROXY — not an infrared measurement</div>
-      <div class="sidebar-disclaimer">Educational prototype. Not a diagnostic device. Do not upload real patient-identifiable data.</div>
-      <div style="font-size:.55rem;color:#b0bec5;margin-top:.4rem;">v2.1.0-build.20260817</div>
-    </div>
+
   </aside>
 
   <!-- ===================== MAIN ===================== -->
@@ -2401,6 +2374,14 @@ table.data-table tr:hover td {
 
   </div>
 
+
+  <!-- ================= ORIGINAL SCAN PREVIEW ================= -->
+  <div class="scan-preview-card" id="scanPreviewCard" style="display:none;">
+    <div class="section-heading"><i class="fas fa-image"></i> Original Uploaded Scan</div>
+    <div class="scan-preview-wrap" id="scanPreviewWrap">
+      <div class="scan-preview-placeholder"><i class="fas fa-image"></i>Scan preview unavailable</div>
+    </div>
+  </div>
 
   <!-- ================= AI REPORT ================= -->
   <div
@@ -4534,11 +4515,11 @@ body.ns-compact .ns-settings{
     <div style="font-size:.78rem;color:#5a6b7a;margin-bottom:.6rem;">Ask about health topics, lab terminology, diet, lifestyle, or preparing for a doctor visit.</div>
     <div id="healthGuideMessages" style="max-height:400px;overflow-y:auto;padding:.5rem;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:.6rem;display:flex;flex-direction:column;gap:8px;"></div>
     <div id="healthGuideQuick" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.6rem;">
-      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="Explain my lab result">Explain my lab result</button>
-      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="What should I ask my doctor?">What should I ask my doctor?</button>
-      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="General diet guidance">General diet guidance</button>
-      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="Healthy lifestyle habits">Healthy lifestyle habits</button>
-      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="Explain a medical term">Explain a medical term</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="summarize">Summarize Current Report</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="concerns">Explain Possible Concerns</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="next">What Can I Do Next?</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="diet">Diet and Lifestyle Guidance</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="ask">What Should I Ask My Doctor?</button>
     </div>
     <div style="display:flex;gap:6px;">
       <input type="text" id="healthGuideInput" placeholder="Ask a health question..." style="flex:1;padding:.5rem .8rem;border:1px solid #c8dfe6;border-radius:10px;font-size:.82rem;"/>
@@ -4550,6 +4531,7 @@ body.ns-compact .ns-settings{
 <!-- ===================== END AI HEALTH GUIDE VIEW ===================== -->
 
 <!-- (floating NephroBot widget removed — AI Health Guide is now a sidebar page) -->
+<button class="health-guide-fab" id="healthGuideFab" aria-label="Open AI Health Guide" title="Open AI Health Guide"><i class="fas fa-heart-pulse"></i></button>
 
 
 <script>
@@ -4603,6 +4585,7 @@ let currentMode = 'doctor';
 let currentOpenReportId = null;
 let confThreshold = 60;
 let _pendingScanBlob = null;
+let currentReportContext = null;
 
 /* ===================== INDEXEDDB SCAN IMAGE STORE ===================== */
 var _scanDBName = 'nephroscan_scan_images';
@@ -4664,6 +4647,38 @@ function _deleteAllScanImages() {
       tx.onerror = function() { resolve(); };
     });
   }).catch(function() {});
+}
+
+function updateScanPreview(blobOrFile, reportId) {
+  var card = document.getElementById('scanPreviewCard');
+  var wrap = document.getElementById('scanPreviewWrap');
+  if (!blobOrFile) {
+    if (reportId) {
+      _getScanImage(reportId).then(function(stored) {
+        if (stored) {
+          var url = URL.createObjectURL(stored);
+          wrap.innerHTML = '<img src="' + url + '" alt="Original uploaded scan"/>';
+          card.style.display = '';
+        } else {
+          wrap.innerHTML = '<div class="scan-preview-placeholder"><i class="fas fa-image"></i>Original scan unavailable for this saved report</div>';
+          card.style.display = '';
+        }
+      });
+    } else {
+      wrap.innerHTML = '<div class="scan-preview-placeholder"><i class="fas fa-image"></i>Scan preview unavailable</div>';
+      card.style.display = '';
+    }
+    return;
+  }
+  if (blobOrFile instanceof Blob) {
+    var url = URL.createObjectURL(blobOrFile);
+    wrap.innerHTML = '<img src="' + url + '" alt="Original uploaded scan"/>';
+    card.style.display = '';
+  } else if (blobOrFile instanceof File) {
+    var url2 = URL.createObjectURL(blobOrFile);
+    wrap.innerHTML = '<img src="' + url2 + '" alt="Original uploaded scan"/>';
+    card.style.display = '';
+  }
 }
 
 const SCAN_TYPE_TO_BACKEND = {
@@ -4832,6 +4847,8 @@ clearBtn.addEventListener('click', ()=>{
   document.getElementById('symptomsField').value='';
   document.getElementById('pipelineCard').style.display='none';
   document.getElementById('resultsGrid').style.display='none';
+  document.getElementById('scanPreviewCard').style.display='none';
+  currentReportContext = null;
 });
 function resetPlaceholder(){
   reportBody.innerHTML = `<div class="placeholder"><i class="fas fa-brain"></i><span>Upload scans &amp; run analysis</span><span style="font-size:.72rem;opacity:.4;">Illustrative output · clinical review required</span></div>`;
@@ -5255,6 +5272,20 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   reportBody.innerHTML = reportHTML;
   document.getElementById('reportContainer').scrollIntoView({behavior:'smooth', block:'start'});
   _pendingScanBlob = imgFile || null;
+  updateScanPreview(imgFile);
+  currentReportContext = {
+    type: 'imaging',
+    scanType: inputLabel,
+    prediction: uncertain ? 'Uncertain' : label,
+    confidence: confidence,
+    quality: quality,
+    riskLevel: riskLevel,
+    uncertain: uncertain,
+    reportHTML: reportHTML,
+    patientName: patientName,
+    patientId: patientId,
+    dateStr: nowStr
+  };
   sessionReports.push({id:reportId, patientName, patientId, age, gender, doctor, hospital, symptoms, scanType, indication, prediction: uncertain ? 'Uncertain' : label, confidence, uncertain, quality, riskLevel, reportHTML, date:now, dateStr:nowStr, category:uncertain ? 'uncertain' : diseaseCategory});
   saveReports();
   currentOpenReportId = reportId;
@@ -5479,6 +5510,29 @@ window.__ns_viewReport = function(id){
   document.getElementById('pipelineCard').style.display='none';
   reportBody.innerHTML = r.reportHTML;
   document.getElementById('reportContainer').scrollIntoView({behavior:'smooth'});
+  if(r.imgURL){
+    updateScanPreview(null);
+    var card = document.getElementById('scanPreviewCard');
+    var wrap = document.getElementById('scanPreviewWrap');
+    wrap.innerHTML = '<img src="' + r.imgURL + '" alt="Original uploaded scan"/>';
+    card.style.display = '';
+    currentReportContext = { type:'imaging', scanType:r.scanType||'', prediction:r.prediction||'', confidence:r.confidence, quality:r.quality, riskLevel:r.riskLevel, uncertain:r.uncertain, reportHTML:r.reportHTML, patientName:r.patientName, patientId:r.patientId, dateStr:r.dateStr };
+  } else if(r.scanType === 'lab'){
+    updateScanPreview(null);
+    if(r.labReportData){
+      currentReportContext = { type:'lab', data:r.labReportData, patientName:r.patientName, patientId:r.patientId, dateStr:r.dateStr };
+    }
+  } else {
+    _getScanImage(id).then(function(blob){
+      if(blob){
+        updateScanPreview(blob);
+        currentReportContext = { type:'imaging', scanType:r.scanType||'', prediction:r.prediction||'', confidence:r.confidence, quality:r.quality, riskLevel:r.riskLevel, uncertain:r.uncertain, reportHTML:r.reportHTML, patientName:r.patientName, patientId:r.patientId, dateStr:r.dateStr };
+      } else {
+        updateScanPreview(null, id);
+        currentReportContext = { type:'imaging', scanType:r.scanType||'', prediction:r.prediction||'', confidence:r.confidence, quality:r.quality, riskLevel:r.riskLevel, uncertain:r.uncertain, reportHTML:r.reportHTML, patientName:r.patientName, patientId:r.patientId, dateStr:r.dateStr };
+      }
+    });
+  }
 };
 window.__ns_printReport = function(id){ window.__ns_viewReport(id); setTimeout(()=>printBtn.click(), 200); };
 window.__ns_deleteReport = function(id){
@@ -5651,32 +5705,155 @@ var _HG_URGENT = 'If you or someone near you is experiencing chest pain, severe 
 
 function _healthGuideReply(userText){
   var t = userText.toLowerCase();
+  var hasReport = !!currentReportContext;
+  var isImaging = hasReport && currentReportContext.type === 'imaging';
+  var isLab = hasReport && currentReportContext.type === 'lab';
 
-  if(t.includes('explain') && (t.includes('lab') || t.includes('result') || t.includes('test'))){
-    return 'Lab test names and values can seem confusing. Here is a simple way to read them:\n\n1. Test name — what was measured (e.g. hemoglobin, glucose, creatinine).\n2. Your value — the number from your report.\n3. Unit — how the value is measured (e.g. g/dL, mg/dL).\n4. Reference range — the "normal" range printed on your report.\n5. Status — whether your value is within, above, or below that range.\n\nIf a value is outside the reference range, it does not automatically mean you have a disease. Many factors — hydration, recent meals, stress, exercise, and medication — can affect results. Share the full report with your clinician for proper interpretation.\n\n' + _HG_DISCLAIMER;
+  if(t === 'summarize'){
+    if(!hasReport) return 'No report is currently available. Upload or analyze a report first, and I will summarize it for you.\n\n' + _HG_DISCLAIMER;
+    if(isImaging){
+      var r = currentReportContext;
+      return 'WHAT THE REPORT SHOWS\nThis is an AI-assisted screening result for ' + (r.scanType || 'your scan') + '.\n\n' +
+        'The model predicted: ' + (r.prediction || 'not determined') + ' with ' + (r.confidence || 0) + '% confidence.\n' +
+        'Image quality score: ' + (r.quality || 'not available') + ' out of 100.\n' +
+        'Risk level: ' + (r.riskLevel || 'not assessed') + '.\n' +
+        (r.uncertain ? 'The result was flagged as uncertain and needs clinical review.\n\n' : '\n') +
+        'This is an AI-assisted educational screening result, not a diagnosis. Share it with a qualified healthcare professional.\n\n' +
+        'POSSIBLE CONCERNS\nThe AI identified a pattern in the ' + (r.scanType || 'scan') + ' that may be associated with ' + (r.prediction || 'an abnormality') + '. This does not confirm a disease. Many factors can affect imaging results.\n\n' +
+        'WHAT YOU CAN DO NOW\n1. Share the report with a qualified healthcare professional.\n2. Bring the original scan images to your appointment.\n3. Note any symptoms you are experiencing.\n4. Follow up as recommended by your clinician.\n\n' +
+        'WHEN TO SEEK URGENT CARE\n' + (r.uncertain ? 'Given the uncertain result, prompt clinical review is recommended.' : 'If you experience severe symptoms, seek urgent medical attention.') + '\n\n' + _HG_DISCLAIMER;
+    }
+    if(isLab){
+      var d = currentReportContext.data;
+      var summary = 'WHAT THE REPORT SHOWS\n';
+      summary += (d.overallSummary || 'Your lab report has been reviewed.') + '\n\n';
+      if(d.findings && d.findings.length){
+        summary += 'ABNORMAL FINDINGS:\n';
+        d.findings.forEach(function(f){
+          summary += '• ' + f.testName + ': ' + f.value + ' ' + f.unit + ' (' + f.status + ')\n';
+        });
+        summary += '\n';
+      }
+      if(d.possibleProblems) summary += 'POSSIBLE CONCERNS:\n' + d.possibleProblems + '\n\n';
+      summary += 'WHAT YOU CAN DO NOW\n';
+      if(d.whatCanBeDone) summary += d.whatCanBeDone + '\n\n';
+      summary += 'WHEN TO SEEK URGENT CARE\n' + (d.urgencyGuidance || 'Consult your healthcare provider if you experience any concerning symptoms.') + '\n\n';
+      return summary + _HG_DISCLAIMER;
+    }
   }
 
-  if(t.includes('ask') && (t.includes('doctor') || t.includes('clinician') || t.includes('appointment'))){
-    return 'Good questions to ask your doctor about any health result:\n\n1. What does this result mean for me specifically?\n2. Are any follow-up tests needed?\n3. Should I make any lifestyle or diet changes?\n4. Are any of my current medications affecting this result?\n5. When should I schedule a follow-up?\n6. What symptoms should I watch for?\n7. Is this result urgent or can it wait until my next visit?\n\nWriting your questions before the appointment helps you remember everything you want to discuss.\n\n' + _HG_DISCLAIMER;
+  if(t === 'concerns'){
+    if(!hasReport) return 'No report is currently available. Upload or analyze a report first.\n\n' + _HG_DISCLAIMER;
+    if(isImaging){
+      var r2 = currentReportContext;
+      var concerns = 'POSSIBLE CONCERNS\n';
+      concerns += 'The AI identified a pattern that may be associated with ' + (r2.prediction || 'an abnormality') + ' in the ' + (r2.scanType || 'scan') + '.\n\n';
+      concerns += 'This can have several causes and is not a confirmed diagnosis. ';
+      concerns += 'The confidence level is ' + (r2.confidence || 0) + '%, ' + ((r2.confidence || 0) >= 80 ? 'which is relatively high' : 'which suggests some uncertainty') + '.\n\n';
+      if(r2.uncertain) concerns += 'The result was flagged as uncertain. Qualified clinical review is recommended.\n\n';
+      concerns += 'WHAT YOU CAN DO NOW\n1. Share the report with a qualified healthcare professional.\n2. Bring the original scan to your appointment.\n3. Note any symptoms you are experiencing.\n\n';
+      return concerns + _HG_DISCLAIMER;
+    }
+    if(isLab){
+      var d2 = currentReportContext.data;
+      var c = 'POSSIBLE CONCERNS\n';
+      if(d2.possibleProblems) c += d2.possibleProblems + '\n\n';
+      if(d2.findings && d2.findings.length){
+        c += 'Specific findings outside the reference range:\n';
+        d2.findings.forEach(function(f){ c += '• ' + f.testName + ': ' + f.meaning + '\n'; });
+        c += '\n';
+      }
+      c += 'These do not confirm a disease. Many factors can affect lab results. Share the full report with your clinician.\n\n';
+      c += 'WHAT YOU CAN DO NOW\n';
+      if(d2.whatCanBeDone) c += d2.whatCanBeDone + '\n\n';
+      return c + _HG_DISCLAIMER;
+    }
   }
 
-  if(t.includes('diet') || t.includes('food') || t.includes('eat') || t.includes('nutrition') || t.includes('meal')){
-    return 'General diet guidance for overall health:\n\n- Eat a variety of fruits, vegetables, whole grains, and lean proteins.\n- Stay well-hydrated — water is the best choice for most people.\n- Limit highly processed foods, added sugars, and excessive salt.\n- Include sources of fiber (beans, oats, vegetables) for digestive health.\n- Choose healthy fats (olive oil, nuts, fatty fish) over saturated fats.\n- Eat at regular intervals to maintain steady energy.\n\nThese are general suggestions only. Individual dietary needs vary based on your health conditions, medications, and lab results. Please discuss any significant diet changes with your clinician or a registered dietitian.\n\n' + _HG_DISCLAIMER;
+  if(t === 'next'){
+    if(!hasReport) return 'No report is currently available. Upload or analyze a report first.\n\n' + _HG_DISCLAIMER;
+    if(isImaging){
+      return 'WHAT YOU CAN DO NOW\n1. Share the AI report with a qualified healthcare professional for clinical review.\n2. Bring the original scan images to your appointment.\n3. Note any symptoms and when they started.\n4. Ask your doctor about any follow-up tests or imaging that may be needed.\n5. Keep a copy of the report for your records.\n\nLIFESTYLE GUIDANCE\n• Stay hydrated and maintain a balanced diet.\n• Rest as needed and avoid overexertion until you have clinical advice.\n• Attend any scheduled follow-up appointments.\n• Monitor your symptoms and report any changes to your doctor.\n\nQuestions for your doctor:\n• What does this result mean for me?\n• Are any follow-up tests needed?\n• Should I make any lifestyle changes?\n• What symptoms should I watch for?\n\n' + _HG_DISCLAIMER;
+    }
+    if(isLab){
+      var d3 = currentReportContext.data;
+      var n = 'WHAT YOU CAN DO NOW\n';
+      if(d3.whatCanBeDone) n += d3.whatCanBeDone + '\n\n';
+      n += 'DIET GUIDANCE\n';
+      if(d3.dietGuidance && d3.dietGuidance.length) d3.dietGuidance.forEach(function(g){ n += '• ' + g + '\n'; });
+      else n += 'Maintain a balanced diet. Discuss specific dietary changes with your clinician.\n';
+      n += '\nLIFESTYLE GUIDANCE\n';
+      if(d3.lifestyleGuidance && d3.lifestyleGuidance.length) d3.lifestyleGuidance.forEach(function(g){ n += '• ' + g + '\n'; });
+      else n += 'Stay active, hydrated, and maintain regular sleep patterns.\n';
+      return n + '\n' + _HG_DISCLAIMER;
+    }
   }
 
-  if(t.includes('lifestyle') || t.includes('habit') || t.includes('exercise') || t.includes('sleep') || t.includes('stress')){
-    return 'Healthy lifestyle habits that support overall well-being:\n\n- Aim for 7-9 hours of sleep per night.\n- Stay physically active as tolerated — even short daily walks help.\n- Manage stress through relaxation techniques, hobbies, or talking to someone you trust.\n- Avoid smoking and limit alcohol consumption.\n- Maintain social connections — they support mental health.\n- Keep regular check-ups with your healthcare provider.\n\nThese are general supportive habits. If you have specific health conditions, ask your clinician what activities are safe for you.\n\n' + _HG_DISCLAIMER;
+  if(t === 'diet'){
+    if(hasReport){
+      if(isImaging){
+        var scanType = (currentReportContext.scanType || '').toLowerCase();
+        var guidance = 'DIET AND LIFESTYLE GUIDANCE\n';
+        if(scanType.includes('kidney')){
+          guidance += 'For kidney health, discuss fluid intake, sodium, protein, and oxalate management with your clinician. Specific dietary guidance depends on kidney function and stone type.\n';
+        } else if(scanType.includes('heart')){
+          guidance += 'For heart health, a heart-healthy eating pattern may include reduced sodium, whole grains, fruits, vegetables, and lean proteins. Discuss specific changes with your clinician.\n';
+        } else if(scanType.includes('chest') || scanType.includes('lung')){
+          guidance += 'For respiratory health, balanced nutrition with adequate fruits, vegetables, and lean proteins supports overall immune function.\n';
+        } else if(scanType.includes('brain')){
+          guidance += 'For neurological health, a balanced diet rich in fruits, vegetables, whole grains, and omega-3 fatty acids may support overall brain health.\n';
+        } else {
+          guidance += 'General balanced nutrition supports overall health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins.\n';
+        }
+        guidance += '\nLIFESTYLE: Stay active as tolerated, maintain regular sleep, stay hydrated, avoid smoking, and limit alcohol.\n\n';
+        return guidance + _HG_DISCLAIMER;
+      }
+      if(isLab){
+        var d4 = currentReportContext.data;
+        var lg = 'DIET AND LIFESTYLE GUIDANCE\n';
+        if(d4.dietGuidance && d4.dietGuidance.length){ d4.dietGuidance.forEach(function(g){ lg += '• ' + g + '\n'; }); }
+        else { lg += 'Maintain a balanced diet. Discuss specific changes with your clinician.\n'; }
+        lg += '\n';
+        if(d4.lifestyleGuidance && d4.lifestyleGuidance.length){ d4.lifestyleGuidance.forEach(function(g){ lg += '• ' + g + '\n'; }); }
+        else { lg += 'Stay active, hydrated, and maintain regular sleep.\n'; }
+        return lg + '\n' + _HG_DISCLAIMER;
+      }
+    }
+    return 'GENERAL DIET GUIDANCE\n\n- Eat a variety of fruits, vegetables, whole grains, and lean proteins.\n- Stay well-hydrated — water is the best choice for most people.\n- Limit highly processed foods, added sugars, and excessive salt.\n- Include sources of fiber (beans, oats, vegetables) for digestive health.\n- Choose healthy fats (olive oil, nuts, fatty fish) over saturated fats.\n- Eat at regular intervals to maintain steady energy.\n\nThese are general suggestions only. Individual dietary needs vary based on health conditions, medications, and lab results. Discuss significant diet changes with your clinician or a registered dietitian.\n\n' + _HG_DISCLAIMER;
   }
 
-  if(t.includes('medical term') || t.includes('terminology') || t.includes('what does') || t.includes('meaning of')){
-    return 'Common medical terms explained simply:\n\n- Reference range — the range of values considered "normal" for a test in a healthy population.\n- Abnormal — a result outside the reference range. This does not always mean disease.\n- Benign — not cancerous or harmful.\n- Prognosis — the likely course or outcome of a condition.\n- Chronic — a condition that develops slowly and may be long-lasting.\n- Acute — a condition that comes on suddenly and may need prompt attention.\n- Inflammation — the body\'s response to injury or infection; may cause redness, swelling, or pain.\n- Prophylaxis — preventive treatment or action.\n\nIf you encounter a term on your report that you do not understand, ask your healthcare provider for an explanation.\n\n' + _HG_DISCLAIMER;
+  if(t === 'ask'){
+    if(!hasReport) return 'Good questions to ask your doctor:\n\n1. What does this result mean for me specifically?\n2. Are any follow-up tests needed?\n3. Should I make any lifestyle or diet changes?\n4. Are any of my current medications affecting this result?\n5. When should I schedule a follow-up?\n6. What symptoms should I watch for?\n7. Is this result urgent or can it wait until my next visit?\n\nWriting your questions before the appointment helps you remember everything.\n\n' + _HG_DISCLAIMER;
+    var base = 'Questions for your doctor based on your report:\n\n';
+    if(isImaging){
+      return base + '1. What does this ' + (currentReportContext.scanType || 'scan') + ' result mean for me?\n2. Is the AI finding significant, or is it an incidental observation?\n3. Are any follow-up scans or tests needed?\n4. Should I see a specialist?\n5. What symptoms should I watch for?\n6. When should I schedule a follow-up?\n7. Do I need to change any current medications or activities?\n\n' + _HG_DISCLAIMER;
+    }
+    if(isLab){
+      return base + '1. Which of my lab values need attention?\n2. What could be causing the abnormal results?\n3. Are any follow-up tests needed?\n4. Should I make diet or lifestyle changes?\n5. Are my current medications affecting these results?\n6. When should I retest?\n7. What symptoms should I watch for?\n\n' + _HG_DISCLAIMER;
+    }
   }
 
   if(t.includes('chest pain') || t.includes('breathing') || t.includes('faint') || t.includes('weakness') || t.includes('confusion') || t.includes('bleeding') || t.includes('emergency') || t.includes('urgent')){
     return _HG_URGENT + '\n\n' + _HG_DISCLAIMER;
   }
 
-  return 'I can help with general health guidance, explaining lab terminology, diet and lifestyle habits, and preparing for a doctor visit. Please describe what you would like to know.\n\nRemember: I provide educational information only. For any personal health concerns, diagnosis, or treatment decisions, please consult a qualified healthcare professional.\n\n' + _HG_DISCLAIMER;
+  if(t.includes('explain') && (t.includes('lab') || t.includes('result') || t.includes('test'))){
+    return 'Lab test names and values can seem confusing. Here is a simple way to read them:\n\n1. Test name — what was measured.\n2. Your value — the number from your report.\n3. Unit — how the value is measured.\n4. Reference range — the "normal" range on your report.\n5. Status — whether your value is within, above, or below that range.\n\nIf a value is outside the reference range, it does not automatically mean disease. Many factors can affect results. Share the full report with your clinician.\n\n' + _HG_DISCLAIMER;
+  }
+
+  if(t.includes('lifestyle') || t.includes('exercise') || t.includes('sleep') || t.includes('stress')){
+    return 'Healthy lifestyle habits:\n\n- Aim for 7-9 hours of sleep per night.\n- Stay physically active as tolerated — even short daily walks help.\n- Manage stress through relaxation techniques or hobbies.\n- Avoid smoking and limit alcohol.\n- Maintain social connections.\n- Keep regular check-ups with your healthcare provider.\n\nDiscuss specific activities with your clinician if you have health conditions.\n\n' + _HG_DISCLAIMER;
+  }
+
+  if(t.includes('medical term') || t.includes('terminology') || t.includes('what does') || t.includes('meaning of')){
+    return 'Common medical terms:\n\n- Reference range — values considered "normal" for a test.\n- Abnormal — a result outside the reference range (not always disease).\n- Benign — not cancerous or harmful.\n- Chronic — develops slowly, may be long-lasting.\n- Acute — comes on suddenly, may need prompt attention.\n- Inflammation — body\'s response to injury or infection.\n\nAsk your healthcare provider for explanations of terms on your report.\n\n' + _HG_DISCLAIMER;
+  }
+
+  if(hasReport){
+    return 'I can summarize your report, explain possible concerns, suggest next steps, provide diet and lifestyle guidance, or help you prepare questions for your doctor. Use the buttons above or type a question.\n\n' + _HG_DISCLAIMER;
+  }
+
+  return 'I can help with general health guidance, explaining lab terminology, diet and lifestyle habits, and preparing for a doctor visit. Upload or analyze a report if you want a report-specific summary.\n\nFor personal health concerns, diagnosis, or treatment decisions, please consult a qualified healthcare professional.\n\n' + _HG_DISCLAIMER;
 }
 
 document.getElementById('healthGuideSendBtn').addEventListener('click', function(){
@@ -5694,6 +5871,10 @@ document.getElementById('healthGuideQuick').addEventListener('click', function(e
   var q = btn.dataset.q;
   _healthGuideAddMsg(q, 'user');
   setTimeout(function(){ _healthGuideAddMsg(_healthGuideReply(q), 'bot'); }, 350);
+});
+
+document.getElementById('healthGuideFab').addEventListener('click', function(){
+  showView('health-guide');
 });
 
 /* (NephroBot floating widget removed — functionality moved to AI Health Guide sidebar) */
@@ -6019,6 +6200,7 @@ function _labRenderReport(){
   _labStoreFileForReport(reportId);
   refreshDashboard();
   toast('Lab report generated and saved.', 'info');
+  currentReportContext = { type:'lab', data: reportRecord.labReportData, patientName: reportRecord.patientName, patientId: reportRecord.patientId, dateStr: reportRecord.dateStr };
 }
 
 /* ===================== LAB FILE IndexedDB ===================== */
