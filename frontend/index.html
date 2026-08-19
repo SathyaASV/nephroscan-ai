@@ -4513,13 +4513,15 @@ body.ns-compact .ns-settings{
   <div class="card">
     <div class="section-heading"><i class="fas fa-heart-pulse"></i> AI Health Guide</div>
     <div style="font-size:.78rem;color:#5a6b7a;margin-bottom:.6rem;">Ask about health topics, lab terminology, diet, lifestyle, or preparing for a doctor visit.</div>
-    <div id="healthGuideMessages" style="max-height:400px;overflow-y:auto;padding:.5rem;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:.6rem;display:flex;flex-direction:column;gap:8px;"></div>
+    <div id="healthGuideMessages" style="max-height:480px;overflow-y:auto;padding:.5rem;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:.6rem;display:flex;flex-direction:column;gap:8px;"></div>
     <div id="healthGuideQuick" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.6rem;">
-      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="summarize">Summarize Current Report</button>
-      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="concerns">Explain Possible Concerns</button>
-      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="next">What Can I Do Next?</button>
-      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="diet">Diet and Lifestyle Guidance</button>
-      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="ask">What Should I Ask My Doctor?</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="summarize">Summarize My Report</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="explain_finding">Explain This Finding</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="next">What Should I Do Next?</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="diet_plan">Diet and Lifestyle Plan</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="ask">Questions for My Doctor</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;" data-q="compare" id="healthGuideCompareBtn" style="display:none;">Compare With Previous Report</button>
+      <button class="btn btn-secondary" style="font-size:.68rem;padding:.3rem .7rem;background:#fef2f2;color:#b91c1c;border-color:#fecaca;" data-q="clear_chat" id="healthGuideClearBtn"><i class="fas fa-trash-can"></i> Clear Chat</button>
     </div>
     <div style="display:flex;gap:6px;">
       <input type="text" id="healthGuideInput" placeholder="Ask a health question..." style="flex:1;padding:.5rem .8rem;border:1px solid #c8dfe6;border-radius:10px;font-size:.82rem;"/>
@@ -5273,6 +5275,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   document.getElementById('reportContainer').scrollIntoView({behavior:'smooth', block:'start'});
   _pendingScanBlob = imgFile || null;
   updateScanPreview(imgFile);
+  _hgPreviousContext = currentReportContext;
   currentReportContext = {
     type: 'imaging',
     scanType: inputLabel,
@@ -5292,6 +5295,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
   refreshDashboard();
   toast('Analysis complete — organ-specific report generated.', 'info');
   _smsEnable(scanType, uncertain ? 'Uncertain' : label, confidence, uncertain, nowStr, recommendations);
+  _hgUpdateCompareBtn();
 }
 
 /* ===================== COPY / PRINT ===================== */
@@ -5691,146 +5695,288 @@ document.getElementById('compareBtn').addEventListener('click', ()=>{
 /* ===================== AI HEALTH GUIDE ===================== */
 var healthGuideMessages = document.getElementById('healthGuideMessages');
 var healthGuideInput = document.getElementById('healthGuideInput');
+var _hgChatHistory = [];
+var _hgLastAction = null;
+var _hgPreviousContext = null;
 
-function _healthGuideAddMsg(text, who){
+function _healthGuideAddMsg(text, who, skipHistory){
   var el = document.createElement('div');
   el.className = 'bot-msg ' + who;
   el.textContent = text;
   healthGuideMessages.appendChild(el);
   healthGuideMessages.scrollTop = healthGuideMessages.scrollHeight;
+  if(!skipHistory) _hgChatHistory.push({role: who, text: text});
+}
+
+function _healthGuideClearChat(){
+  _hgChatHistory = [];
+  _hgLastAction = null;
+  healthGuideMessages.innerHTML = '';
+  _healthGuideAddMsg("Hi! I can help you understand your health reports, lab results, imaging findings, diet, lifestyle, and preparing for a doctor visit. Ask me anything or use the buttons above.", 'bot');
 }
 
 var _HG_DISCLAIMER = 'Educational health guidance only. It does not replace examination or advice from a qualified healthcare professional.';
 var _HG_URGENT = 'If you or someone near you is experiencing chest pain, severe breathing difficulty, fainting, sudden weakness or numbness, confusion, or uncontrolled bleeding, seek urgent medical care immediately or call your local emergency number.';
 
+function _hgIsUrgent(t){
+  if(t.includes('chest pain') || t.includes('severe breathing') || t.includes('faint') || t.includes('sudden weakness') || t.includes('numbness') || t.includes('confusion') || t.includes('uncontrolled bleeding') || t.includes('cannot feel') || t.includes('cant feel') || t.includes('blue lips') || t.includes('seizure')){
+    return true;
+  }
+  return false;
+}
+
+function _hgClassifyUrgency(t){
+  if(_hgIsUrgent(t)) return 'urgent';
+  if(t.includes('worsening') || t.includes('severe') || t.includes('sudden') || t.includes('getting worse') || t.includes('rapidly')) return 'prompt';
+  return 'routine';
+}
+
+function _hgIsFollowUp(t){
+  var followups = ['what about','how about','and my','what do you mean','can you explain','what does that mean','is that serious','should i worry','tell me more','elaborate','why','how','what why','what causes','what is the cause','what triggers','should i be worried','how bad','how serious','what are the chances','will i be ok','will i be okay','is it dangerous','what happens if','can it be treated','is there a cure'];
+  for(var i=0;i<followups.length;i++){
+    if(t.includes(followups[i])) return true;
+  }
+  return false;
+}
+
+function _hgHasBothReports(){
+  return currentReportContext && _hgPreviousContext && currentReportContext.type !== _hgPreviousContext.type;
+}
+
+function _hgAskFollowUp(context){
+  var questions = [];
+  if(context && context.type === 'lab'){
+    if(!context.data || !context.data.context || !context.data.context.fasting || context.data.context.fasting === ''){
+      questions.push('Was this a fasting blood test?');
+    }
+    if(!context.data || !context.data.context || !context.data.context.symptoms || context.data.context.symptoms === ''){
+      questions.push('Are you experiencing any symptoms related to this result?');
+    }
+  }
+  if(context && context.type === 'imaging'){
+    if(!context.uncertain && context.confidence < 80){
+      questions.push('Has a radiologist or qualified clinician already reviewed this scan?');
+    }
+  }
+  if(questions.length === 0){
+    questions.push('Are you taking any medicines or supplements that might affect this result?');
+    questions.push('Do you have previous results for comparison?');
+  }
+  return questions.slice(0, 2).join(' ');
+}
+
+function _hgUrgencyLevel(t, context){
+  var level = _hgClassifyUrgency(t);
+  if(context && context.type === 'imaging' && context.uncertain) level = 'prompt';
+  if(context && context.type === 'lab' && context.data && context.data.urgencyGuidance && context.data.urgencyGuidance.toLowerCase().includes('urgent')) level = 'prompt';
+  return level;
+}
+
+function _hgFormatLabFinding(f){
+  var line = f.testName + ': ' + f.value + ' ' + f.unit + ' (reference: ' + (f.refLow || '?') + '–' + (f.refHigh || '?') + ', ' + f.status + ')';
+  return line;
+}
+
+function _hgBuildStructuredReply(sections){
+  var parts = [];
+  if(sections.whatISee) parts.push('WHAT I CAN SEE FROM YOUR REPORT\n' + sections.whatISee);
+  if(sections.whatItMayMean) parts.push('WHAT IT MAY MEAN\n' + sections.whatItMayMean);
+  if(sections.infoMissing) parts.push('WHAT INFORMATION IS MISSING\n' + sections.infoMissing);
+  if(sections.whatToDo) parts.push('WHAT YOU CAN DO NOW\n' + sections.whatToDo);
+  if(sections.dietGuidance) parts.push('DIET GUIDANCE\n' + sections.dietGuidance);
+  if(sections.lifestyleGuidance) parts.push('LIFESTYLE GUIDANCE\n' + sections.lifestyleGuidance);
+  if(sections.questionsForDoctor) parts.push('QUESTIONS FOR YOUR DOCTOR\n' + sections.questionsForDoctor);
+  if(sections.urgentCare) parts.push('WHEN TO SEEK URGENT CARE\n' + sections.urgentCare);
+  if(sections.followUp) parts.push(sections.followUp);
+  return parts.join('\n\n') + '\n\n' + _HG_DISCLAIMER;
+}
+
 function _healthGuideReply(userText){
-  var t = userText.toLowerCase();
+  var t = userText.toLowerCase().trim();
   var hasReport = !!currentReportContext;
   var isImaging = hasReport && currentReportContext.type === 'imaging';
   var isLab = hasReport && currentReportContext.type === 'lab';
+  var urgency = _hgUrgencyLevel(t, currentReportContext);
+
+  if(t === 'clear_chat' || t === 'clear'){
+    _healthGuideClearChat();
+    return null;
+  }
+
+  if(urgency === 'urgent' && !t.includes('summarize') && !t.includes('next') && !t.includes('diet') && !t.includes('ask')){
+    return 'URGENT MEDICAL ATTENTION NEEDED\n\n' + _HG_URGENT + '\n\nIf you have a report and are experiencing these symptoms, please seek emergency care immediately and bring your report to the medical team.';
+  }
 
   if(t === 'summarize'){
-    if(!hasReport) return 'No report is currently available. Upload or analyze a report first, and I will summarize it for you.\n\n' + _HG_DISCLAIMER;
+    _hgLastAction = 'summarize';
+    if(!hasReport) return 'No report is currently available. Upload and analyze a scan or lab report first, then come back and I will summarize it for you.\n\nWhat I can help with right now:\n- General health guidance\n- Explaining medical terminology\n- Diet and lifestyle suggestions\n- Preparing questions for your doctor\n\n' + _HG_DISCLAIMER;
     if(isImaging){
       var r = currentReportContext;
-      return 'WHAT THE REPORT SHOWS\nThis is an AI-assisted screening result for ' + (r.scanType || 'your scan') + '.\n\n' +
-        'The model predicted: ' + (r.prediction || 'not determined') + ' with ' + (r.confidence || 0) + '% confidence.\n' +
-        'Image quality score: ' + (r.quality || 'not available') + ' out of 100.\n' +
-        'Risk level: ' + (r.riskLevel || 'not assessed') + '.\n' +
-        (r.uncertain ? 'The result was flagged as uncertain and needs clinical review.\n\n' : '\n') +
-        'This is an AI-assisted educational screening result, not a diagnosis. Share it with a qualified healthcare professional.\n\n' +
-        'POSSIBLE CONCERNS\nThe AI identified a pattern in the ' + (r.scanType || 'scan') + ' that may be associated with ' + (r.prediction || 'an abnormality') + '. This does not confirm a disease. Many factors can affect imaging results.\n\n' +
-        'WHAT YOU CAN DO NOW\n1. Share the report with a qualified healthcare professional.\n2. Bring the original scan images to your appointment.\n3. Note any symptoms you are experiencing.\n4. Follow up as recommended by your clinician.\n\n' +
-        'WHEN TO SEEK URGENT CARE\n' + (r.uncertain ? 'Given the uncertain result, prompt clinical review is recommended.' : 'If you experience severe symptoms, seek urgent medical attention.') + '\n\n' + _HG_DISCLAIMER;
+      return _hgBuildStructuredReply({
+        whatISee: 'An AI-assisted screening of ' + (r.scanType || 'your scan') + ' was performed.\nPrediction: ' + (r.prediction || 'not determined') + '\nConfidence: ' + (r.confidence || 0) + '%\nImage quality: ' + (r.quality || 'not assessed') + '/100\nRisk level: ' + (r.riskLevel || 'not assessed') + (r.uncertain ? '\nThis result was flagged as uncertain and needs clinical review.' : ''),
+        whatItMayMean: 'The model identified a pattern in the ' + (r.scanType || 'scan') + ' that may be associated with ' + (r.prediction || 'an abnormality') + '. This is a preliminary classification for professional review. It does not confirm or rule out any disease. Many factors can affect imaging results, and a qualified clinician must interpret this alongside your full clinical picture.',
+        infoMissing: _hgAskFollowUp(r),
+        whatToDo: '1. Share this report with a qualified healthcare professional for clinical review.\n2. Bring the original scan images to your appointment.\n3. Note any symptoms you are experiencing and when they started.\n4. Ask your doctor about any follow-up tests or imaging that may be needed.\n5. Keep a copy of the report for your records.',
+        dietGuidance: isImaging ? _hgImagingDietLifestyle(r.scanType).diet : null,
+        lifestyleGuidance: isImaging ? _hgImagingDietLifestyle(r.scanType).lifestyle : null,
+        questionsForDoctor: 'What does this result mean for me?\nIs the AI finding significant or an incidental observation?\nAre any follow-up scans or tests needed?\nShould I see a specialist?\nWhat symptoms should I watch for?\nHas a clinician already reviewed this scan?',
+        urgentCare: r.uncertain ? 'Given the uncertain result, prompt clinical review is recommended. If you develop severe symptoms, seek urgent medical attention.' : 'If you experience severe chest pain, breathing difficulty, fainting, sudden weakness, confusion, or other alarming symptoms, seek urgent medical care immediately.'
+      });
     }
     if(isLab){
       var d = currentReportContext.data;
-      var summary = 'WHAT THE REPORT SHOWS\n';
-      summary += (d.overallSummary || 'Your lab report has been reviewed.') + '\n\n';
-      if(d.findings && d.findings.length){
-        summary += 'ABNORMAL FINDINGS:\n';
-        d.findings.forEach(function(f){
-          summary += '• ' + f.testName + ': ' + f.value + ' ' + f.unit + ' (' + f.status + ')\n';
-        });
-        summary += '\n';
+      var findingsText = '';
+      if(d && d.findings && d.findings.length){
+        d.findings.forEach(function(f){ findingsText += '\n- ' + _hgFormatLabFinding(f) + '\n  ' + f.meaning; });
       }
-      if(d.possibleProblems) summary += 'POSSIBLE CONCERNS:\n' + d.possibleProblems + '\n\n';
-      summary += 'WHAT YOU CAN DO NOW\n';
-      if(d.whatCanBeDone) summary += d.whatCanBeDone + '\n\n';
-      summary += 'WHEN TO SEEK URGENT CARE\n' + (d.urgencyGuidance || 'Consult your healthcare provider if you experience any concerning symptoms.') + '\n\n';
-      return summary + _HG_DISCLAIMER;
+      return _hgBuildStructuredReply({
+        whatISee: (d && d.overallSummary ? d.overallSummary : 'Your lab report has been reviewed.') + (findingsText ? '\n\nAbnormal findings:' + findingsText : '\n\nNo abnormal findings were identified.'),
+        whatItMayMean: (d && d.possibleProblems ? d.possibleProblems : 'The values in your report may be affected by many factors including hydration, recent meals, stress, exercise, and medications. A clinician can help determine the significance of any abnormal results.'),
+        infoMissing: _hgAskFollowUp(currentReportContext),
+        whatToDo: (d && d.whatCanBeDone ? d.whatCanBeDone : 'Share the full report with your healthcare provider for proper interpretation and next steps.'),
+        dietGuidance: _hgLabDietLifestyle(d).diet,
+        lifestyleGuidance: _hgLabDietLifestyle(d).lifestyle,
+        questionsForDoctor: 'Which of my lab values need attention?\nWhat could be causing the abnormal results?\nAre any follow-up tests needed?\nShould I make diet or lifestyle changes?\nAre my current medications affecting these results?\nWhen should I retest?',
+        urgentCare: (d && d.urgencyGuidance ? d.urgencyGuidance : 'If you experience any concerning symptoms, contact your healthcare provider. For severe symptoms, seek urgent medical attention.')
+      });
     }
   }
 
-  if(t === 'concerns'){
-    if(!hasReport) return 'No report is currently available. Upload or analyze a report first.\n\n' + _HG_DISCLAIMER;
-    if(isImaging){
-      var r2 = currentReportContext;
-      var concerns = 'POSSIBLE CONCERNS\n';
-      concerns += 'The AI identified a pattern that may be associated with ' + (r2.prediction || 'an abnormality') + ' in the ' + (r2.scanType || 'scan') + '.\n\n';
-      concerns += 'This can have several causes and is not a confirmed diagnosis. ';
-      concerns += 'The confidence level is ' + (r2.confidence || 0) + '%, ' + ((r2.confidence || 0) >= 80 ? 'which is relatively high' : 'which suggests some uncertainty') + '.\n\n';
-      if(r2.uncertain) concerns += 'The result was flagged as uncertain. Qualified clinical review is recommended.\n\n';
-      concerns += 'WHAT YOU CAN DO NOW\n1. Share the report with a qualified healthcare professional.\n2. Bring the original scan to your appointment.\n3. Note any symptoms you are experiencing.\n\n';
-      return concerns + _HG_DISCLAIMER;
-    }
+  if(t === 'explain_finding'){
+    _hgLastAction = 'explain_finding';
+    if(!hasReport) return 'No report is currently available. Analyze a report first, then I can explain specific findings for you.\n\n' + _HG_DISCLAIMER;
     if(isLab){
       var d2 = currentReportContext.data;
-      var c = 'POSSIBLE CONCERNS\n';
-      if(d2.possibleProblems) c += d2.possibleProblems + '\n\n';
-      if(d2.findings && d2.findings.length){
-        c += 'Specific findings outside the reference range:\n';
-        d2.findings.forEach(function(f){ c += '• ' + f.testName + ': ' + f.meaning + '\n'; });
-        c += '\n';
+      if(d2 && d2.findings && d2.findings.length){
+        var detail = 'Here are the findings from your lab report:\n\n';
+        d2.findings.forEach(function(f){
+          detail += _hgFormatLabFinding(f) + '\nWhat it may mean: ' + f.meaning + '\n';
+          if(f.dietGuidance && f.dietGuidance.length) detail += 'Diet notes: ' + f.dietGuidance.join('; ') + '\n';
+          if(f.lifestyleGuidance && f.lifestyleGuidance.length) detail += 'Lifestyle notes: ' + f.lifestyleGuidance.join('; ') + '\n';
+          if(f.doctorDiscussionPoints && f.doctorDiscussionPoints.length) detail += 'Discuss with your doctor: ' + f.doctorDiscussionPoints.join('; ') + '\n';
+          detail += '\n';
+        });
+        detail += 'These are preliminary observations. A clinician can help determine their significance in your full clinical context.';
+        return detail + '\n\n' + _HG_DISCLAIMER;
       }
-      c += 'These do not confirm a disease. Many factors can affect lab results. Share the full report with your clinician.\n\n';
-      c += 'WHAT YOU CAN DO NOW\n';
-      if(d2.whatCanBeDone) c += d2.whatCanBeDone + '\n\n';
-      return c + _HG_DISCLAIMER;
+      return 'Your lab report did not identify specific abnormal findings requiring detailed explanation. This is generally reassuring, but discuss the full results with your clinician.\n\n' + _HG_DISCLAIMER;
+    }
+    if(isImaging){
+      var r2 = currentReportContext;
+      return 'Your ' + (r2.scanType || 'scan') + ' screening result:\n\nPrediction: ' + (r2.prediction || 'not determined') + '\nConfidence: ' + (r2.confidence || 0) + '%\n\nThis is a preliminary AI classification for professional review. A qualified clinician must interpret this result alongside your clinical history, symptoms, and examination findings. The model does not measure severity, identify specific lesions, or provide a diagnosis.\n\n' + _hgAskFollowUp(r2) + '\n\n' + _HG_DISCLAIMER;
     }
   }
 
   if(t === 'next'){
-    if(!hasReport) return 'No report is currently available. Upload or analyze a report first.\n\n' + _HG_DISCLAIMER;
+    _hgLastAction = 'next';
+    if(!hasReport) return 'No report is currently available. Analyze a report first, and I will suggest concrete next steps.\n\nGeneral steps for any health concern:\n1. Keep a record of your symptoms.\n2. Schedule a check-up with your healthcare provider.\n3. Bring any previous test results to your appointment.\n4. Write down your questions beforehand.\n\n' + _HG_DISCLAIMER;
     if(isImaging){
-      return 'WHAT YOU CAN DO NOW\n1. Share the AI report with a qualified healthcare professional for clinical review.\n2. Bring the original scan images to your appointment.\n3. Note any symptoms and when they started.\n4. Ask your doctor about any follow-up tests or imaging that may be needed.\n5. Keep a copy of the report for your records.\n\nLIFESTYLE GUIDANCE\n• Stay hydrated and maintain a balanced diet.\n• Rest as needed and avoid overexertion until you have clinical advice.\n• Attend any scheduled follow-up appointments.\n• Monitor your symptoms and report any changes to your doctor.\n\nQuestions for your doctor:\n• What does this result mean for me?\n• Are any follow-up tests needed?\n• Should I make any lifestyle changes?\n• What symptoms should I watch for?\n\n' + _HG_DISCLAIMER;
+      return _hgBuildStructuredReply({
+        whatISee: 'You have an imaging report for ' + (currentReportContext.scanType || 'your scan') + '.',
+        whatToDo: '1. Share the AI report with a qualified healthcare professional for clinical review.\n2. Bring the original scan images to your appointment.\n3. Note any symptoms and when they started.\n4. Ask your doctor about follow-up tests or scans.\n5. Keep a copy for your records.',
+        questionsForDoctor: 'What does this result mean for me?\nAre follow-up scans needed?\nShould I see a specialist?\nDo I need to change any activities or medications?\nWhat symptoms should I watch for?',
+        urgentCare: currentReportContext.uncertain ? 'Given the uncertain result, prompt clinical review is recommended.' : 'If you experience severe symptoms, seek urgent medical attention.'
+      });
     }
     if(isLab){
       var d3 = currentReportContext.data;
-      var n = 'WHAT YOU CAN DO NOW\n';
-      if(d3.whatCanBeDone) n += d3.whatCanBeDone + '\n\n';
-      n += 'DIET GUIDANCE\n';
-      if(d3.dietGuidance && d3.dietGuidance.length) d3.dietGuidance.forEach(function(g){ n += '• ' + g + '\n'; });
-      else n += 'Maintain a balanced diet. Discuss specific dietary changes with your clinician.\n';
-      n += '\nLIFESTYLE GUIDANCE\n';
-      if(d3.lifestyleGuidance && d3.lifestyleGuidance.length) d3.lifestyleGuidance.forEach(function(g){ n += '• ' + g + '\n'; });
-      else n += 'Stay active, hydrated, and maintain regular sleep patterns.\n';
-      return n + '\n' + _HG_DISCLAIMER;
+      return _hgBuildStructuredReply({
+        whatISee: 'You have a lab report with ' + (d3 && d3.findings && d3.findings.length ? d3.findings.length + ' abnormal finding(s)' : 'no abnormal findings') + '.',
+        whatToDo: (d3 && d3.whatCanBeDone ? d3.whatCanBeDone : '1. Share the report with your healthcare provider.\n2. Discuss any abnormal values.\n3. Ask about follow-up testing if needed.'),
+        dietGuidance: _hgLabDietLifestyle(d3).diet,
+        lifestyleGuidance: _hgLabDietLifestyle(d3).lifestyle,
+        questionsForDoctor: 'Which values need attention?\nWhat could be causing abnormal results?\nAre follow-up tests needed?\nShould I change my diet or lifestyle?\nWhen should I retest?',
+        urgentCare: (d3 && d3.urgencyGuidance ? d3.urgencyGuidance : 'If you experience concerning symptoms, contact your healthcare provider.')
+      });
     }
   }
 
-  if(t === 'diet'){
+  if(t === 'diet_plan'){
+    _hgLastAction = 'diet_plan';
     if(hasReport){
       if(isImaging){
         var scanType = (currentReportContext.scanType || '').toLowerCase();
-        var guidance = 'DIET AND LIFESTYLE GUIDANCE\n';
-        if(scanType.includes('kidney')){
-          guidance += 'For kidney health, discuss fluid intake, sodium, protein, and oxalate management with your clinician. Specific dietary guidance depends on kidney function and stone type.\n';
-        } else if(scanType.includes('heart')){
-          guidance += 'For heart health, a heart-healthy eating pattern may include reduced sodium, whole grains, fruits, vegetables, and lean proteins. Discuss specific changes with your clinician.\n';
-        } else if(scanType.includes('chest') || scanType.includes('lung')){
-          guidance += 'For respiratory health, balanced nutrition with adequate fruits, vegetables, and lean proteins supports overall immune function.\n';
-        } else if(scanType.includes('brain')){
-          guidance += 'For neurological health, a balanced diet rich in fruits, vegetables, whole grains, and omega-3 fatty acids may support overall brain health.\n';
-        } else {
-          guidance += 'General balanced nutrition supports overall health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins.\n';
-        }
-        guidance += '\nLIFESTYLE: Stay active as tolerated, maintain regular sleep, stay hydrated, avoid smoking, and limit alcohol.\n\n';
-        return guidance + _HG_DISCLAIMER;
+        var imgDiet = _hgImagingDietLifestyle(scanType);
+        return _hgBuildStructuredReply({
+          whatISee: 'Diet guidance tailored to your ' + (currentReportContext.scanType || 'scan') + ' result.',
+          dietGuidance: imgDiet.diet,
+          lifestyleGuidance: imgDiet.lifestyle,
+          questionsForDoctor: 'Are there specific dietary changes I should make based on my result?\nShould I see a dietitian?\nAre any of my current foods or supplements affecting this condition?'
+        });
       }
       if(isLab){
         var d4 = currentReportContext.data;
-        var lg = 'DIET AND LIFESTYLE GUIDANCE\n';
-        if(d4.dietGuidance && d4.dietGuidance.length){ d4.dietGuidance.forEach(function(g){ lg += '• ' + g + '\n'; }); }
-        else { lg += 'Maintain a balanced diet. Discuss specific changes with your clinician.\n'; }
-        lg += '\n';
-        if(d4.lifestyleGuidance && d4.lifestyleGuidance.length){ d4.lifestyleGuidance.forEach(function(g){ lg += '• ' + g + '\n'; }); }
-        else { lg += 'Stay active, hydrated, and maintain regular sleep.\n'; }
-        return lg + '\n' + _HG_DISCLAIMER;
+        return _hgBuildStructuredReply({
+          whatISee: 'Diet and lifestyle guidance based on your lab results.',
+          dietGuidance: _hgLabDietLifestyle(d4).diet,
+          lifestyleGuidance: _hgLabDietLifestyle(d4).lifestyle,
+          questionsForDoctor: 'Are there specific dietary changes I should make based on my lab values?\nShould I see a dietitian?\nAre any of my medications or supplements affecting these results?'
+        });
       }
     }
-    return 'GENERAL DIET GUIDANCE\n\n- Eat a variety of fruits, vegetables, whole grains, and lean proteins.\n- Stay well-hydrated — water is the best choice for most people.\n- Limit highly processed foods, added sugars, and excessive salt.\n- Include sources of fiber (beans, oats, vegetables) for digestive health.\n- Choose healthy fats (olive oil, nuts, fatty fish) over saturated fats.\n- Eat at regular intervals to maintain steady energy.\n\nThese are general suggestions only. Individual dietary needs vary based on health conditions, medications, and lab results. Discuss significant diet changes with your clinician or a registered dietitian.\n\n' + _HG_DISCLAIMER;
+    return _hgBuildStructuredReply({
+      whatISee: 'General diet and lifestyle guidance.',
+      dietGuidance: 'Eat a variety of fruits, vegetables, whole grains, and lean proteins.\nStay well-hydrated — water is the best choice for most people.\nLimit highly processed foods, added sugars, and excessive salt.\nInclude fiber-rich foods (beans, oats, vegetables) for digestive health.\nChoose healthy fats (olive oil, nuts, fatty fish) over saturated fats.\nEat at regular intervals to maintain steady energy.',
+      lifestyleGuidance: 'Aim for 7–9 hours of sleep per night.\nStay physically active as tolerated — even short daily walks help.\nManage stress through relaxation techniques, hobbies, or talking to someone you trust.\nAvoid smoking and limit alcohol.\nKeep regular check-ups with your healthcare provider.',
+      questionsForDoctor: 'Should I make specific diet changes based on my health conditions?\nAre any of my medications affected by food or supplements?\nShould I see a dietitian for a personalized plan?',
+      urgentCare: 'Do not stop prescribed medications or start new supplements without professional advice.'
+    });
   }
 
   if(t === 'ask'){
-    if(!hasReport) return 'Good questions to ask your doctor:\n\n1. What does this result mean for me specifically?\n2. Are any follow-up tests needed?\n3. Should I make any lifestyle or diet changes?\n4. Are any of my current medications affecting this result?\n5. When should I schedule a follow-up?\n6. What symptoms should I watch for?\n7. Is this result urgent or can it wait until my next visit?\n\nWriting your questions before the appointment helps you remember everything.\n\n' + _HG_DISCLAIMER;
-    var base = 'Questions for your doctor based on your report:\n\n';
+    _hgLastAction = 'ask';
+    if(!hasReport) return 'Good questions to ask your doctor:\n\n1. What does this result mean for me specifically?\n2. Are any follow-up tests needed?\n3. Should I make lifestyle or diet changes?\n4. Are my current medications affecting this result?\n5. When should I schedule a follow-up?\n6. What symptoms should I watch for?\n7. Is this result urgent or can it wait?\n\nWriting your questions before the appointment helps you remember everything.\n\n' + _HG_DISCLAIMER;
     if(isImaging){
-      return base + '1. What does this ' + (currentReportContext.scanType || 'scan') + ' result mean for me?\n2. Is the AI finding significant, or is it an incidental observation?\n3. Are any follow-up scans or tests needed?\n4. Should I see a specialist?\n5. What symptoms should I watch for?\n6. When should I schedule a follow-up?\n7. Do I need to change any current medications or activities?\n\n' + _HG_DISCLAIMER;
+      return 'Questions for your doctor based on your ' + (currentReportContext.scanType || 'scan') + ' report:\n\n1. What does this result mean for me specifically?\n2. Is the AI finding significant or an incidental observation?\n3. Are any follow-up scans or tests needed?\n4. Should I see a specialist?\n5. What symptoms should I watch for?\n6. When should I schedule a follow-up?\n7. Do I need to change any current medications or activities?\n8. Has a radiologist confirmed this finding?\n\n' + _hgAskFollowUp(currentReportContext) + '\n\n' + _HG_DISCLAIMER;
     }
     if(isLab){
-      return base + '1. Which of my lab values need attention?\n2. What could be causing the abnormal results?\n3. Are any follow-up tests needed?\n4. Should I make diet or lifestyle changes?\n5. Are my current medications affecting these results?\n6. When should I retest?\n7. What symptoms should I watch for?\n\n' + _HG_DISCLAIMER;
+      return 'Questions for your doctor based on your lab report:\n\n1. Which of my lab values need attention?\n2. What could be causing the abnormal results?\n3. Are any follow-up tests needed?\n4. Should I make diet or lifestyle changes?\n5. Are my current medications affecting these results?\n6. When should I retest?\n7. What symptoms should I watch for?\n8. Do I need to fast before the next test?\n\n' + _hgAskFollowUp(currentReportContext) + '\n\n' + _HG_DISCLAIMER;
     }
+  }
+
+  if(t === 'compare'){
+    _hgLastAction = 'compare';
+    if(!_hgPreviousContext) return 'No previous report is available for comparison. Analyze a second report and I will compare the two for you.\n\n' + _HG_DISCLAIMER;
+    if(!hasReport) return 'No current report is available to compare against.\n\n' + _HG_DISCLAIMER;
+    var cmp = 'COMPARISON OF REPORTS\n\n';
+    cmp += 'PREVIOUS REPORT:\n' + (_hgPreviousContext.type === 'imaging' ? (_hgPreviousContext.scanType || 'Imaging') + ' — ' + (_hgPreviousContext.prediction || '—') + ' (' + (_hgPreviousContext.confidence || 0) + '%)' : 'Lab report — ' + (_hgPreviousContext.dateStr || '—')) + '\n\n';
+    cmp += 'CURRENT REPORT:\n' + (isImaging ? (currentReportContext.scanType || 'Imaging') + ' — ' + (currentReportContext.prediction || '—') + ' (' + (currentReportContext.confidence || 0) + '%)' : 'Lab report — ' + (currentReportContext.dateStr || '—')) + '\n\n';
+    if(_hgPreviousContext.type === 'imaging' && isImaging){
+      if(_hgPreviousContext.prediction === currentReportContext.prediction) cmp += 'The prediction category is the same in both reports.';
+      else cmp += 'The prediction category has changed from "' + _hgPreviousContext.prediction + '" to "' + currentReportContext.prediction + '".';
+      cmp += '\n\nThis is a simple category comparison. It does not represent a clinically validated assessment of disease progression. A qualified clinician should review both scans for a proper comparison.';
+    } else if(_hgPreviousContext.type === 'lab' && isLab){
+      cmp += 'Compare the specific values and trends with your clinician. They can assess whether changes are meaningful in your clinical context.';
+    } else {
+      cmp += 'These are different types of reports (one imaging, one lab). A clinician can integrate both into your clinical picture.';
+    }
+    return cmp + '\n\n' + _HG_DISCLAIMER;
+  }
+
+  if(_hgIsFollowUp(t) && hasReport){
+    var contextLabel = isImaging ? 'imaging' : 'lab';
+    var prefix = '';
+    if(_hgLastAction === 'summarize') prefix = 'Following up on the summary of your report:\n\n';
+    else if(_hgLastAction === 'explain_finding') prefix = 'Following up on the finding explanation:\n\n';
+    else if(_hgLastAction === 'next') prefix = 'Following up on the next steps:\n\n';
+    else if(_hgLastAction === 'diet_plan') prefix = 'Following up on diet guidance:\n\n';
+    else if(_hgLastAction === 'ask') prefix = 'Following up on doctor questions:\n\n';
+    else prefix = 'Based on your ' + contextLabel + ' report:\n\n';
+
+    if(t.includes('serious') || t.includes('bad') || t.includes('worried') || t.includes('dangerous')){
+      var reassurance = isImaging ? 'The AI result is a preliminary screening classification, not a diagnosis. It must be reviewed by a qualified healthcare professional before any conclusions are drawn. Many factors can affect imaging results.' : 'Abnormal lab values do not automatically indicate disease. Many factors — hydration, recent meals, stress, exercise, and medications — can affect results. A clinician can help determine their significance.';
+      return prefix + reassurance + '\n\nIt is understandable to feel concerned. The best step is to discuss the results with your healthcare provider, who can interpret them in the context of your full medical history.\n\n' + _hgAskFollowUp(currentReportContext) + '\n\n' + _HG_DISCLAIMER;
+    }
+    if(t.includes('treat') || t.includes('cure') || t.includes('medicine') || t.includes('medication') || t.includes('drug')){
+      return prefix + 'I cannot prescribe medication, recommend specific treatments, or tell you to stop any medicines. Treatment decisions must be made by your healthcare provider based on a complete clinical assessment.\n\nPlease discuss any treatment questions with your doctor or pharmacist.\n\n' + _HG_DISCLAIMER;
+    }
+    if(t.includes('diet') || t.includes('food') || t.includes('eat')){
+      return _healthGuideReply('diet_plan');
+    }
+    if(t.includes('doctor') || t.includes('ask')){
+      return _healthGuideReply('ask');
+    }
+    return prefix + 'To give you the most helpful answer, could you tell me more about what specifically concerns you? For example:\n- Are you worried about a particular value or finding?\n- Do you have symptoms related to this result?\n- Are you wondering about treatment or lifestyle changes?\n\n' + _HG_DISCLAIMER;
   }
 
   if(t.includes('chest pain') || t.includes('breathing') || t.includes('faint') || t.includes('weakness') || t.includes('confusion') || t.includes('bleeding') || t.includes('emergency') || t.includes('urgent')){
@@ -5838,22 +5984,73 @@ function _healthGuideReply(userText){
   }
 
   if(t.includes('explain') && (t.includes('lab') || t.includes('result') || t.includes('test'))){
+    if(hasReport && isLab){
+      return _healthGuideReply('explain_finding');
+    }
     return 'Lab test names and values can seem confusing. Here is a simple way to read them:\n\n1. Test name — what was measured.\n2. Your value — the number from your report.\n3. Unit — how the value is measured.\n4. Reference range — the "normal" range on your report.\n5. Status — whether your value is within, above, or below that range.\n\nIf a value is outside the reference range, it does not automatically mean disease. Many factors can affect results. Share the full report with your clinician.\n\n' + _HG_DISCLAIMER;
   }
 
   if(t.includes('lifestyle') || t.includes('exercise') || t.includes('sleep') || t.includes('stress')){
-    return 'Healthy lifestyle habits:\n\n- Aim for 7-9 hours of sleep per night.\n- Stay physically active as tolerated — even short daily walks help.\n- Manage stress through relaxation techniques or hobbies.\n- Avoid smoking and limit alcohol.\n- Maintain social connections.\n- Keep regular check-ups with your healthcare provider.\n\nDiscuss specific activities with your clinician if you have health conditions.\n\n' + _HG_DISCLAIMER;
+    if(hasReport) return _healthGuideReply('diet_plan');
+    return 'Healthy lifestyle habits:\n\n- Aim for 7–9 hours of sleep per night.\n- Stay physically active as tolerated — even short daily walks help.\n- Manage stress through relaxation techniques or hobbies.\n- Avoid smoking and limit alcohol.\n- Maintain social connections.\n- Keep regular check-ups with your healthcare provider.\n\nDiscuss specific activities with your clinician if you have health conditions.\n\n' + _HG_DISCLAIMER;
   }
 
   if(t.includes('medical term') || t.includes('terminology') || t.includes('what does') || t.includes('meaning of')){
-    return 'Common medical terms:\n\n- Reference range — values considered "normal" for a test.\n- Abnormal — a result outside the reference range (not always disease).\n- Benign — not cancerous or harmful.\n- Chronic — develops slowly, may be long-lasting.\n- Acute — comes on suddenly, may need prompt attention.\n- Inflammation — body\'s response to injury or infection.\n\nAsk your healthcare provider for explanations of terms on your report.\n\n' + _HG_DISCLAIMER;
+    return 'Common medical terms:\n\n- Reference range — values considered "normal" for a test.\n- Abnormal — a result outside the reference range (not always disease).\n- Benign — not cancerous or harmful.\n- Chronic — develops slowly, may be long-lasting.\n- Acute — comes on suddenly, may need prompt attention.\n- Inflammation — body\'s response to injury or infection.\n- Prognosis — the likely course of a condition.\n- Incidental — found unexpectedly during a test done for another reason.\n\nAsk your healthcare provider for explanations of terms on your report.\n\n' + _HG_DISCLAIMER;
+  }
+
+  if(t.includes('fasting') || t.includes('fasted')){
+    if(hasReport && isLab){
+      var ctx = currentReportContext.data && currentReportContext.data.context;
+      if(ctx && ctx.fasting){
+        return 'Your report indicates fasting status: ' + ctx.fasting + '.\n\nFasting status can affect certain lab values, particularly glucose and lipid panels. Your clinician will consider this when interpreting your results.\n\n' + _HG_DISCLAIMER;
+      }
+      return 'The fasting status for your lab report was not recorded. Fasting can affect certain test results (especially glucose and lipids). Let your clinician know whether you were fasting when the blood was drawn.\n\n' + _HG_DISCLAIMER;
+    }
+    return 'Fasting status means whether you avoided food and drink (except water) for a period before a blood test. Many tests are more accurate when performed fasting. If you are unsure whether your test required fasting, ask your healthcare provider.\n\n' + _HG_DISCLAIMER;
+  }
+
+  if(t.includes('medicine') || t.includes('medication') || t.includes('supplement') || t.includes('drug')){
+    return 'I cannot recommend, change, or stop any medication or supplement. Treatment decisions must be made by your healthcare provider based on a complete clinical assessment.\n\nIf you have questions about your medications, please discuss them with your doctor or pharmacist.\n\n' + _HG_DISCLAIMER;
+  }
+
+  if(t.includes('what can') || t.includes('help') || t.includes('can you')){
+    if(hasReport) return 'I can help with your report. Try these buttons above:\n- Summarize My Report — full overview of findings\n- Explain This Finding — detailed explanation of specific values\n- What Should I Do Next? — actionable next steps\n- Diet and Lifestyle Plan — nutrition and activity guidance\n- Questions for My Doctor — specific questions to ask\n\nYou can also type a specific question about your results.';
+    return 'I can help with general health guidance, explaining lab terminology, diet and lifestyle habits, and preparing for a doctor visit. Upload or analyze a report if you want a report-specific summary.\n\n' + _HG_DISCLAIMER;
   }
 
   if(hasReport){
-    return 'I can summarize your report, explain possible concerns, suggest next steps, provide diet and lifestyle guidance, or help you prepare questions for your doctor. Use the buttons above or type a question.\n\n' + _HG_DISCLAIMER;
+    return 'I can summarize your report, explain specific findings, suggest next steps, provide diet and lifestyle guidance, or help you prepare questions for your doctor. Use the buttons above or type a specific question.\n\n' + _hgAskFollowUp(currentReportContext) + '\n\n' + _HG_DISCLAIMER;
   }
 
   return 'I can help with general health guidance, explaining lab terminology, diet and lifestyle habits, and preparing for a doctor visit. Upload or analyze a report if you want a report-specific summary.\n\nFor personal health concerns, diagnosis, or treatment decisions, please consult a qualified healthcare professional.\n\n' + _HG_DISCLAIMER;
+}
+
+function _hgImagingDietLifestyle(scanType){
+  var s = (scanType || '').toLowerCase();
+  if(s.includes('kidney')){
+    return { diet: 'For kidney health, discuss fluid intake, sodium, protein, and oxalate management with your clinician. Specific dietary guidance depends on kidney function and stone type. General supportive steps:\n- Stay well-hydrated (unless fluid-restricted by your clinician).\n- Reduce excessive salt intake.\n- Discuss protein intake with your clinician.\n- Avoid excessive supplements without medical advice.', lifestyle: 'Maintain regular physical activity as tolerated. Follow up with your clinician for imaging review. Monitor for symptoms such as flank pain, blood in urine, or urinary changes and report them promptly.' };
+  }
+  if(s.includes('heart')){
+    return { diet: 'For heart health, a heart-healthy eating pattern may include:\n- Reduced sodium (aim for less processed foods).\n- Whole grains, fruits, vegetables, and lean proteins.\n- Healthy fats (olive oil, nuts, fatty fish).\n- Limit saturated fats and added sugars.\n- Discuss specific dietary changes with your clinician.', lifestyle: 'Stay physically active as tolerated — even short daily walks help. Maintain regular sleep. Avoid smoking and limit alcohol. Monitor for symptoms such as breathlessness, chest discomfort, or leg swelling and report them to your doctor.' };
+  }
+  if(s.includes('chest') || s.includes('lung')){
+    return { diet: 'Balanced nutrition with adequate fruits, vegetables, and lean proteins supports overall immune and respiratory health. Stay well-hydrated. Maintain a varied diet as tolerated.', lifestyle: 'Rest as needed and avoid overexertion until you have clinical advice. Avoid smoking and secondhand smoke. Attend follow-up appointments. Monitor for worsening cough, fever, or breathing difficulty.' };
+  }
+  if(s.includes('brain')){
+    return { diet: 'A balanced diet rich in fruits, vegetables, whole grains, and omega-3 fatty acids (fish, walnuts, flaxseed) may support overall brain health. Stay well-hydrated. Limit excessive alcohol.', lifestyle: 'Maintain regular sleep. Stay physically active as tolerated. Manage stress. Avoid activities that risk head injury until you have clinical advice. Attend follow-up appointments.' };
+  }
+  return { diet: 'General balanced nutrition supports overall health. Maintain a varied diet with fruits, vegetables, whole grains, and lean proteins. Stay well-hydrated.', lifestyle: 'Stay active as tolerated, maintain regular sleep, stay hydrated, avoid smoking, and limit alcohol. Attend follow-up appointments.' };
+}
+
+function _hgLabDietLifestyle(d){
+  var diet = 'Maintain a balanced diet. ';
+  var lifestyle = 'Stay active, hydrated, and maintain regular sleep. ';
+  if(!d) return { diet: diet, lifestyle: lifestyle };
+  if(d.dietGuidance && d.dietGuidance.length){ diet = d.dietGuidance.join('\n'); }
+  if(d.lifestyleGuidance && d.lifestyleGuidance.length){ lifestyle = d.lifestyleGuidance.join('\n'); }
+  diet += '\n\nDo not stop prescribed medications or start new supplements without professional advice.';
+  return { diet: diet, lifestyle: lifestyle };
 }
 
 document.getElementById('healthGuideSendBtn').addEventListener('click', function(){
@@ -5861,7 +6058,10 @@ document.getElementById('healthGuideSendBtn').addEventListener('click', function
   if(!val) return;
   _healthGuideAddMsg(val, 'user');
   healthGuideInput.value = '';
-  setTimeout(function(){ _healthGuideAddMsg(_healthGuideReply(val), 'bot'); }, 350);
+  setTimeout(function(){
+    var reply = _healthGuideReply(val);
+    if(reply !== null) _healthGuideAddMsg(reply, 'bot');
+  }, 350);
 });
 healthGuideInput.addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('healthGuideSendBtn').click(); });
 
@@ -5869,13 +6069,26 @@ document.getElementById('healthGuideQuick').addEventListener('click', function(e
   var btn = e.target.closest('button');
   if(!btn) return;
   var q = btn.dataset.q;
+  if(q === 'clear_chat'){
+    _healthGuideClearChat();
+    return;
+  }
   _healthGuideAddMsg(q, 'user');
-  setTimeout(function(){ _healthGuideAddMsg(_healthGuideReply(q), 'bot'); }, 350);
+  setTimeout(function(){
+    var reply = _healthGuideReply(q);
+    if(reply !== null) _healthGuideAddMsg(reply, 'bot');
+  }, 350);
 });
 
 document.getElementById('healthGuideFab').addEventListener('click', function(){
   showView('health-guide');
 });
+
+function _hgUpdateCompareBtn(){
+  var btn = document.getElementById('healthGuideCompareBtn');
+  if(btn) btn.style.display = (_hgPreviousContext && currentReportContext) ? '' : 'none';
+}
+_hgUpdateCompareBtn();
 
 /* (NephroBot floating widget removed — functionality moved to AI Health Guide sidebar) */
 
@@ -6200,7 +6413,9 @@ function _labRenderReport(){
   _labStoreFileForReport(reportId);
   refreshDashboard();
   toast('Lab report generated and saved.', 'info');
+  _hgPreviousContext = currentReportContext;
   currentReportContext = { type:'lab', data: reportRecord.labReportData, patientName: reportRecord.patientName, patientId: reportRecord.patientId, dateStr: reportRecord.dateStr };
+  _hgUpdateCompareBtn();
 }
 
 /* ===================== LAB FILE IndexedDB ===================== */
