@@ -14,10 +14,26 @@ from __future__ import annotations
 import hashlib
 import io
 import os
+import re
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+# Optional OCR dependencies — gracefully degrade if absent
+try:
+    import pytesseract
+    OCR_AVAILABLE = True
+except ImportError:
+    pytesseract = None
+    OCR_AVAILABLE = False
+
+try:
+    from pdf2image import convert_from_bytes as _pdf_to_images
+    PDF_AVAILABLE = True
+except ImportError:
+    _pdf_to_images = None
+    PDF_AVAILABLE = False
 
 # Ensure ai/ subpackage is importable
 sys.path.insert(0, str(Path(__file__).resolve().parent / "ai"))
@@ -367,6 +383,228 @@ def _validate_upload(file_storage) -> str | None:
 
 
 # ---------------------------------------------------------------------------
+# Lab Report Helpers
+# ---------------------------------------------------------------------------
+
+_LAB_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/jpg", "application/pdf"}
+_LAB_MAX_BYTES = 20 * 1024 * 1024  # 20 MB
+
+
+def _lab_validate_upload(file_storage) -> str | None:
+    """Return an error message if the lab upload is invalid, else None."""
+    if file_storage is None:
+        return "No file uploaded"
+    content_type = file_storage.content_type or ""
+    filename = (file_storage.filename or "").lower()
+    ext = filename.rsplit(".", 1)[-1] if "." in filename else ""
+    if content_type not in _LAB_ALLOWED_TYPES:
+        return f"Unsupported type: {content_type}. Accepted: JPG, PNG, PDF"
+    data = file_storage.read()
+    if len(data) > _LAB_MAX_BYTES:
+        return f"File too large: {len(data)} bytes (max {_LAB_MAX_BYTES})"
+    if len(data) < 100:
+        return "File appears empty or corrupted"
+    file_storage.seek(0)
+    if content_type.startswith("image/"):
+        try:
+            img = Image.open(io.BytesIO(data))
+            img.verify()
+        except Exception:
+            return "Image file appears corrupted or unreadable"
+    return None
+
+
+def _lab_image_from_upload(file_storage) -> Image.Image | None:
+    """Convert an uploaded file (image or PDF first page) to a PIL Image."""
+    content_type = file_storage.content_type or ""
+    data = file_storage.read()
+    file_storage.seek(0)
+    if content_type == "application/pdf":
+        if not PDF_AVAILABLE or _pdf_to_images is None:
+            return None
+        try:
+            images = _pdf_to_images(data, first_page=1, last_page=1, dpi=300)
+            return images[0].convert("RGB") if images else None
+        except Exception:
+            return None
+    try:
+        return Image.open(io.BytesIO(data)).convert("RGB")
+    except Exception:
+        return None
+
+
+def _lab_ocr_image(img: Image.Image) -> str:
+    """Run OCR on a PIL Image and return extracted text."""
+    if not OCR_AVAILABLE or pytesseract is None:
+        return ""
+    try:
+        text = pytesseract.image_to_string(img, lang="eng")
+        return text or ""
+    except Exception:
+        return ""
+
+
+# Common lab test patterns: "Test Name  12.3  g/dL  11.0-15.0"
+# Matches: word chars, spaces, slashes, dots, parens for test names,
+#          then numeric value, optional unit, optional range "low-high" or "<high" or ">low"
+_LAB_TEST_RE = re.compile(
+    r"^([A-Za-z][A-Za-z0-9 /(),.%-]{1,60})\s+"  # test name
+    r"(\d+\.?\d*)\s+"                             # numeric value
+    r"([A-Za-z/%μµ IU.-]{0,20})\s*"              # optional unit
+    r"(?:(\d+\.?\d+)\s*[-–]\s*(\d+\.?\d+)|"      # range: low-high
+    r"[<>≤≥]\s*(\d+\.?\d+))?",                     # or < / > threshold
+    re.MULTILINE,
+)
+
+_LAB_DISCLAIMER = (
+    "Educational decision support only. This is not a diagnosis "
+    "and does not replace a qualified healthcare professional."
+)
+
+
+def _lab_parse_tests(text: str) -> list[dict]:
+    """Extract lab test rows from OCR text. Never invent values."""
+    tests = []
+    for m in _LAB_TEST_RE.finditer(text):
+        name = m.group(1).strip()
+        value = m.group(2).strip()
+        unit = (m.group(3) or "").strip()
+        ref_low = (m.group(4) or "").strip()
+        ref_high = (m.group(5) or m.group(6) or "").strip()
+
+        # Skip obvious non-test lines
+        lower_name = name.lower()
+        if any(skip in lower_name for skip in (
+            "patient", "name", "date", "time", "sample", "collected",
+            "hospital", "lab ", "doctor", "physician", "report",
+            "page", "total", "ref", "normal", "result", "status",
+        )):
+            continue
+
+        status = "Needs review"
+        if ref_low and ref_high:
+            try:
+                v, lo, hi = float(value), float(ref_low), float(ref_high)
+                if v < lo:
+                    status = "Below stated range"
+                elif v > hi:
+                    status = "Above stated range"
+                else:
+                    status = "Within stated range"
+            except ValueError:
+                status = "Needs review"
+
+        tests.append({
+            "name": name,
+            "value": value,
+            "unit": unit,
+            "refLow": ref_low,
+            "refHigh": ref_high,
+            "status": status,
+            "confidence": "OCR extraction",
+        })
+    return tests
+
+
+def _lab_build_report(tests: list[dict], context: dict, filename: str) -> dict:
+    """Build the full lab analysis report JSON from extracted tests."""
+    problems = []
+    details_for_summary = []
+    for t in tests:
+        if t["status"] == "Above stated range":
+            problems.append(f"{t['name']} is above the stated reference range ({t['value']} {t['unit']}).")
+            details_for_summary.append(f"{t['name']}: {t['value']} {t['unit']} (high)")
+        elif t["status"] == "Below stated range":
+            problems.append(f"{t['name']} is below the stated reference range ({t['value']} {t['unit']}).")
+            details_for_summary.append(f"{t['name']}: {t['value']} {t['unit']} (low)")
+
+    if problems:
+        summary = (
+            f"Analysis of {filename} identified {len(problems)} value(s) outside "
+            f"the laboratory's printed reference range: "
+            + "; ".join(details_for_summary[:5])
+            + ". A qualified clinician should review these results in the context of your clinical history."
+        )
+    elif tests:
+        summary = (
+            f"Analysis of {filename} found {len(tests)} test value(s), "
+            "all within the laboratory's printed reference ranges. "
+            "This does not rule out all conditions — share the full report with your clinician."
+        )
+    else:
+        summary = (
+            f"Analysis of {filename} could not extract structured test values. "
+            "The report may be handwritten, low-resolution, or in an unsupported format. "
+            "Please upload a clearer image or PDF, or bring the original to your clinician."
+        )
+
+    what_can_be_done = [
+        "Share this report with a qualified clinician for interpretation.",
+        "Bring a copy of the original lab report to your next appointment.",
+        "If values are flagged, ask your clinician whether repeat testing is advised.",
+        "Note any symptoms, medications, or recent changes in health to discuss.",
+    ]
+
+    diet_guidance = [
+        "General balanced nutrition supports overall health — no specific diet changes are recommended based on lab values alone.",
+        "Stay well-hydrated unless otherwise advised by your clinician.",
+        "Discuss any dietary supplements or changes with your healthcare provider before making them.",
+    ]
+
+    lifestyle_guidance = [
+        "Maintain regular sleep patterns (7-9 hours for most adults).",
+        "Stay physically active as tolerated and as advised by your clinician.",
+        "Avoid smoking and limit alcohol consumption.",
+        "Keep a record of symptoms, medications, and lifestyle changes for your clinician review.",
+    ]
+
+    urgency = "Routine follow-up with your clinician is recommended to discuss these results."
+    if problems:
+        urgency = (
+            "Some values are outside the stated reference range. "
+            "Prompt review by a clinician is recommended, especially if you have symptoms. "
+            "Seek urgent care if you experience severe symptoms."
+        )
+
+    discussion = [
+        "What do these results mean in the context of my symptoms and medical history?",
+        "Are any follow-up tests needed to confirm or investigate these findings?",
+        "Should any medications or supplements be adjusted based on these results?",
+        "When should I schedule a follow-up appointment?",
+    ]
+
+    uncertainty = []
+    if not tests:
+        uncertainty.append("No structured test values could be extracted from the uploaded report.")
+    fasting = context.get("fasting", "")
+    if not fasting:
+        uncertainty.append("Fasting status is unknown — some tests may require fasting for accurate interpretation.")
+    symptoms = context.get("symptoms", "")
+    if not symptoms:
+        uncertainty.append("No symptom information provided — clinical correlation is essential.")
+    medicines = context.get("medicines", "")
+    if not medicines:
+        uncertainty.append("Medication history is not available — some drugs can affect lab values.")
+    pregnancy = context.get("pregnancyStatus", "")
+    if not pregnancy:
+        uncertainty.append("Pregnancy status is unknown — reference ranges may differ during pregnancy.")
+
+    return {
+        "status": "ok",
+        "tests": tests,
+        "overallSummary": summary,
+        "possibleProblems": problems,
+        "whatCanBeDone": what_can_be_done,
+        "dietGuidance": diet_guidance,
+        "lifestyleGuidance": lifestyle_guidance,
+        "urgencyGuidance": urgency,
+        "doctorDiscussionPoints": discussion,
+        "uncertainty": uncertainty,
+        "disclaimer": _LAB_DISCLAIMER,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
 
@@ -410,6 +648,8 @@ def _register_routes(application: Flask) -> None:
                 "/api/predict-brain",
                 "/api/predict-heart",
                 "/api/explain",
+                "/api/lab/health",
+                "/api/lab/analyze",
             ],
         })
 
@@ -513,6 +753,77 @@ def _register_routes(application: Flask) -> None:
                 "message": "Attention visualization could not be generated for this image.",
                 "disclaimer": GRADCAM_DISCLAIMER,
             }), 200
+
+    # ---- Lab Report Analysis ----
+
+    @application.route("/api/lab/health", methods=["GET"])
+    def api_lab_health():
+        return jsonify({
+            "status": "online",
+            "ocr_available": OCR_AVAILABLE,
+            "pdf_support": PDF_AVAILABLE,
+            "endpoint": "/api/lab/analyze",
+        })
+
+    @application.route("/api/lab/analyze", methods=["POST"])
+    def api_lab_analyze():
+        error = _lab_validate_upload(request.files.get("lab_report"))
+        if error:
+            return jsonify({"status": "error", "message": error}), 400
+
+        file_storage = request.files["lab_report"]
+        filename = file_storage.filename or "lab_report"
+        content_type = file_storage.content_type or ""
+
+        # Parse optional context JSON
+        context = {}
+        ctx_raw = request.form.get("context", "")
+        if ctx_raw:
+            try:
+                import json as _json
+                context = _json.loads(ctx_raw)
+            except Exception:
+                context = {}
+
+        # Convert to image (handles both images and PDFs)
+        img = _lab_image_from_upload(file_storage)
+        if img is None:
+            return jsonify({
+                "status": "error",
+                "message": "Could not process the uploaded file. Ensure it is a valid image or PDF.",
+            }), 400
+
+        # OCR
+        raw_text = _lab_ocr_image(img)
+        if not raw_text or len(raw_text.strip()) < 10:
+            return jsonify({
+                "status": "ok",
+                "tests": [],
+                "overallSummary": (
+                    f"OCR could not extract readable text from {filename}. "
+                    "The report may be handwritten, low-resolution, or in an unsupported format. "
+                    "Please upload a clearer image or PDF."
+                ),
+                "possibleProblems": [],
+                "whatCanBeDone": [
+                    "Upload a clearer, high-resolution image or PDF of the lab report.",
+                    "Ensure the image is well-lit and in focus.",
+                    "Bring the original paper report to your clinician.",
+                ],
+                "dietGuidance": [],
+                "lifestyleGuidance": [],
+                "urgencyGuidance": "Unable to assess urgency from the uploaded file. Consult your clinician.",
+                "doctorDiscussionPoints": [],
+                "uncertainty": ["OCR failed or produced insufficient readable text."],
+                "disclaimer": _LAB_DISCLAIMER,
+            })
+
+        # Parse test rows
+        tests = _lab_parse_tests(raw_text)
+
+        # Build full report
+        report = _lab_build_report(tests, context, filename)
+        return jsonify(report)
 
     # ---- Frontend serving ----
 
