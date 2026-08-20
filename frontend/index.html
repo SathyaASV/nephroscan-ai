@@ -1255,6 +1255,205 @@ body.mode-patient .mode-patient-only { display: block; }
   color: #168e99;
 }
 
+/* ---------- REPORT CLINICAL POLISH ---------- */
+.report-container {
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(35, 72, 93, .07);
+}
+
+.report-header-bar {
+  background: linear-gradient(135deg, #f4f8fa 0%, #edf3f7 100%);
+  border-bottom: 2px solid #d4e3ec;
+}
+
+.result-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: .7rem 1.6rem;
+  background: linear-gradient(90deg, rgba(22, 103, 217, .04), rgba(21, 155, 157, .04));
+  border-bottom: 1px solid #e6eef3;
+  flex-wrap: wrap;
+}
+
+.result-banner .pred-headline {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0;
+}
+
+.metric-card {
+  display: inline-flex;
+  flex-direction: column;
+  background: #f6f9fb;
+  border: 1px solid #e2eaf0;
+  border-radius: 12px;
+  padding: .55rem .9rem;
+  min-width: 110px;
+}
+
+.metric-card .metric-label {
+  font-size: .62rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: #7b8fa0;
+  font-weight: 600;
+}
+
+.metric-card .metric-value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1a3a52;
+  margin-top: 2px;
+}
+
+.lab-finding-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: .7rem 1rem;
+  margin-bottom: .6rem;
+}
+
+.lab-finding-card .finding-name {
+  font-weight: 700;
+  color: #1a3a52;
+  font-size: .82rem;
+}
+
+.lab-finding-card .finding-value {
+  font-size: .78rem;
+  color: #3d5a6e;
+  margin-top: 2px;
+}
+
+.lab-finding-card .finding-meaning {
+  font-size: .72rem;
+  color: #5a7a8a;
+  margin-top: 4px;
+  line-height: 1.55;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: .15rem .65rem;
+  border-radius: 60px;
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+
+.status-badge.high {
+  background: rgba(231, 76, 111, .1);
+  color: #b91c1c;
+  border: 1px solid rgba(231, 76, 111, .2);
+}
+
+.status-badge.moderate {
+  background: rgba(245, 158, 11, .1);
+  color: #92400e;
+  border: 1px solid rgba(245, 158, 11, .2);
+}
+
+.status-badge.low {
+  background: rgba(16, 185, 129, .1);
+  color: #065f46;
+  border: 1px solid rgba(16, 185, 129, .2);
+}
+
+.status-badge.normal {
+  background: rgba(16, 185, 129, .08);
+  color: #065f46;
+  border: 1px solid rgba(16, 185, 129, .15);
+}
+
+.status-badge.abnormal {
+  background: rgba(239, 68, 68, .08);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, .15);
+}
+
+.status-badge.uncertain {
+  background: rgba(245, 158, 11, .08);
+  color: #92400e;
+  border: 1px solid rgba(245, 158, 11, .15);
+}
+
+.report-body .data-table {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e2eaf0;
+}
+
+.report-body .data-table th {
+  background: #f4f8fa;
+}
+
+.report-section .section-title {
+  padding: .3rem 0;
+  border-bottom: 1px solid #edf2f5;
+  margin-bottom: 8px;
+}
+
+/* ---------- HEALTH GUIDE MESSAGES ---------- */
+.bot-msg {
+  padding: .6rem .9rem;
+  border-radius: 12px;
+  font-size: .78rem;
+  line-height: 1.65;
+  max-width: 92%;
+  white-space: pre-line;
+  word-wrap: break-word;
+}
+
+.bot-msg.bot {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #2d3e4e;
+  align-self: flex-start;
+  margin-right: auto;
+}
+
+.bot-msg.user {
+  background: linear-gradient(135deg, var(--primary), #1558b0);
+  color: #fff;
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+/* ---------- PRINT-FRIENDLY ---------- */
+@media print {
+  .report-container {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    border-radius: 0;
+  }
+  .report-body {
+    max-height: none;
+    overflow: visible;
+  }
+  .report-header-bar .actions {
+    display: none;
+  }
+  .report-section .section-title {
+    border-bottom-color: #ccc;
+  }
+  .report-section .content {
+    border-left-color: #999;
+  }
+  .emergency-box, .doctor-note, .disclaimer-box {
+    border: 1px solid #999;
+  }
+  .metric-card, .lab-finding-card {
+    border: 1px solid #ccc;
+  }
+  .status-badge {
+    border: 1px solid #999;
+  }
+}
+
 /* Loading / spinner */
 .loading-report {
   display: flex;
@@ -5316,12 +5515,27 @@ printBtn.addEventListener('click', ()=>{
   if(win){
     win.document.write(`<html><head><title>NephroScan AI Report</title><style>
       body{font-family:Inter,sans-serif;padding:2.2rem;max-width:900px;margin:auto;line-height:1.8;background:#0b0f1a;color:#e8edf5;}
-      .report-section{margin-bottom:1.2rem;} .section-title{font-weight:700;color:#fff;margin-bottom:.2rem;}
+      .report-section{margin-bottom:1.2rem;} .section-title{font-weight:700;color:#fff;margin-bottom:.2rem;padding-bottom:.3rem;border-bottom:1px solid rgba(255,255,255,.1);}
       .content{padding-left:1.2rem;border-left:3px solid #1a5cff;color:#c9d6e0;}
       .emergency-box{background:rgba(231,76,111,.06);border:1px solid rgba(231,76,111,.12);padding:1rem;border-radius:12px;}
       .doctor-note{background:rgba(0,184,148,.04);border:1px solid rgba(0,184,148,.06);padding:1rem;border-radius:12px;}
       .disclaimer-box{border:1px dashed rgba(255,255,255,.15);padding:.8rem;border-radius:10px;font-size:.78rem;color:rgba(255,255,255,.55);}
       .ai-meta{margin-top:1rem;font-size:.72rem;color:rgba(255,255,255,.35);display:flex;gap:1rem;flex-wrap:wrap;}
+      .result-banner{padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:1rem;}
+      .metric-card{display:inline-flex;flex-direction:column;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.4rem .8rem;margin-right:.5rem;}
+      .metric-card .metric-label{font-size:.6rem;text-transform:uppercase;color:rgba(255,255,255,.4);}
+      .metric-card .metric-value{font-size:1rem;font-weight:800;color:#fff;}
+      .lab-finding-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.6rem .9rem;margin-bottom:.5rem;}
+      .lab-finding-card .finding-name{font-weight:700;color:#fff;}
+      .lab-finding-card .finding-value{font-size:.82rem;color:#c9d6e0;}
+      .lab-finding-card .finding-meaning{font-size:.72rem;color:rgba(255,255,255,.6);}
+      .status-badge{display:inline-block;padding:.15rem .6rem;border-radius:60px;font-size:.62rem;font-weight:700;}
+      .status-badge.high{background:rgba(231,76,111,.15);color:#fca5a5;border:1px solid rgba(231,76,111,.3);}
+      .status-badge.moderate{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3);}
+      .status-badge.low{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3);}
+      .status-badge.normal{background:rgba(16,185,129,.12);color:#6ee7b7;border:1px solid rgba(16,185,129,.25);}
+      .status-badge.abnormal{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.25);}
+      .status-badge.uncertain{background:rgba(245,158,11,.12);color:#fcd34d;border:1px solid rgba(245,158,11,.25);}
     </style></head><body>${content}</body></html>`);
     win.document.close(); win.print();
   } else toast('Please allow popups to print.','error');
@@ -5705,7 +5919,10 @@ function _healthGuideAddMsg(text, who, skipHistory){
   el.textContent = text;
   healthGuideMessages.appendChild(el);
   healthGuideMessages.scrollTop = healthGuideMessages.scrollHeight;
-  if(!skipHistory) _hgChatHistory.push({role: who, text: text});
+  if(!skipHistory){
+    _hgChatHistory.push({role: who, text: text});
+    if(_hgChatHistory.length > 20) _hgChatHistory = _hgChatHistory.slice(-20);
+  }
 }
 
 function _healthGuideClearChat(){
@@ -6019,11 +6236,148 @@ function _healthGuideReply(userText){
     return 'I can help with general health guidance, explaining lab terminology, diet and lifestyle habits, and preparing for a doctor visit. Upload or analyze a report if you want a report-specific summary.\n\n' + _HG_DISCLAIMER;
   }
 
+  // ---- OPEN-ENDED FALLBACK: every message gets a useful reply ----
   if(hasReport){
-    return 'I can summarize your report, explain specific findings, suggest next steps, provide diet and lifestyle guidance, or help you prepare questions for your doctor. Use the buttons above or type a specific question.\n\n' + _hgAskFollowUp(currentReportContext) + '\n\n' + _HG_DISCLAIMER;
+    return _hgOpenEndedReply(t, currentReportContext);
+  }
+  return _hgOpenEndedGeneralReply(t);
+}
+
+function _hgOpenEndedReply(t, ctx){
+  var isImp = ctx.type === 'imaging';
+  var isLb = ctx.type === 'lab';
+  var parts = [];
+
+  if(t.includes('what does') || t.includes('what mean') || t.includes('meaning') || t.includes('interpret')){
+    if(isImp){
+      parts.push('WHAT THE REPORT SHOWS');
+      parts.push('Your ' + (ctx.scanType || 'scan') + ' was screened by the AI model.');
+      parts.push('Prediction: ' + (ctx.prediction || 'not determined') + ' (confidence: ' + (ctx.confidence || 0) + '%).');
+      if(ctx.uncertain) parts.push('This result was flagged as uncertain \u2014 a qualified clinician must review it.');
+      parts.push('');
+      parts.push('WHAT IT MAY MEAN');
+      parts.push('This is a preliminary AI classification, not a diagnosis. It identifies patterns that may be associated with the predicted category. Many factors can affect imaging results, and a qualified healthcare professional must interpret this alongside your clinical history, symptoms, and examination findings.');
+    }
+    if(isLb){
+      var d = ctx.data;
+      parts.push('WHAT THE REPORT SHOWS');
+      parts.push(d && d.overallSummary ? d.overallSummary : 'Your lab report has been reviewed.');
+      if(d && d.findings && d.findings.length){
+        parts.push('');
+        parts.push('Abnormal findings:');
+        d.findings.forEach(function(f){ parts.push('- ' + _hgFormatLabFinding(f)); });
+      } else {
+        parts.push('No abnormal findings were identified.');
+      }
+      parts.push('');
+      parts.push('WHAT IT MAY MEAN');
+      parts.push(d && d.possibleProblems ? d.possibleProblems : 'Abnormal lab values do not automatically indicate disease. Many factors \u2014 hydration, recent meals, stress, exercise, and medications \u2014 can affect results. A clinician can help determine their significance.');
+    }
+    parts.push('');
+    parts.push(_hgAskFollowUp(ctx));
+    parts.push('');
+    parts.push(_HG_DISCLAIMER);
+    return parts.join('\n');
   }
 
-  return 'I can help with general health guidance, explaining lab terminology, diet and lifestyle habits, and preparing for a doctor visit. Upload or analyze a report if you want a report-specific summary.\n\nFor personal health concerns, diagnosis, or treatment decisions, please consult a qualified healthcare professional.\n\n' + _HG_DISCLAIMER;
+  if(t.includes('improve') || t.includes('get better') || t.includes('lower') || t.includes('increase')){
+    parts.push('WHAT YOU CAN DO NOW');
+    if(isLb){
+      var d2 = ctx.data;
+      parts.push(d2 && d2.whatCanBeDone ? d2.whatCanBeDone : 'Share the full report with your healthcare provider for personalized guidance.');
+      parts.push('');
+      parts.push('DIET AND LIFESTYLE GUIDANCE');
+      var dl = _hgLabDietLifestyle(d2);
+      parts.push(dl.diet);
+      parts.push(dl.lifestyle);
+    }
+    if(isImp){
+      parts.push('1. Share this report with a qualified healthcare professional for clinical review.\n2. Bring the original scan images to your appointment.\n3. Note any symptoms you are experiencing.\n4. Ask your doctor about follow-up tests or imaging.');
+      parts.push('');
+      parts.push('DIET AND LIFESTYLE GUIDANCE');
+      var il = _hgImagingDietLifestyle(ctx.scanType);
+      parts.push(il.diet);
+      parts.push(il.lifestyle);
+    }
+    parts.push('');
+    parts.push(_HG_DISCLAIMER);
+    return parts.join('\n');
+  }
+
+  if(t.includes('eat') || t.includes('food') || t.includes('diet') || t.includes('drink') || t.includes('nutrition')){
+    return _healthGuideReply('diet_plan');
+  }
+
+  if(t.includes('serious') || t.includes('bad') || t.includes('worried') || t.includes('dangerous') || t.includes('scared') || t.includes('afraid')){
+    parts.push('IS THIS SERIOUS?');
+    if(isImp){
+      parts.push('The AI result is a preliminary screening classification. It does not measure severity or confirm disease. Many factors can affect imaging results.');
+    }
+    if(isLb){
+      parts.push('Abnormal lab values do not automatically indicate disease. Many factors \u2014 hydration, meals, stress, exercise, medications \u2014 can affect results.');
+    }
+    parts.push('');
+    parts.push('It is understandable to feel concerned. The best step is to discuss the results with your healthcare provider, who can interpret them in the context of your full medical history.');
+    parts.push('');
+    parts.push(_hgAskFollowUp(ctx));
+    parts.push('');
+    parts.push(_HG_DISCLAIMER);
+    return parts.join('\n');
+  }
+
+  if(t.includes('doctor') || t.includes('ask') || t.includes('question')){
+    return _healthGuideReply('ask');
+  }
+
+  if(t.includes('next') || t.includes('should i do') || t.includes('follow')){
+    return _healthGuideReply('next');
+  }
+
+  parts.push('Based on your current report:');
+  if(isImp){
+    parts.push('- Scan type: ' + (ctx.scanType || 'not specified'));
+    parts.push('- AI prediction: ' + (ctx.prediction || 'not determined'));
+    parts.push('- Confidence: ' + (ctx.confidence || 0) + '%');
+    if(ctx.uncertain) parts.push('- Status: Uncertain \u2014 requires clinical review');
+  }
+  if(isLb){
+    var d3 = ctx.data;
+    parts.push(d3 && d3.overallSummary ? '- ' + d3.overallSummary : '- Your lab report has been reviewed.');
+    if(d3 && d3.findings && d3.findings.length) parts.push('- Abnormal findings: ' + d3.findings.length);
+  }
+  parts.push('');
+  parts.push('Try asking a specific question such as:');
+  parts.push('- What does this report mean?');
+  parts.push('- Why is this value abnormal?');
+  parts.push('- What can I do to improve?');
+  parts.push('- What should I eat?');
+  parts.push('- Is this serious?');
+  parts.push('- What should I ask my doctor?');
+  parts.push('');
+  parts.push(_hgAskFollowUp(ctx));
+  parts.push('');
+  parts.push(_HG_DISCLAIMER);
+  return parts.join('\n');
+}
+
+function _hgOpenEndedGeneralReply(t){
+  if(t.includes('kidney') || t.includes('renal')){
+    return 'General kidney health guidance:\n\n- Stay well-hydrated (unless fluid-restricted by your clinician).\n- Reduce excessive salt and processed food intake.\n- Maintain a balanced protein intake \u2014 discuss specific amounts with your clinician.\n- Avoid excessive use of NSAIDs (ibuprofen, naproxen) without medical advice.\n- Monitor blood pressure regularly.\n- Attend routine check-ups.\n\nFor personal kidney concerns, consult a qualified healthcare professional.\n\n' + _HG_DISCLAIMER;
+  }
+  if(t.includes('heart') || t.includes('cardiac')){
+    return 'General heart health guidance:\n\n- Maintain a heart-healthy diet rich in fruits, vegetables, whole grains, and lean proteins.\n- Limit sodium, saturated fats, and added sugars.\n- Stay physically active as tolerated.\n- Avoid smoking and limit alcohol.\n- Monitor blood pressure and cholesterol.\n- Attend routine check-ups.\n\nFor personal heart concerns, consult a qualified healthcare professional.\n\n' + _HG_DISCLAIMER;
+  }
+  if(t.includes('blood pressure') || t.includes('hypertension')){
+    return 'General blood pressure guidance:\n\n- Normal blood pressure is typically below 120/80 mmHg.\n- Regular monitoring helps track trends.\n- Reducing salt, maintaining a healthy weight, staying active, and managing stress can help.\n- Medication decisions must be made with your healthcare provider.\n\n' + _HG_DISCLAIMER;
+  }
+  if(t.includes('diabetes') || t.includes('blood sugar') || t.includes('glucose')){
+    return 'General blood sugar guidance:\n\n- Regular monitoring helps track patterns.\n- A balanced diet with controlled carbohydrate intake may help manage blood sugar.\n- Physical activity supports blood sugar regulation.\n- Medication or insulin decisions must be made with your healthcare provider.\n\n' + _HG_DISCLAIMER;
+  }
+  if(t.includes('cholesterol')){
+    return 'General cholesterol guidance:\n\n- Limit saturated fats and trans fats.\n- Include fiber-rich foods (oats, beans, vegetables).\n- Choose healthy fats (olive oil, nuts, fatty fish).\n- Stay physically active.\n- Medication decisions must be made with your healthcare provider.\n\n' + _HG_DISCLAIMER;
+  }
+
+  return 'I can help with general health guidance, explaining medical terminology, diet and lifestyle habits, and preparing for a doctor visit.\n\nTry asking about:\n- A specific health topic (kidneys, heart, blood pressure, diabetes, cholesterol)\n- Medical terms on a report\n- Diet and lifestyle questions\n- How to prepare for a doctor visit\n\nFor personal health concerns, diagnosis, or treatment decisions, please consult a qualified healthcare professional.\n\n' + _HG_DISCLAIMER;
 }
 
 function _hgImagingDietLifestyle(scanType){
