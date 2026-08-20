@@ -2827,9 +2827,9 @@ table.data-table tr:hover td {
           <div class="node">Quality Control</div><span class="arrow">→</span>
           <div class="node">Preprocessing</div><span class="arrow">→</span>
           <div class="node">CNN Classifier</div><span class="arrow">→</span>
-          <div class="node">Grad-CAM</div><span class="arrow">→</span>
+          <div class="node">AI Analysis</div><span class="arrow">→</span>
           <div class="node">Report</div><span class="arrow">→</span>
-          <div class="node">AI Assistant</div>
+          <div class="node">AI Health Guide</div>
         </div>
       </div>
       <div class="card">
@@ -5211,7 +5211,7 @@ function runAnalysis(){
   const pipelineCard = document.getElementById('pipelineCard');
   const stepsWrap = document.getElementById('pipelineSteps');
   pipelineCard.style.display='block';
-  const stageNames = ['Image received','Quality check','Preprocessing','Feature extraction','Classification','Explainability','Report generation'];
+  const stageNames = ['Image received','Quality check','Preprocessing','Feature extraction','Classification','AI Analysis','Report generation'];
   stepsWrap.innerHTML = stageNames.map(s=>`<div class="step"><i class="fas fa-circle-notch"></i> ${s}</div>`).join('');
   const stepEls = [...stepsWrap.children];
 
