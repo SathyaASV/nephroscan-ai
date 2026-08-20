@@ -4,13 +4,14 @@ NephroScan AI — Unified Production Server
 Merges AI inference, frontend serving, and health endpoints into a single
 Flask application. Designed for Gunicorn on Render or any PaaS.
 
-    gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 180 app:app
+    gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 1 --timeout 180 app:app
 
 Educational prototype only. Not a medical diagnostic device.
 """
 
 from __future__ import annotations
 
+import gc
 import hashlib
 import io
 import logging
@@ -21,6 +22,12 @@ import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
+
+# ── Thread-limit env vars (must precede torch / NumPy / BLAS imports) ────────
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 
 # Optional OCR dependencies — gracefully degrade if absent
 try:
@@ -56,7 +63,7 @@ ROOT = Path(__file__).resolve().parent
 FRONTEND_DIR = ROOT / "frontend"
 MODEL_DIR = ROOT / os.getenv("MODEL_DIR", "models")
 
-MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", "20971520"))
+MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", "8388608"))  # 8 MB
 INFERENCE_TIMEOUT = int(os.getenv("INFERENCE_TIMEOUT", "30"))
 MAX_IMAGE_DIM = int(os.getenv("MAX_IMAGE_DIM", "1024"))
 
@@ -281,6 +288,10 @@ def _predict_image(
     tensor = transform(image).unsqueeze(0).to(device)
     timings["preprocess_ms"] = round((time.perf_counter() - t0) * 1000, 1)
 
+    # Close the PIL image now that tensor is created
+    try: image.close()
+    except: pass
+
     # Stage 3: Model inference
     t0 = time.perf_counter()
     with torch.inference_mode():
@@ -304,6 +315,11 @@ def _predict_image(
     predicted_class = classes[prediction_index]
     confidence_percent = float(probabilities[prediction_index].item() * 100)
     timings["postprocess_ms"] = round((time.perf_counter() - t0) * 1000, 1)
+
+    # Free inference temporaries
+    del tensor, output, probabilities
+    try: del raw_bytes
+    except: pass
 
     result = {
         "prediction": predicted_class,
@@ -378,6 +394,7 @@ def _validate_upload(file_storage) -> str | None:
         try:
             img = Image.open(io.BytesIO(data))
             img.verify()
+            img.close()
         except Exception:
             return "Image file appears corrupted or unreadable"
 
@@ -389,7 +406,7 @@ def _validate_upload(file_storage) -> str | None:
 # ---------------------------------------------------------------------------
 
 _LAB_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/jpg", "application/pdf"}
-_LAB_MAX_BYTES = 20 * 1024 * 1024  # 20 MB
+_LAB_MAX_BYTES = 8 * 1024 * 1024  # 8 MB
 
 
 def _lab_validate_upload(file_storage) -> str | None:
@@ -416,6 +433,7 @@ def _lab_validate_upload(file_storage) -> str | None:
         try:
             img = Image.open(io.BytesIO(data))
             img.verify()
+            img.close()
         except Exception:
             return "Image file appears corrupted or unreadable"
     file_storage._lab_bytes = data
@@ -425,30 +443,37 @@ def _lab_validate_upload(file_storage) -> str | None:
 def _lab_image_from_bytes(data: bytes, content_type: str) -> Image.Image | None:
     """Convert uploaded bytes to a PIL Image.
     
-    Resizes images larger than 1200px on longest side to reduce
-    memory usage and speed up OCR on constrained environments.
+    Resizes images larger than 800px on longest side to reduce
+    memory usage and speed up OCR on constrained environments (Render 512 MB).
     """
     if content_type == "application/pdf":
         if not PDF_AVAILABLE or _pdf_to_images is None:
             return None
         try:
-            images = _pdf_to_images(data, first_page=1, last_page=1, dpi=200)
+            images = _pdf_to_images(data, first_page=1, last_page=1, dpi=150)
             img = images[0].convert("RGB") if images else None
             if img is None:
                 return None
         except Exception:
             return None
+        finally:
+            if 'images' in locals():
+                for _img in images:
+                    try: _img.close()
+                    except: pass
     else:
         try:
             img = Image.open(io.BytesIO(data)).convert("RGB")
         except Exception:
             return None
     try:
-        _max = 1200
+        _max = 800
         w, h = img.size
         if max(w, h) > _max:
             ratio = _max / max(w, h)
+            old = img
             img = img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
+            old.close()
     except Exception:
         pass
     return img
@@ -457,17 +482,20 @@ def _lab_image_from_bytes(data: bytes, content_type: str) -> Image.Image | None:
 def _lab_ocr_image(img: Image.Image) -> str:
     """Run OCR on a PIL Image and return extracted text.
     
-    Resizes large images to max 1200px on longest side to avoid
-    Tesseract timeouts on Render free tier (30s request limit).
+    Resizes large images to max 800px on longest side to avoid
+    Tesseract timeouts on Render free tier (30s request limit, 512 MB).
     """
     if not OCR_AVAILABLE or pytesseract is None:
         return ""
     try:
-        _max = 1200
+        _max = 800
         w, h = img.size
         if max(w, h) > _max:
             ratio = _max / max(w, h)
-            img = img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
+            resized = img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
+            text = pytesseract.image_to_string(resized, lang="eng")
+            resized.close()
+            return text or ""
         text = pytesseract.image_to_string(img, lang="eng")
         return text or ""
     except Exception:
@@ -857,6 +885,8 @@ def _register_routes(application: Flask) -> None:
             return jsonify(result)
         except Exception as e:
             return jsonify({"error": str(e), "provenance": _make_provenance("kidney", application)}), 500
+        finally:
+            gc.collect()
 
     # ---- Predict chest ----
 
@@ -870,6 +900,8 @@ def _register_routes(application: Flask) -> None:
             return jsonify(result)
         except Exception as e:
             return jsonify({"error": str(e), "provenance": _make_provenance("chest", application)}), 500
+        finally:
+            gc.collect()
 
     # ---- Predict brain ----
 
@@ -883,6 +915,8 @@ def _register_routes(application: Flask) -> None:
             return jsonify(result)
         except Exception as e:
             return jsonify({"error": str(e), "provenance": _make_provenance("brain", application)}), 500
+        finally:
+            gc.collect()
 
     # ---- Predict heart ----
 
@@ -896,6 +930,8 @@ def _register_routes(application: Flask) -> None:
             return jsonify(result)
         except Exception as e:
             return jsonify({"error": str(e), "provenance": _make_provenance("heart", application)}), 500
+        finally:
+            gc.collect()
 
     # ---- Explain (Grad-CAM) ----
 
@@ -945,6 +981,10 @@ def _register_routes(application: Flask) -> None:
                 "message": "Attention visualization could not be generated for this image.",
                 "disclaimer": GRADCAM_DISCLAIMER,
             }), 200
+        finally:
+            try: pil_image.close()
+            except: pass
+            gc.collect()
 
     # ---- Lab Report Analysis ----
 
@@ -992,13 +1032,14 @@ def _register_routes(application: Flask) -> None:
             context = {}
 
         # --- Convert to image ---
+        img = None
         try:
             img = _lab_image_from_bytes(raw_data, content_type)
         except Exception as exc:
             _log.error("lab image conversion error: %s %s", type(exc).__name__, exc)
-            img = None
 
         if img is None:
+            raw_data = None
             return jsonify({
                 "status": "needs_review",
                 "tests": [],
@@ -1014,11 +1055,16 @@ def _register_routes(application: Flask) -> None:
             }), 200
 
         # --- OCR ---
+        raw_text = ""
         try:
             raw_text = _lab_ocr_image(img)
         except Exception as exc:
             _log.error("lab OCR error: %s %s", type(exc).__name__, exc)
-            raw_text = ""
+
+        # Close PIL image and release raw bytes after OCR
+        try: img.close()
+        except: pass
+        raw_data = None
 
         if not raw_text or len(raw_text.strip()) < 10:
             return jsonify({
@@ -1042,6 +1088,9 @@ def _register_routes(application: Flask) -> None:
             _log.error("lab parse error: %s %s", type(exc).__name__, exc)
             tests = []
 
+        # Release OCR text
+        raw_text = None
+
         # --- Build full report ---
         try:
             report = _lab_build_report(tests, context, filename)
@@ -1061,6 +1110,8 @@ def _register_routes(application: Flask) -> None:
                 "doctorDiscussionPoints": [],
                 "disclaimer": _LAB_DISCLAIMER,
             }), 200
+        finally:
+            gc.collect()
 
     # ---- Frontend serving ----
 

@@ -29,4 +29,4 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE $PORT
 
 # Production server: Gunicorn with 1 worker, 180s timeout, no --preload (PyTorch fork-safe)
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 1 --timeout 180 app:app"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 1 --threads 1 --timeout 180 app:app"]
