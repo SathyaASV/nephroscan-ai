@@ -1,0 +1,45 @@
+# Git and local environments
+.git
+.git/**
+.env
+.env.*
+!.env.example
+.venv
+venv
+node_modules
+**/node_modules
+__pycache__
+**/__pycache__
+*.py[cod]
+
+# Local-only documents and scripts
+*.docx
+*.ps1
+backend/
+nephroscan_gateway.py
+thermal_host.py
+thermal_stream.py
+
+# Training and calibration sources are not needed at runtime
+ai/train*.py
+ai/test*.py
+ai/calibrate*.py
+ai/diagnose_gradcam.py
+ai/ai_server*.py
+calibrate_*.py
+export_*.py
+ai_server_*.py
+
+# Backups and duplicate frontend snapshots
+*backup*.html
+index-1 pls.html
+frontend/index_before_*.html
+frontend/index_working_*.html
+frontend/index_final_working.html
+
+# Unused checkpoint; app loads four named production models
+models/abdomen_organ_resnet18.pth
+
+# Generated frontend output is rebuilt in the Docker build stage
+frontend/dist
+frontend/dist/**

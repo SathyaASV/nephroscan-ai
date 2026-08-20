@@ -13,7 +13,11 @@ Browser (index.html)
     ├── POST /api/predict-chest   → chest classification
     ├── POST /api/predict-brain   → brain classification
     ├── POST /api/predict-heart   → heart classification
-    └── POST /api/explain         → Grad-CAM heatmap
+    ├── POST /api/explain         → Grad-CAM heatmap
+    ├── POST /api/lab/analyze     → lab report OCR + guidance
+    ├── GET  /api/ai/health       → optional AI layer status
+    ├── POST /api/ai/analyze-image→ optional AI image description
+    └── POST /api/ai/chat         → optional AI report Q&A
 ```
 
 ## Backend (`app.py`)
@@ -23,11 +27,50 @@ Browser (index.html)
 - **Inference pipeline:** Image → PIL → transform → tensor → model → softmax → result
 - **Calibrated thresholds:** Chest (0.80) and heart (0.60) use post-hoc threshold calibration
 - **Provenance:** Every response includes model name, version, timestamp, device, and inference type
-- **Upload validation:** File type, size (20MB max), image integrity checks
+- **Upload validation:** File type, size (`MAX_UPLOAD_BYTES`, 8 MB default), image integrity checks
 
-## Frontend (`frontend/index.html`)
+## Optional Gemini Intelligence Layer (`/api/ai/*`)
 
-Single HTML file with embedded CSS and JavaScript. No build step.
+The local classifiers only cover kidney, chest, brain, and heart scans. The
+Gemini layer covers the rest — describing an out-of-scope image and answering
+questions about a report — and is inert unless `AI_API_KEY` is set.
+
+```
+Browser ──same-origin POST──► Flask /api/ai/*
+                                 │  validate + bound + re-encode
+                                 │  (key never leaves the server)
+                                 ▼
+             Gemini OpenAI-compatible /chat/completions
+```
+
+- **Disabled by default:** without a key both POST routes return
+  `503 {"status":"disabled","code":"ai_disabled"}` and the frontend keeps
+  using local model output and offline guidance. `GET /api/ai/health` exposes the flag.
+- **Transport:** one bounded outbound HTTPS call per request via `requests`
+  (imported lazily), using Gemini's OpenAI-compatible chat-completions endpoint.
+  `AI_BASE_URL` keeps the provider swappable without browser changes. No extra
+  process, thread, or resident model — one worker on a 1 GB container is enough.
+- **Image path:** JPG/PNG/WEBP only, ≤ `AI_MAX_IMAGE_BYTES`, verified with PIL,
+  then re-encoded to a ≤ `AI_MAX_IMAGE_DIM` JPEG (this also strips EXIF) and
+  sent as a base64 data URL. The encoded copy is dropped and `gc.collect()` runs
+  as soon as the call returns.
+- **Chat path:** JSON body ≤ `AI_MAX_JSON_BYTES`; roles restricted to
+  `user`/`assistant`; the newest `AI_MAX_MESSAGES` turns are forwarded under a
+  `AI_MAX_TOTAL_CHARS` budget; control characters are stripped. Caller context is
+  serialised, truncated to `AI_MAX_CONTEXT_CHARS`, and injected as untrusted data.
+- **Prompt safety:** shared rules forbid diagnosis, certainty, and prescribing;
+  they require explicit uncertainty, clinician review, and immediate emergency
+  care for red-flag symptoms. Every response carries the educational disclaimer.
+- **No fabrication:** `analyze-image` requires a parseable JSON object with a
+  non-empty `summary`; malformed provider output becomes `502 upstream_malformed`
+  with no clinical fields. Provider faults map to explicit error codes.
+- **Observability:** each request gets an `ai_<hex>` request id returned to the
+  client and logged with route, byte count, model, and latency. Image bytes,
+  message text, and credentials are never logged.
+
+## Frontend (`frontend/index.html` + `frontend/src`)
+
+The existing HTML shell keeps the proven imaging, lab, history, and demo flows. A strict TypeScript module under `frontend/src` is compiled to `frontend/dist/main.js` and loaded after the legacy handlers. Railway builds it in the Docker multi-stage build; local development runs `cd frontend && npm ci && npm run build`.
 
 ### Views
 - **Dashboard** — Model status, session stats, quick actions
@@ -58,7 +101,9 @@ Single HTML file with embedded CSS and JavaScript. No build step.
 
 ## Deployment
 
-- **Platform:** Render (free tier)
-- **Runtime:** Gunicorn with 1 worker, 120s timeout
-- **Docker:** Python 3.11-slim base image
-- **Auto-deploy:** Push to GitHub → Render rebuilds
+- **Platform:** Railway Trial or Render
+- **Railway config:** `railway.json` selects the Dockerfile, `/api/health` healthcheck, one-worker start command, and bounded restart policy
+- **Runtime:** Gunicorn with 1 worker, 1 thread, 180s timeout; Railway injects `$PORT`
+- **Docker:** Node build stage compiles `frontend/src` to `frontend/dist/main.js`; Python 3.11-slim runtime serves the Flask app
+- **Memory:** four local ResNet checkpoints are loaded once per worker; local smoke measurement was ~495 MiB after warm-up and ~499 MiB after one prediction. Trial's 1 GB service limit still requires one replica/worker and headroom for concurrent requests.
+- **Auto-deploy:** Railway can deploy from the linked project with `railway up`; Render can rebuild from GitHub using `render.yaml`

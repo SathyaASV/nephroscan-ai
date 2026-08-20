@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NephroScan AI is an educational medical-imaging workspace for explainable screening prototypes and clinician discussion.">
+  <title>NephroScan AI — From Image to Insight</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #102532;
+      --muted: #5d7280;
+      --canvas: #edf3f6;
+      --surface: #fbfcfd;
+      --line: #d8e4ea;
+      --blue: #14609e;
+      --blue-dark: #0e4877;
+      --teal: #0e7c8a;
+      --green: #15795a;
+      --shadow: 0 18px 46px rgba(28, 64, 83, .12);
+      --ease-out: cubic-bezier(.23, 1, .32, 1);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--canvas); font: 16px/1.6 Inter, system-ui, sans-serif; overflow-x: hidden; }
+    a { color: inherit; }
+    .shell { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
+    .site-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 0; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; }
+    .brand-mark { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 12px; color: #fff; background: var(--blue); box-shadow: 0 8px 18px rgba(20, 96, 158, .24); }
+    .brand-name { font-size: .98rem; font-weight: 800; letter-spacing: -.03em; }
+    .brand-sub { display: block; color: var(--muted); font: 500 .56rem/1.2 'JetBrains Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .text-link { color: var(--muted); font-size: .78rem; text-decoration: none; }
+    .text-link:hover { color: var(--blue-dark); }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; padding: 0 18px; border: 1px solid transparent; border-radius: 9px; font: 600 .8rem/1 Inter, sans-serif; text-decoration: none; cursor: pointer; transition: transform 160ms var(--ease-out), box-shadow 160ms ease, background 160ms ease, border-color 160ms ease; }
+    .button-primary { color: #fff; background: var(--blue); box-shadow: 0 8px 18px rgba(20, 96, 158, .2); }
+    .button-primary:hover { background: var(--blue-dark); box-shadow: 0 12px 24px rgba(20, 96, 158, .24); transform: translateY(-2px); }
+    .button-secondary { color: var(--blue-dark); background: rgba(251, 252, 253, .72); border-color: var(--line); }
+    .button-secondary:hover { background: #fff; border-color: #b8cbd6; transform: translateY(-2px); }
+    .button:active { transform: translateY(1px) scale(.985); }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(320px, .92fr); align-items: center; gap: 70px; min-height: 650px; padding: 62px 0 88px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--teal); font: 600 .67rem/1.2 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; }
+    .eyebrow::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px rgba(21, 121, 90, .12); }
+    h1 { max-width: 680px; margin: 18px 0 14px; font-size: clamp(3rem, 6vw, 5.9rem); line-height: .98; letter-spacing: -.075em; font-weight: 800; }
+    .hero-lede { max-width: 590px; margin: 0 0 27px; color: var(--muted); font-size: 1.06rem; line-height: 1.7; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .safety-note { display: flex; align-items: flex-start; gap: 9px; max-width: 570px; margin-top: 24px; padding: 12px 14px; color: #5d4a1e; background: #fff9e9; border: 1px solid #ead9a8; border-radius: 10px; font-size: .75rem; line-height: 1.5; }
+    .safety-note i { margin-top: 3px; color: #a26b06; }
+    .showcase { position: relative; min-height: 410px; }
+    .showcase::before { content: ''; position: absolute; width: 260px; height: 260px; right: 6%; top: 4%; border-radius: 50%; background: rgba(14, 124, 138, .14); filter: blur(34px); pointer-events: none; }
+    .showcase-card { position: absolute; width: min(100%, 430px); border: 1px solid var(--line); border-radius: 18px; background: rgba(251, 252, 253, .94); box-shadow: var(--shadow); overflow: hidden; }
+    .showcase-card.main { top: 30px; right: 0; animation: floatIn 650ms var(--ease-out) both; }
+    .showcase-card.offset { left: 0; bottom: 0; width: 220px; transform: rotate(-4deg); animation: floatIn 650ms 100ms var(--ease-out) both; }
+    .showcase-top { display: flex; align-items: center; justify-content: space-between; padding: 15px 17px; border-bottom: 1px solid var(--line); color: var(--muted); font: 600 .64rem/1.2 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .06em; }
+    .showcase-top strong { color: var(--ink); font-family: Inter, sans-serif; font-size: .76rem; letter-spacing: 0; text-transform: none; }
+    .status { display: inline-flex; align-items: center; gap: 6px; color: var(--green); }
+    .status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .scan-space { display: grid; min-height: 235px; place-items: center; padding: 26px; background: linear-gradient(145deg, #edf5f7, #f8fbfc); }
+    .scan-placeholder { display: grid; width: 150px; height: 170px; place-items: center; border: 1px solid #c9dbe3; border-radius: 44% 44% 38% 38%; color: rgba(20, 96, 158, .55); background: linear-gradient(160deg, rgba(20, 96, 158, .08), rgba(14, 124, 138, .12)); font-size: 3rem; }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; padding: 14px 17px 18px; }
+    .metric { padding: 10px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+    .metric strong { display: block; color: var(--blue-dark); font: 700 1rem/1 'JetBrains Mono', monospace; }
+    .metric span { display: block; margin-top: 5px; color: var(--muted); font-size: .59rem; }
+    .mini-content { padding: 18px; }
+    .mini-line { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: .72rem; }
+    .mini-line strong { color: var(--ink); }
+    .section { padding: 82px 0; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 26px; }
+    .section-heading h2 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.55rem); line-height: 1.08; letter-spacing: -.055em; }
+    .section-heading p { max-width: 400px; margin: 0; color: var(--muted); font-size: .85rem; }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .feature { min-height: 205px; padding: 24px; border: 1px solid var(--line); border-radius: 14px; background: rgba(251, 252, 253, .75); box-shadow: 0 6px 20px rgba(35, 72, 93, .05); transition: transform 180ms var(--ease-out), box-shadow 180ms ease, border-color 180ms ease; }
+    .feature:hover { transform: translateY(-4px); border-color: #b8cbd6; box-shadow: 0 14px 30px rgba(35, 72, 93, .1); }
+    .feature-icon { display: grid; width: 38px; height: 38px; place-items: center; margin-bottom: 22px; border-radius: 10px; color: var(--teal); background: #e6f3f4; }
+    .feature h3 { margin: 0 0 8px; font-size: 1rem; letter-spacing: -.02em; }
+    .feature p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.6; }
+    .cta { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 30px; border-radius: 16px; color: #fff; background: var(--blue-dark); box-shadow: var(--shadow); }
+    .cta h2 { max-width: 520px; margin: 0; color: #fff; font-size: clamp(1.45rem, 3vw, 2.15rem); line-height: 1.1; letter-spacing: -.04em; }
+    .cta .button-secondary { color: #fff; background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.3); }
+    .cta .button-secondary:hover { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.5); }
+    footer { display: flex; justify-content: space-between; gap: 20px; padding: 25px 0 35px; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; }
+    @keyframes floatIn { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @media (hover: hover) and (pointer: fine) { .showcase-card.main:hover { transform: translateY(-4px); transition: transform 180ms var(--ease-out); } }
+    @media (max-width: 820px) { .hero { grid-template-columns: 1fr; gap: 34px; padding-top: 42px; } .showcase { min-height: 390px; max-width: 560px; width: 100%; margin: 0 auto; } .feature-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) { .shell { width: min(100% - 28px, 1160px); } .site-header { padding: 15px 0; } .header-actions .text-link { display: none; } .hero { min-height: 0; padding: 48px 0 62px; } h1 { font-size: clamp(2.9rem, 15vw, 4.2rem); } .hero-lede { font-size: .95rem; } .showcase { min-height: 360px; } .showcase-card.main { top: 18px; } .showcase-card.offset { width: 180px; } .scan-space { min-height: 205px; } .section { padding: 58px 0; } .section-heading { display: block; } .section-heading p { margin-top: 12px; } .cta { display: block; padding: 24px; } .cta .button { margin-top: 18px; } footer { display: block; } footer span { display: block; margin-top: 8px; } }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } }
+    :focus-visible { outline: 3px solid #f3bf4c; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <header class="shell site-header">
+    <a class="brand" href="/" aria-label="Open NephroScan AI workspace">
+      <span class="brand-mark"><i class="fas fa-brain" aria-hidden="true"></i></span>
+      <span><span class="brand-name">NephroScan AI</span><span class="brand-sub">From Image to Insight</span></span>
+    </a>
+    <div class="header-actions">
+      <a class="text-link" href="#how-it-works">How it works</a>
+      <a class="button button-primary" href="/">Open workspace <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  </header>
+
+  <main>
+    <section class="shell hero" aria-labelledby="hero-title">
+      <div>
+        <div class="eyebrow">Explainable imaging workspace</div>
+        <h1 id="hero-title">From image to insight.</h1>
+        <p class="hero-lede">A focused workspace for educational screening prototypes, report history, and clinician-ready discussion points — with clear boundaries around what AI can and cannot tell you.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="/">Start a new analysis <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+          <a class="button button-secondary" href="#how-it-works">See how it works</a>
+        </div>
+        <div class="safety-note"><i class="fas fa-shield-heart" aria-hidden="true"></i><span>Educational prototype only. Results are not a diagnosis and must be reviewed by a qualified healthcare professional.</span></div>
+      </div>
+
+      <div class="showcase" aria-label="NephroScan interface preview">
+        <div class="showcase-card main">
+          <div class="showcase-top"><strong>AI evidence summary</strong><span class="status">Ready</span></div>
+          <div class="scan-space"><div class="scan-placeholder"><i class="fas fa-image" aria-hidden="true"></i></div></div>
+          <div class="metrics"><div class="metric"><strong>4</strong><span>modalities</span></div><div class="metric"><strong>1</strong><span>vision layer</span></div><div class="metric"><strong>100%</strong><span>traceable</span></div></div>
+        </div>
+        <div class="showcase-card offset">
+          <div class="showcase-top"><strong>Review note</strong></div>
+          <div class="mini-content"><div class="mini-line"><span>Confidence</span><strong>95.3%</strong></div><div class="mini-line"><span>Status</span><strong>Needs review</strong></div><div class="mini-line"><span>Next step</span><strong>Discuss</strong></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how-it-works" aria-labelledby="how-title">
+      <div class="shell">
+        <div class="section-heading"><h2 id="how-title">A calmer way to review a scan.</h2><p>Move from upload to a structured result without hiding uncertainty behind a score.</p></div>
+        <div class="feature-grid">
+          <article class="feature"><div class="feature-icon"><i class="fas fa-microscope" aria-hidden="true"></i></div><h3>Local screening</h3><p>Four local ResNet prototypes cover kidney, chest, brain, and heart modalities with provenance attached to every result.</p></article>
+          <article class="feature"><div class="feature-icon"><i class="fas fa-sparkles" aria-hidden="true"></i></div><h3>Optional Gemini vision</h3><p>Images outside the local classifiers can receive a bounded multimodal explanation through the server-side Gemini layer.</p></article>
+          <article class="feature"><div class="feature-icon"><i class="fas fa-file-lines" aria-hidden="true"></i></div><h3>Structured discussion</h3><p>Reports, lab review, history, comparison, and assistant prompts keep the next conversation with a clinician concrete.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell section" aria-label="Open workspace call to action">
+      <div class="cta"><h2>Bring the original image. Keep the clinical judgment.</h2><a class="button button-secondary" href="/">Open NephroScan AI <i class="fas fa-arrow-right" aria-hidden="true"></i></a></div>
+    </section>
+  </main>
+
+  <footer class="shell"><span>NephroScan AI · Educational prototype</span><span>From Image to Insight · Not a medical device</span></footer>
+</body>
+</html>

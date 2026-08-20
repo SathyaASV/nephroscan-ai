@@ -7,6 +7,10 @@ dist/
 build/
 *.egg
 
+# Node / frontend build
+node_modules/
+npm-debug.log*
+frontend/dist/
 # Virtual environment
 venv/
 .venv/
@@ -14,10 +18,12 @@ env/
 
 # Environment
 .env
+*.docx
 
 # Models (large files, track with DVC or similar)
 models/*_v2.pth
 models/*_baseline_65pct.pth
+models/*.pth
 
 # IDE
 .vscode/
