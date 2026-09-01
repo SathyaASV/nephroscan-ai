@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>NephroScan — Medical Imaging Platform</title>
+<title>Nova - AI Diagnostics &amp; Respiratory</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
@@ -2080,10 +2080,10 @@ table.data-table tr:hover td {
   <!-- ===================== SIDEBAR ===================== -->
   <aside class="sidebar" id="sidebar">
     <div class="logo-group">
-      <div class="logo-icon"><i class="fas fa-brain"></i></div>
+      <div class="logo-icon"><i class="fas fa-stethoscope"></i></div>
       <div>
-        <div class="logo-text">NephroScan <span>AI</span></div>
-        <div class="logo-sub">From Image to Insight</div>
+        <div class="logo-text">Nova <span>AI</span></div>
+        <div class="logo-sub">From Image &amp; Sound to Insight</div>
       </div>
     </div>
 
@@ -2096,6 +2096,10 @@ table.data-table tr:hover td {
       <button class="nav-item" data-view="compare"><i class="fas fa-code-compare"></i> Compare Scans</button>
     </nav>
     <nav class="nav-group">
+      <div class="nav-label">Nova Clinical</div>
+      <button class="nav-item" data-view="respiratory"><i class="fas fa-lungs"></i> Respiratory Triage</button>
+    </nav>
+    <nav class="nav-group">
       <div class="nav-label">Diagnostics</div>
       <button class="nav-item" data-view="lab"><i class="fas fa-vials"></i> Lab Test Analysis</button>
     </nav>
@@ -2104,7 +2108,7 @@ table.data-table tr:hover td {
       <button class="nav-item" data-view="performance"><i class="fas fa-chart-line"></i> Model Performance</button>
       <button class="nav-item" data-view="assistant"><i class="fas fa-comment-medical"></i> AI Assistant</button>
       <button class="nav-item" data-view="health-guide"><i class="fas fa-heart-pulse"></i> AI Health Guide</button>
-      <button class="nav-item" data-view="about"><i class="fas fa-circle-info"></i> Why NephroScan?</button>
+      <button class="nav-item" data-view="about"><i class="fas fa-circle-info"></i> Why Nova?</button>
     </nav>
     <nav class="nav-group">
       <div class="nav-label">System</div>
@@ -2128,9 +2132,9 @@ table.data-table tr:hover td {
     <!-- ===================== DASHBOARD VIEW ===================== -->
     <section class="view active" id="view-dashboard">
       <div class="hero-card">
-        <div class="hero-eyebrow">AI-POWERED MEDICAL IMAGING · PROTOTYPE</div>
-        <h1>NephroScan AI</h1>
-        <div class="tagline">"From Image to Insight."</div>
+        <div class="hero-eyebrow">AI-POWERED CLINICAL DIAGNOSTICS · PROTOTYPE</div>
+        <h1>Nova AI</h1>
+        <div class="tagline">"From Image &amp; Sound to Insight."</div>
         <p class="desc">Analyze medical images with an explainable-AI workflow, structured reporting and intelligent clinical support. Review every result with qualified clinical judgment; no prediction here should be treated as a diagnosis.</p>
         <button class="btn btn-primary" id="heroStartBtn"><i class="fas fa-wand-magic-sparkles"></i> Start New Analysis</button>
       </div>
@@ -2663,6 +2667,49 @@ table.data-table tr:hover td {
   </div>
 
 </section>
+
+    <!-- ===================== NOVA RESPIRATORY TRIAGE VIEW ===================== -->
+    <section class="view" id="view-respiratory">
+
+      <div class="ai-banner">
+        <span class="tag"><i class="fas fa-lungs"></i> NOVA RESPIRATORY</span>
+        <span class="divider"></span>
+        <span class="chip"><i class="fas fa-heartbeat"></i> Lung-sound triage</span>
+        <span class="divider"></span>
+        <span class="chip"><i class="fas fa-shield-heart"></i> Normal · Crackles · Wheezes · Both</span>
+      </div>
+
+      <div class="card">
+        <div class="section-heading">
+          <i class="fas fa-file-audio"></i>
+          Upload a 5-second breath-sound recording
+        </div>
+        <p style="font-size:.82rem;color:#3d5a6e;line-height:1.7;">
+          Upload a <b>.wav</b> recording of lung sounds (about 5&nbsp;seconds).
+          Nova analyses it and classifies the breath pattern.
+        </p>
+
+        <div class="field-group" style="margin-top:.8rem;">
+          <label><i class="fas fa-user"></i> Patient Name (optional)</label>
+          <input type="text" id="respPatientName" placeholder="e.g. Patient 01" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;" />
+        </div>
+
+        <div style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;">
+          <input type="file" id="respFileInput" accept=".wav,.mp3,.ogg,.flac,.m4a" style="padding:.45rem;border:1px solid #d8e4ea;border-radius:10px;background:#fbfdfe;color:#263e50;font-size:.82rem;" />
+          <button class="primary-btn" id="respAnalyzeBtn" type="button" style="padding:.55rem 1.2rem;border-radius:10px;border:none;background:#0e7490;color:#fff;font-weight:600;cursor:pointer;">
+            <i class="fas fa-stethoscope"></i> Analyze breath sound
+          </button>
+        </div>
+
+        <div id="respStatus" style="margin-top:.8rem;font-size:.82rem;color:#5a6b7a;"></div>
+      </div>
+
+      <div class="card" id="respResultCard" style="display:none;">
+        <div class="section-heading"><i class="fas fa-clipboard-check"></i> Respiratory Result</div>
+        <div id="respResultBody"></div>
+      </div>
+
+    </section>
 
     <!-- ===================== LAB TEST ANALYSIS VIEW ===================== -->
     <section class="view" id="view-lab">
@@ -4916,6 +4963,7 @@ function toast(msg, type){
 /* ===================== NAVIGATION ===================== */
 const viewTitles = {
   dashboard:['fa-gauge-high','Dashboard'], analysis:['fa-circle-notch','New Analysis'],
+  respiratory:['fa-lungs','Respiratory Triage'],
   lab:['fa-vials','Lab Test Analysis'],
   history:['fa-clock-rotate-left','Report History'], patients:['fa-user-injured','Patients'],
   compare:['fa-code-compare','Compare Scans'], performance:['fa-chart-line','Model Performance'],
@@ -4939,6 +4987,89 @@ document.querySelectorAll('.nav-item').forEach(btn=>btn.addEventListener('click'
 document.querySelectorAll('[data-view-go]').forEach(el=>el.addEventListener('click',()=>showView(el.dataset.viewGo)));
 document.getElementById('heroStartBtn').addEventListener('click',()=>showView('analysis'));
 document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analysis'); loadDemoCase(); });
+
+/* ---- Nova respiratory triage handler ---- */
+(function(){
+  const analyzeBtn = document.getElementById('respAnalyzeBtn');
+  const fileInput = document.getElementById('respFileInput');
+  const statusEl = document.getElementById('respStatus');
+  const resultCard = document.getElementById('respResultCard');
+  const resultBody = document.getElementById('respResultBody');
+  const patientEl = document.getElementById('respPatientName');
+
+  if(!analyzeBtn || !fileInput) return;
+
+  analyzeBtn.addEventListener('click', async function(){
+    if(!fileInput.files.length){
+      statusEl.textContent = 'Please choose a breath-sound audio file first.';
+      statusEl.style.color = '#c2410c';
+      return;
+    }
+    const audioFile = fileInput.files[0];
+    statusEl.textContent = 'Analyzing breath sound… this may take a few seconds.';
+    statusEl.style.color = '#3d5a6e';
+    resultCard.style.display = 'none';
+
+    const fd = new FormData();
+    fd.append('audio', audioFile);
+    if(patientEl && patientEl.value.trim()) fd.append('patient_name', patientEl.value.trim());
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(function(){ controller.abort(); }, 60000);
+
+    try {
+      const resp = await fetch('/api/respiratory', {
+        method: 'POST', body: fd, signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      const data = await resp.json();
+      if(!resp.ok){
+        statusEl.textContent = 'Server error ' + resp.status + ': ' + (data.error || resp.statusText);
+        statusEl.style.color = '#c2410c';
+        return;
+      }
+      if(data.error){
+        statusEl.textContent = data.error;
+        statusEl.style.color = '#c2410c';
+        return;
+      }
+
+      const color = data.color || '#2563eb';
+      const riskMap = { LOW:'Low risk', MODERATE:'Moderate risk', HIGH:'High risk', CRITICAL:'Critical risk' };
+      const riskLabel = riskMap[data.risk_level] || data.risk_level || '';
+
+      const confs = data.all_confidences || {};
+      const bars = Object.entries(confs)
+        .map(function(c){
+          return '<div style="margin:4px 0;"><span style="font-size:.78rem;color:#3d5a6e;width:110px;display:inline-block;">'+c[0]+'</span>'
+            + '<div style="display:inline-block;width:55%;height:10px;background:#e8eef3;border-radius:6px;vertical-align:middle;margin:0 6px;">'
+            + '<div style="width:'+Math.round(c[1])+'%;height:100%;background:'+color+';border-radius:6px;"></div></div>'
+            + '<span style="font-size:.78rem;color:#263e50;">'+Math.round(c[1])+'%</span></div>';
+        }).join('');
+
+      resultBody.innerHTML =
+        '<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.6rem;">'
+        +   '<div style="font-size:1.4rem;font-weight:700;color:'+color+';">'+data.label+'</div>'
+        +   (riskLabel ? '<span style="padding:.25rem .7rem;border-radius:999px;font-size:.72rem;font-weight:600;color:#fff;background:'+color+';">'+riskLabel+'</span>' : '')
+        +   '<span style="font-size:.9rem;color:#263e50;"><b>'+data.confidence_pct+'%</b> confidence</span>'
+        + '</div>'
+        + '<p style="margin:.2rem 0 .6rem;color:#5a6b7a;font-size:.82rem;"><b>Recommended action:</b> '+data.action+'</p>'
+        + '<p style="margin:.2rem 0 .8rem;color:#3d5a6e;font-size:.82rem;line-height:1.6;">'+data.advice+'</p>'
+        + '<div style="margin-top:.6rem;border-top:1px solid #e8eef3;padding-top:.6rem;">'
+        +   '<div class="section-heading" style="font-size:.78rem;"><i class="fas fa-chart-simple"></i> Class confidences</div>'
+        +   bars
+        + '</div>'
+        + (data.using_fallback_weights ? '<p style="margin-top:.6rem;font-size:.75rem;color:#c2410c;">Note: using fallback model weights.</p>' : '');
+
+      resultCard.style.display = 'block';
+      statusEl.textContent = '';
+    } catch(err){
+      clearTimeout(timeoutId);
+      statusEl.textContent = 'Error: ' + (err.name === 'AbortError' ? 'request timed out.' : err.message);
+      statusEl.style.color = '#c2410c';
+    }
+  });
+})();
 /* (openBotFromView removed — AI Health Guide is a sidebar page) */
 
 /* mobile sidebar */

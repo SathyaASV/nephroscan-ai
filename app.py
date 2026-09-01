@@ -190,10 +190,52 @@ def _load_models(application: Flask) -> None:
     application.config["MODELS"] = models_loaded
     application.config["DEVICE"] = device
 
-    # Grad-CAM model map (only for loaded models)
+    # ---- Nova respiratory triage model ----
+    resp_path = MODEL_DIR / "respiratory_classifier.pth"
+    resp_status = {
+        "model": None,
+        "image_size": 224,
+        "loaded": False,
+        "checkpoint_name": "respiratory_classifier.pth",
+        "checkpoint": "respiratory_classifier.pth",
+        "classes": [],
+    }
+    if resp_path.exists():
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parent / "ai"))
+            from respiratory import RespiratoryEngine
+            _resp_engine = RespiratoryEngine(resp_path)
+            if _resp_engine.load():
+                resp_status["loaded"] = True
+                resp_status["model"] = _resp_engine.model
+                resp_status["classes"] = ["Normal", "Crackles", "Wheezes", "Both"]
+                application.config["RESP_ENGINE"] = _resp_engine
+                log.info("[respiratory] OK — classes: %s", resp_status["classes"])
+            else:
+                log.warning("[respiratory] Model file found but failed to load")
+                application.config["RESP_ENGINE"] = None
+        except Exception as e:
+            log.error("[respiratory] Failed to load: %s", e, exc_info=True)
+            application.config["RESP_ENGINE"] = None
+    else:
+        log.warning(
+            "[respiratory] Model not found at %s — respiratory endpoint will return an error",
+            resp_path,
+        )
+        application.config["RESP_ENGINE"] = None
+    models_loaded["respiratory"] = resp_status
+
+    loaded_count = sum(1 for m in models_loaded.values() if m["loaded"])
+    log.info("=" * 60)
+    log.info("Models loaded: %d / %d", loaded_count, len(models_loaded))
+    log.info("=" * 60)
+
+    # Grad-CAM model map (only for loaded imaging models)
     explain_map = {}
     for organ, data in models_loaded.items():
-        if data["loaded"] and data["model"] is not None:
+        if organ == "respiratory":
+            continue
+        if data.get("loaded") and data.get("model") is not None:
             explain_map[organ] = (
                 data["model"],
                 data["transform"],
@@ -855,7 +897,7 @@ def _register_routes(application: Flask) -> None:
 
         return jsonify({
             "status": "online",
-            "service": "NephroScan AI",
+            "service": "Nova",
             "version": APP_VERSION,
             "device": str(application.config.get("DEVICE", "unknown")),
             "models": model_status,
@@ -867,6 +909,7 @@ def _register_routes(application: Flask) -> None:
                 "/api/predict-chest",
                 "/api/predict-brain",
                 "/api/predict-heart",
+                "/api/respiratory",
                 "/api/explain",
                 "/api/lab/health",
                 "/api/lab/analyze",
@@ -984,6 +1027,30 @@ def _register_routes(application: Flask) -> None:
         finally:
             try: pil_image.close()
             except: pass
+            gc.collect()
+
+    # ---- Nova respiratory triage ----
+
+    @application.route("/api/respiratory", methods=["POST"])
+    def api_respiratory():
+        """Classify a 5-second breath-sound WAV (Normal / Crackles / Wheezes / Both)."""
+        resp_engine = application.config.get("RESP_ENGINE")
+        if resp_engine is None:
+            return jsonify({"error": "Respiratory model is not loaded. Check models/respiratory_classifier.pth."}), 503
+
+        audio_file = request.files.get("audio")
+        if audio_file is None:
+            return jsonify({"error": "No audio file uploaded. Use form field 'audio'."}), 400
+
+        try:
+            wav_bytes = audio_file.read()
+            if not wav_bytes or len(wav_bytes) < 1000:
+                return jsonify({"error": "Audio file too small or empty."}), 400
+            result = resp_engine.predict(wav_bytes)
+            return jsonify(result)
+        except Exception as e:
+            return jsonify({"error": f"Respiratory inference failed: {e}"}), 500
+        finally:
             gc.collect()
 
     # ---- Lab Report Analysis ----

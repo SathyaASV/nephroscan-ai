@@ -8,3 +8,6 @@ gunicorn>=21.0
 requests>=2.31
 pytesseract>=0.3.10
 pdf2image>=1.16
+librosa>=0.10.0
+soundfile>=0.12.0
+scipy>=1.11.0
