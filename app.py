@@ -64,13 +64,32 @@ except ImportError:
 # Ensure ai/ subpackage is importable
 sys.path.insert(0, str(Path(__file__).resolve().parent / "ai"))
 
-from flask import Flask, jsonify, request, send_from_directory, Response
+from flask import Flask, jsonify, request, send_from_directory, send_file, Response
 from flask_cors import CORS
 from PIL import Image
 
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
+
+# --- Nova Smart Triage (rPPG / pallor / cough / tachypnea) -----------------
+import triage.config as triage_cfg
+from triage.vision_processor import extract_rppg_bpm, analyze_pallor
+from triage.audio_processor import analyze_cough, count_breaths
+
+try:
+    from gtts import gTTS as _gTTS
+    _HAS_GTTS = True
+except Exception:
+    _gTTS = None
+    _HAS_GTTS = False
+
+try:
+    import cv2 as _cv2
+    _HAS_CV2 = True
+except Exception:
+    _cv2 = None
+    _HAS_CV2 = False
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -1448,6 +1467,14 @@ def _register_routes(application: Flask) -> None:
                 "/api/ai/health",
                 "/api/ai/analyze-image",
                 "/api/ai/chat",
+                "/api/triage/config",
+                "/api/triage/rppg",
+                "/api/triage/pallor",
+                "/api/triage/cough",
+                "/api/triage/tachypnea",
+                "/api/triage/speech",
+                "/api/triage/export",
+                "/api/triage/sample/<id>",
             ],
         })
 
@@ -2215,6 +2242,382 @@ def _register_routes(application: Flask) -> None:
             "disclaimer": AI_DISCLAIMER,
             "request_id": request_id,
         })
+
+    # ================= NOVA SMART TRIAGE (rPPG / pallor / cough / tachypnea) ===
+    _TRIAGE_GTTS_LANG = {
+        "en": "en", "hi": "hi", "ta": "ta", "te": "te", "kn": "kn",
+        "ml": "ml", "mr": "mr", "bn": "bn", "gu": "gu", "pa": "pa",
+    }
+
+    def _triage_sample_manifest():
+        """List of built-in test samples (rPPG videos + acoustic clips)."""
+        rppg_bpm = [60, 65, 72, 78, 85, 92, 100, 110, 65, 78]
+        videos = []
+        for i, bpm in enumerate(rppg_bpm, start=1):
+            videos.append({
+                "id": f"vid{i}", "module": "rppg",
+                "name": f"Pulse sample {i}", "bpm": bpm,
+                "duration_s": 15, "fps": 15,
+            })
+        cough_spectrum = [
+            ("dry", "Dry cough (high-pitched, compact)"),
+            ("wet", "Wet cough (rattling, low rumble)"),
+            ("dry", "Dry cough #2"),
+            ("wet", "Wet cough #2"),
+            ("normal", "Quiet / normal capture"),
+        ]
+        audio = []
+        for i, (typ, name) in enumerate(cough_spectrum, start=1):
+            label = "cough" if typ != "normal" else "cough-normal"
+            audio.append({
+                "id": f"c{i}", "module": "cough", "kind": typ,
+                "name": name, "label": f"Sample cough {i}", "filename": f"cough{i}.wav",
+            })
+        breath_rates = [12, 16, 18, 22, 28]
+        for i, rpm in enumerate(breath_rates, start=1):
+            audio.append({
+                "id": f"b{i}", "module": "tachypnea", "kind": str(rpm),
+                "name": f"Breathing {rpm}/min", "label": f"Sample breathing {i}",
+                "filename": f"breath{i}.wav", "breaths_per_min": rpm,
+            })
+        return {"videos": videos, "audio": audio}
+
+    @application.route("/api/triage/config", methods=["GET"])
+    def api_triage_config():
+        return jsonify({
+            "project_name": triage_cfg.PROJECT_NAME,
+            "tagline": triage_cfg.PROJECT_TAGLINE,
+            "program": triage_cfg.SUPPORTING_PROGRAM,
+            "sample_rate": triage_cfg.SAMPLE_RATE,
+            "languages": triage_cfg.LANGUAGES,
+            "scan_zones": triage_cfg.SCAN_ZONES,
+            "risk_levels": triage_cfg.RISK_LEVELS,
+            "clinical_advice": triage_cfg.CLINICAL_ADVICE,
+            "triage_actions": triage_cfg.TRIAGE_ACTIONS,
+            "samples": _triage_sample_manifest(),
+        })
+
+    def _triage_decode_image(data_url):
+        """Decode a data:image/...;base64,<b64> string to a BGR numpy array.
+
+        Both branches return BGR-order numpy arrays (matching the original
+        camera contract) so the pallor colour maths in vision_processor.py
+        convert channels back to true RGB consistently.
+        """
+        import numpy as _np
+        if not data_url:
+            raise ValueError("No image data provided.")
+        if "," in data_url:
+            data_url = data_url.split(",", 1)[1]
+        raw = base64.b64decode(data_url)
+        if _HAS_CV2:
+            arr = _np.frombuffer(raw, dtype=_np.uint8)
+            img = _cv2.imdecode(arr, _cv2.IMREAD_COLOR)  # BGR
+            if img is None:
+                raise ValueError("Could not decode image (cv2).")
+            return img
+        # PIL fallback (no cv2): PIL decodes to RGB -> reverse to BGR
+        from PIL import Image as _PILImage
+        from io import BytesIO as _BytesIO
+        pil = _PILImage.open(_BytesIO(raw)).convert("RGB")
+        return _np.asarray(pil, dtype=_np.float32)[:, :, ::-1].copy()  # RGB -> BGR
+
+    def _frame_to_nparray(img):
+        if hasattr(img, "dtype") and getattr(img, "ndim", 0) == 3:
+            return img
+        import numpy as _np
+        return _np.asarray(img, dtype=_np.float32)
+
+    def _triage_rppg_for_sample(sample_id):
+        """Build a synthetic pulsing-forehead frame sequence at a known BPM."""
+        import numpy as _np
+        bpm = None
+        for v in _triage_sample_manifest()["videos"]:
+            if v["id"] == sample_id:
+                bpm = v["bpm"]
+                break
+        if bpm is None:
+            raise ValueError("Unknown rPPG sample id")
+        fps = 15.0
+        dur = 15.0
+        n = int(fps * dur)
+        t = _np.arange(n) / fps
+        # Forehead colour: base skin tone, green channel pulsing with heart rate
+        base = _np.array([205, 165, 155], dtype=_np.float32)  # R,G,B skin
+        hz = bpm / 60.0
+        frames = []
+        h = w = 96
+        for i in range(n):
+            pulse = 0.06 * _np.sin(2 * _np.pi * hz * t[i])
+            r = base[0] * (1 - 0.04 * pulse)
+            g = base[1] * (1 + 0.18 * pulse)   # green pulsation (rPPG)
+            b = base[2] * (1 - 0.03 * pulse)
+            frame = _np.empty((h, w, 3), dtype=_np.uint8)
+            frame[:, :, 0] = _np.clip(r, 0, 255)
+            frame[:, :, 1] = _np.clip(g, 0, 255)
+            frame[:, :, 2] = _np.clip(b, 0, 255)
+            frames.append(frame)
+        return frames, fps
+
+    def _triage_build_acoustic(sample):
+        """Build a synthetic WAV sample (cough or breathing) as bytes."""
+        import numpy as _np
+        import soundfile as _sf
+        import io as _io
+        sr = triage_cfg.SAMPLE_RATE
+        if sample["module"] == "cough":
+            dur = 1.0
+            t = _np.arange(0, dur, 1 / sr)
+            if sample["kind"] == "wet":
+                # low-frequency rattling rumble
+                sig = (_np.sin(2 * _np.pi * 180 * t) * _np.exp(-t * 22)
+                       + 0.5 * _np.sin(2 * _np.pi * 120 * t)
+                       + 0.3 * _np.sin(2 * _np.pi * 90 * t)
+                       + 0.05 * _np.random.randn(len(t)))
+            elif sample["kind"] == "dry":
+                # compact high-frequency sharp cough
+                sig = (_np.sin(2 * _np.pi * 900 * t) * _np.exp(-t * 90)
+                       + 0.25 * _np.sin(2 * _np.pi * 1600 * t) * _np.exp(-t * 90)
+                       + 0.02 * _np.random.randn(len(t)))
+            else:  # normal / quiet
+                sig = _np.zeros(len(t)) + 0.01 * _np.random.randn(len(t))
+            sig = sig * 0.8
+        else:  # tachypnea — periodic breath bursts at given rate
+            rpm = float(sample["breaths_per_min"])
+            dur = 30.0
+            n = int(dur * sr)
+            sig = _np.zeros(n)
+            interval = 60.0 / rpm
+            burst = int(0.22 * sr)
+            k = 0.0
+            while k < dur:
+                i0 = int(k * sr)
+                if i0 + burst < n:
+                    tt = _np.arange(burst) / sr
+                    sig[i0:i0 + burst] += (_np.sin(2 * _np.pi * 300 * tt)
+                                           * _np.hanning(burst) * 0.6)
+                k += interval
+            sig += 0.01 * _np.random.randn(n)
+        sig = sig.astype(_np.float32)
+        if sig.ndim > 1:
+            sig = sig.mean(axis=1)
+        buf = _io.BytesIO()
+        _sf.write(buf, sig, sr, format="WAV", subtype="PCM_16")
+        return buf.getvalue(), sr
+
+    @application.route("/api/triage/rppg", methods=["POST"])
+    def api_triage_rppg():
+        try:
+            body = request.get_json(force=True, silent=True) or {}
+            sample_id = body.get("sample")
+            if sample_id:
+                frames, fps = _triage_rppg_for_sample(sample_id)
+            else:
+                frames_raw = body.get("frames", [])
+                fps = float(body.get("fps", 15.0))
+                if not frames_raw:
+                    return jsonify({"status": "insufficient", "error": "No frames received."}), 400
+                frames = []
+                for data_url in frames_raw[: int(fps * 20)]:
+                    try:
+                        frames.append(_frame_to_nparray(_triage_decode_image(data_url)))
+                    except Exception:
+                        continue
+                if len(frames) < 10:
+                    return jsonify({"status": "insufficient", "error": "Too few usable frames."}), 400
+            res = extract_rppg_bpm(frames, fps=fps)
+            if res["status"] != "ok":
+                return jsonify(res), 200
+            bpm = res["bpm"]
+            if bpm is None:
+                band = "normal"
+            elif bpm > 110:
+                band = "high"
+            elif bpm > 95:
+                band = "moderate"
+            elif bpm < 55:
+                band = "low"
+            else:
+                band = "normal"
+            return jsonify({
+                "status": "ok", "module": "rppg", "zone": "forehead",
+                "metric_name": "Pulse (BPM)", "metric_value": f"{bpm} bpm",
+                "metric_extra": f"Stress: {res.get('stress', 'Normal')}",
+                "confidence": res.get("confidence", 0.0), "risk": band,
+                "band_advice": triage_cfg.CLINICAL_ADVICE["rppg"]["bands"].get(band, ""),
+                "action": triage_cfg.CLINICAL_ADVICE["rppg"]["action"],
+                "sample_id": sample_id,
+            })
+        except Exception as exc:
+            return jsonify({"status": "error", "error": str(exc)}), 500
+
+    @application.route("/api/triage/pallor", methods=["POST"])
+    def api_triage_pallor():
+        try:
+            body = request.get_json(force=True, silent=True) or {}
+            zone = body.get("zone", "conjunctiva")
+            img = _frame_to_nparray(_triage_decode_image(body.get("image", "")))
+            res = analyze_pallor(img)
+            if res["status"] != "ok":
+                return jsonify(res), 200
+            return jsonify({
+                "status": "ok", "module": "pallor", "zone": zone,
+                "metric_name": "Erythema Index", "metric_value": f"{res['erythema_index']}",
+                "metric_extra": f"Redness {res['redness_norm']}, LAB-A {res['lab_a']}",
+                "confidence": res.get("confidence", 0.0), "risk": res["risk"],
+                "band_advice": triage_cfg.CLINICAL_ADVICE["pallor"]["bands"].get(res["risk"], ""),
+                "action": triage_cfg.CLINICAL_ADVICE["pallor"]["action"],
+            })
+        except Exception as exc:
+            return jsonify({"status": "error", "error": str(exc)}), 500
+
+    @application.route("/api/triage/cough", methods=["POST"])
+    def api_triage_cough():
+        try:
+            sample = None
+            data = None
+            body = request.get_json(force=True, silent=True) or {}
+            sample_id = body.get("sample")
+            if sample_id:
+                for s in _triage_sample_manifest()["audio"]:
+                    if s["id"] == sample_id and s["module"] == "cough":
+                        sample = s
+                        break
+                if sample is None:
+                    return jsonify({"status": "insufficient", "error": "Unknown cough sample"}), 400
+                data, _ = _triage_build_acoustic(sample)
+            else:
+                f = request.files.get("audio")
+                if f is None:
+                    return jsonify({"status": "insufficient", "error": "No audio uploaded."}), 400
+                data = f.read()
+            res = analyze_cough(data)
+            if res["status"] != "ok":
+                return jsonify(res), 200
+            return jsonify({
+                "status": "ok", "module": "cough", "metric_name": "Cough Type",
+                "metric_value": res["cough_type"],
+                "metric_extra": (f"Wet-index {res['wet_index']}, centroid {res['spectral_centroid']} Hz"),
+                "confidence": float(max(0.2, min(1.0, res.get("wet_index") or 0.5))),
+                "risk": res["risk"],
+                "band_advice": triage_cfg.CLINICAL_ADVICE["cough"]["bands"].get(res["risk"], ""),
+                "action": triage_cfg.CLINICAL_ADVICE["cough"]["action"],
+                "sample_id": sample_id,
+            })
+        except Exception as exc:
+            return jsonify({"status": "error", "error": str(exc)}), 500
+
+    @application.route("/api/triage/tachypnea", methods=["POST"])
+    def api_triage_tachypnea():
+        try:
+            body = request.get_json(force=True, silent=True) or {}
+            sample_id = body.get("sample")
+            data = None
+            if sample_id:
+                for s in _triage_sample_manifest()["audio"]:
+                    if s["id"] == sample_id and s["module"] == "tachypnea":
+                        sample = s
+                        break
+                else:
+                    sample = None
+                if sample is None:
+                    return jsonify({"status": "insufficient", "error": "Unknown tachypnea sample"}), 400
+                data, _ = _triage_build_acoustic(sample)
+            else:
+                f = request.files.get("audio")
+                if f is None:
+                    return jsonify({"status": "insufficient", "error": "No audio uploaded."}), 400
+                data = f.read()
+            res = count_breaths(data, window_seconds=triage_cfg.BREATH_WINDOW_SECONDS)
+            if res["status"] != "ok":
+                return jsonify(res), 200
+            return jsonify({
+                "status": "ok", "module": "tachypnea", "metric_name": "Breathing Rate",
+                "metric_value": f"{res['breaths_per_min']} /min",
+                "metric_extra": f"{res['breath_count']} breaths in {res['duration']}s",
+                "confidence": 0.8, "risk": res["risk"],
+                "band_advice": triage_cfg.CLINICAL_ADVICE["tachypnea"]["bands"].get(res["risk"], ""),
+                "action": triage_cfg.CLINICAL_ADVICE["tachypnea"]["action"],
+                "sample_id": sample_id,
+            })
+        except Exception as exc:
+            return jsonify({"status": "error", "error": str(exc)}), 500
+
+    @application.route("/api/triage/speech", methods=["POST"])
+    def api_triage_speech():
+        body = request.get_json(force=True, silent=True) or {}
+        text = (body.get("text") or "").strip()
+        lang = body.get("lang", "en")
+        if not text or not _gTTS:
+            return jsonify({"error": "Text or gTTS unavailable."}), 400
+        import io as _io
+        try:
+            tts = _gTTS(text=text, lang=_TRIAGE_GTTS_LANG.get(lang, "en"))
+            buf = _io.BytesIO()
+            tts.write_to_fp(buf)
+            buf.seek(0)
+            return send_file(buf, mimetype="audio/mpeg", as_attachment=False, download_name="report.mp3")
+        except Exception as exc:
+            return jsonify({"error": f"Speech generation failed: {exc}"}), 500
+
+    @application.route("/api/triage/sample/<sample_id>", methods=["GET"])
+    def api_triage_sample_download(sample_id):
+        """Download a test sample (acoustic WAV) or an rPPG frame list (JSON)."""
+        for s in _triage_sample_manifest()["audio"]:
+            if s["id"] == sample_id:
+                data, sr = _triage_build_acoustic(s)
+                return send_file(io.BytesIO(data), mimetype="audio/wav",
+                                 as_attachment=True, download_name=s["filename"])
+        for v in _triage_sample_manifest()["videos"]:
+            if v["id"] == sample_id:
+                frames, fps = _triage_rppg_for_sample(sample_id)
+                import numpy as _np
+                # Return a compact summary; the browser requests analysis by id.
+                return jsonify({
+                    "bpm": v["bpm"], "fps": fps, "frames": len(frames),
+                    "note": "Use /api/triage/rppg with {'sample': '<id>'} to analyse.",
+                })
+        return jsonify({"error": "Unknown sample id"}), 404
+
+    @application.route("/api/triage/export", methods=["POST"])
+    def api_triage_export():
+        try:
+            body = request.get_json(force=True, silent=True) or {}
+            result = body.get("result", {})
+            patient = body.get("patient", {})
+            zone_id = body.get("zone", "")
+            ui_lang = body.get("ui_lang", "en")
+            voice_lang = body.get("voice_lang", "en")
+            ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            zone = triage_cfg.SCAN_ZONES.get(zone_id, {})
+            risk = result.get("risk", "normal")
+            risk_label = triage_cfg.RISK_LEVELS.get(risk, {}).get("label", risk)
+            rows = [
+                ("Patient ID", patient.get("id", "")),
+                ("Age", patient.get("age", "")),
+                ("Timestamp", ts),
+                ("Selected Zone", zone.get("meta", zone_id)),
+                ("Module", triage_cfg.CLINICAL_ADVICE.get(result.get("module", ""), {}).get("title", result.get("module", ""))),
+                ("Metric", result.get("metric_name", "")),
+                ("Value", result.get("metric_value", "")),
+                ("Detail", result.get("metric_extra", "")),
+                ("Confidence", result.get("confidence", "")),
+                ("Risk Level", risk_label),
+                ("Triage Action", triage_cfg.TRIAGE_ACTIONS.get(risk, "")),
+                ("UI Language", ui_lang),
+                ("Voice Language", voice_lang),
+            ]
+            import csv as _csv
+            buf = io.StringIO()
+            writer = _csv.writer(buf)
+            writer.writerow([r[0] for r in rows])
+            writer.writerow([r[1] for r in rows])
+            buf.seek(0)
+            data = buf.getvalue().encode("utf-8")
+            fname = f"nova_triage_{int(time.time())}.csv"
+            return send_file(io.BytesIO(data), mimetype="text/csv", as_attachment=True, download_name=fname)
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
 
     # ---- Frontend serving ----
 

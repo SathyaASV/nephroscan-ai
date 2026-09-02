@@ -2951,6 +2951,7 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
     <nav class="nav-group" aria-label="Nova Clinical">
       <div class="nav-label">Nova Clinical</div>
       <button class="nav-item" data-view="respiratory"><i class="fas fa-lungs"></i> Respiratory Triage</button>
+      <button class="nav-item" data-view="triage"><i class="fas fa-heart-pulse"></i> Smart Triage</button>
     </nav>
     <nav class="nav-group" aria-label="Diagnostics">
       <div class="nav-label">Diagnostics</div>
@@ -3593,6 +3594,96 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
           </button>
         </div>
         <div id="respResultBody"></div>
+      </div>
+
+    </section>
+
+    <!-- ===================== SMART TRIAGE VIEW ===================== -->
+    <section class="view" id="view-triage">
+
+      <div class="ai-banner">
+        <span class="tag" id="triageBannerTag"><i class="fas fa-heart-pulse"></i> NOVA SMART TRIAGE</span>
+        <span class="divider"></span>
+        <span class="chip"><i class="fas fa-video"></i> rPPG Pulse · Pallor</span>
+        <span class="divider"></span>
+        <span class="chip"><i class="fas fa-wave-square"></i> Cough · Tachypnea</span>
+      </div>
+
+      <div class="card">
+        <div class="section-heading" id="triageInputHeading"><i class="fas fa-sliders"></i> Smart Triage — Camera &amp; Acoustic Diagnostics</div>
+        <p style="font-size:.82rem;color:#3d5a6e;line-height:1.7;margin-bottom:1rem;">
+          Measure <b>pulse</b> and <b>pallor</b> from the live camera, and classify <b>cough</b> / count
+          <b>breathing</b> from the microphone — designed for offline rural clinics. Use the
+          <b>Sample data</b> buttons below to test every module without a camera or mic.
+        </p>
+
+        <div style="display:flex;flex-wrap:wrap;gap:1.2rem;align-items:center;">
+          <div class="field-group"><label>UI Language</label>
+            <select id="triageUiLang" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;"></select>
+          </div>
+          <div class="field-group"><label>Target Scan Zone</label>
+            <select id="triageZone" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;"></select>
+          </div>
+          <div class="field-group"><label>Acoustic Mode</label>
+            <select id="triageAcousticMode" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;">
+              <option value="cough">Cough Profile (wet / dry)</option>
+              <option value="tachypnea">Tachypnea (Breath Count, 30s)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-heading" id="triageLiveHeading"><i class="fas fa-video"></i> Live Camera Diagnostics</div>
+        <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;">
+          <div style="flex:1;min-width:240px;">
+            <video id="triageCam" autoplay playsinline muted style="width:100%;max-width:360px;border-radius:12px;background:#0b1220;border:1px solid #243350;"></video>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.7rem;">
+              <button class="primary-btn" id="triageCamBtn" type="button" style="padding:.55rem 1.1rem;border-radius:10px;border:none;background:#0e7490;color:#fff;font-weight:600;cursor:pointer;">
+                <i class="fas fa-camera"></i> Start Camera
+              </button>
+              <button class="primary-btn" id="triageCaptureBtn" type="button" style="padding:.55rem 1.1rem;border-radius:10px;border:none;background:#0e7490;color:#fff;font-weight:600;cursor:pointer;display:none;">
+                <i class="fas fa-circle-dot"></i> Capture (Pallor)
+              </button>
+              <button class="primary-btn" id="triagePulseBtn" type="button" style="padding:.55rem 1.1rem;border-radius:10px;border:none;background:#7c3aed;color:#fff;font-weight:600;cursor:pointer;display:none;">
+                <i class="fas fa-heartbeat"></i> Record Pulse (15s)
+              </button>
+            </div>
+            <div id="triageCamStatus" style="font-size:.78rem;color:#5a6b7a;margin-top:.5rem;"></div>
+          </div>
+          <div style="flex:1;min-width:220px;" id="triagePlacement">
+            <div class="section-heading"><i class="fas fa-map-location-dot"></i> Placement Guide</div>
+            <p style="font-size:.8rem;color:#3d5a6e;line-height:1.6;">Select a scan zone above to see placement guidance.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-heading" id="triageSampleHeading"><i class="fas fa-flask"></i> Sample Test Data (no camera / mic needed)</div>
+        <p style="font-size:.8rem;color:#3d5a6e;line-height:1.6;margin-bottom:.8rem;">
+          Tap a sample to run that diagnostic end-to-end with built-in test data.
+        </p>
+        <div class="section-heading" style="font-size:.85rem;margin-top:.5rem;color:#0e7490;"><i class="fas fa-heartbeat"></i> rPPG Pulse videos (known BPM)</div>
+        <div id="triageVideoSamples" style="display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:1rem;"></div>
+        <div class="section-heading" style="font-size:.85rem;color:#0e7490;"><i class="fas fa-wave-square"></i> Cough samples</div>
+        <div id="triageCoughSamples" style="display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:1rem;"></div>
+        <div class="section-heading" style="font-size:.85rem;color:#0e7490;"><i class="fas fa-wind"></i> Breathing / Tachypnea samples</div>
+        <div id="triageBreathSamples" style="display:flex;flex-wrap:wrap;gap:.6rem;"></div>
+      </div>
+
+      <div class="card" id="triageResultCard" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem;">
+          <div class="section-heading" id="triageReportHeading" style="margin:0;"><i class="fas fa-clipboard-check"></i> Nova Triage Alert Card</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            <button id="triageExportBtn" type="button" style="padding:.4rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;cursor:pointer;font-size:.78rem;">
+              <i class="fas fa-download"></i> Download CSV
+            </button>
+            <button id="triageSpeakBtn" type="button" style="padding:.4rem 1rem;border-radius:8px;border:1px solid #7c3aed;background:#fff;color:#7c3aed;font-weight:600;cursor:pointer;font-size:.78rem;">
+              <i class="fas fa-volume-high"></i> Speak Report
+            </button>
+          </div>
+        </div>
+        <div id="triageResultBody"></div>
       </div>
 
     </section>
@@ -5604,7 +5695,7 @@ function toast(msg, type){
 /* ===================== NAVIGATION ===================== */
 const viewTitles = {
   dashboard:['fa-gauge-high','Dashboard'], analysis:['fa-circle-notch','New Analysis'],
-  respiratory:['fa-lungs','Respiratory Triage'],
+  respiratory:['fa-lungs','Respiratory Triage'], triage:['fa-heart-pulse','Smart Triage'],
   lab:['fa-vials','Lab Test Analysis'],
   history:['fa-clock-rotate-left','Report History'], patients:['fa-user-injured','Patients'],
   compare:['fa-code-compare','Compare Scans'], performance:['fa-chart-line','Model Performance'],
@@ -5935,6 +6026,213 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
       }
     });
   }
+})();
+
+/* ---- Nova Smart Triage handler (camera rPPG/pallor + acoustic + samples) ---- */
+(function(){
+  // ---- element refs ----
+  var $ = function(id){ return document.getElementById(id); };
+  var zoneSel=$('triageZone'), modeSel=$('triageAcousticMode'), uiLangSel=$('triageUiLang');
+  var camVideo=$('triageCam'), camBtn=$('triageCamBtn'), captureBtn=$('triageCaptureBtn'), pulseBtn=$('triagePulseBtn');
+  var camStatus=$('triageCamStatus'), placement=$('triagePlacement');
+  var videoSamples=$('triageVideoSamples'), coughSamples=$('triageCoughSamples'), breathSamples=$('triageBreathSamples');
+  var resultCard=$('triageResultCard'), resultBody=$('triageResultBody');
+  var exportBtn=$('triageExportBtn'), speakBtn=$('triageSpeakBtn');
+
+  var triageCfg=null, cameraStream=null, lastResult=null, lastZone='forehead';
+  var pulseFrames=[], pulseTimer=null, pulseActive=false;
+
+  function riskClass(r){ return r==='high'?'risk-h':r==='moderate'?'risk-m':r==='low'?'risk-l':'risk-n'; }
+
+  // ---- boot: fetch config ----
+  fetch('/api/triage/config').then(function(r){return r.json();}).then(function(c){
+    triageCfg=c;
+    fillLangs(); fillZones(); renderSamples();
+  }).catch(function(e){ camStatus.textContent='Triage config failed: '+e.message; });
+
+  function fillLangs(){
+    uiLangSel.innerHTML='';
+    Object.keys(triageCfg.languages).forEach(function(k){
+      var o=document.createElement('option'); o.value=k; o.textContent=triageCfg.languages[k]; uiLangSel.appendChild(o);
+    });
+    uiLangSel.value='en';
+    uiLangSel.addEventListener('change',function(){ populateVoiceSelect(); });
+  }
+  function fillZones(){
+    zoneSel.innerHTML='';
+    Object.keys(triageCfg.scan_zones).forEach(function(k){
+      var z=triageCfg.scan_zones[k];
+      var o=document.createElement('option'); o.value=k; o.textContent=z.icon+' '+z.name; zoneSel.appendChild(o);
+    });
+    zoneSel.addEventListener('change',function(){ lastZone=zoneSel.value; showPlacement(); });
+    showPlacement();
+  }
+  function showPlacement(){
+    var z=triageCfg.scan_zones[zoneSel.value];
+    if(!z) return;
+    placement.innerHTML='<div class="section-heading"><i class="fas fa-map-location-dot"></i> '+z.icon+' '+z.name+'</div>'
+      +'<p style="font-size:.82rem;color:#3d5a6e;line-height:1.6;">'+z.guide+'</p>';
+    lastZone=zoneSel.value;
+  }
+
+  // ---- render sample buttons ----
+  function renderSamples(){
+    videoSamples.innerHTML='';
+    (triageCfg.samples.videos||[]).forEach(function(v){
+      var b=document.createElement('button'); b.type='button';
+      b.style.cssText='padding:.5rem 1rem;border-radius:9px;border:1px solid #243350;background:#131c2e;color:#e6edf7;font-weight:600;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;';
+      b.innerHTML='<i class="fas fa-play"></i> '+v.name+' ('+v.bpm+' bpm)';
+      b.onclick=function(){ runSampleVideo(v); };
+      videoSamples.appendChild(b);
+    });
+    coughSamples.innerHTML='';
+    (triageCfg.samples.audio||[]).filter(function(a){return a.module==='cough';}).forEach(function(a){
+      var b=document.createElement('button'); b.type='button';
+      b.style.cssText='padding:.5rem 1rem;border-radius:9px;border:1px solid #243350;background:#131c2e;color:#e6edf7;font-weight:600;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;';
+      b.innerHTML='<i class="fas fa-microphone"></i> '+a.name;
+      b.onclick=function(){ runSampleAudio(a); };
+      coughSamples.appendChild(b);
+    });
+    breathSamples.innerHTML='';
+    (triageCfg.samples.audio||[]).filter(function(a){return a.module==='tachypnea';}).forEach(function(a){
+      var b=document.createElement('button'); b.type='button';
+      b.style.cssText='padding:.5rem 1rem;border-radius:9px;border:1px solid #243350;background:#131c2e;color:#e6edf7;font-weight:600;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;';
+      b.innerHTML='<i class="fas fa-wind"></i> '+a.name;
+      b.onclick=function(){ runSampleAudio(a); };
+      breathSamples.appendChild(b);
+    });
+  }
+
+  // ---- run sample: select the right zone + module, then analyze by id ----
+  function runSampleVideo(v){
+    // switch zone to forehead, set status
+    zoneSel.value='forehead'; lastZone='forehead';
+    var url='/api/triage/rppg';
+    camStatus.textContent='Analyzing rPPG sample “'+v.name+'” (expected ~'+v.bpm+' bpm)…';
+    fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sample:v.id})})
+      .then(function(r){return r.json();})
+      .then(function(res){
+        showResult(res);
+        var expect=v.bpm;
+        camStatus.textContent='rPPG sample “'+v.name+'” done — detected '+(res.metric_value||'?')+' (expected ~'+expect+' bpm).';
+      })
+      .catch(function(e){ camStatus.textContent='Sample failed: '+e.message; });
+  }
+  function runSampleAudio(a){
+    var url = a.module==='cough' ? '/api/triage/cough' : '/api/triage/tachypnea';
+    camStatus.textContent='Analyzing “'+a.name+'”…';
+    fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sample:a.id})})
+      .then(function(r){return r.json();})
+      .then(function(res){ showResult(res); camStatus.textContent='“'+a.name+'” done.'; })
+      .catch(function(e){ camStatus.textContent='Sample failed: '+e.message; });
+  }
+
+  // ---- live camera ----
+  camBtn.addEventListener('click', function(){
+    if(cameraStream){ stopCamera(); return; }
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false}).then(function(s){
+      cameraStream=s; camVideo.srcObject=s; camVideo.play();
+      camBtn.innerHTML='<i class="fas fa-stop"></i> Stop Camera';
+      captureBtn.style.display='inline-block'; pulseBtn.style.display='inline-block';
+      camStatus.textContent='Camera live. Capture (pallor) or Record Pulse (rPPG).';
+    }).catch(function(e){ camStatus.textContent='Camera denied: '+e.message; });
+  });
+  function stopCamera(){
+    if(cameraStream){ cameraStream.getTracks().forEach(function(t){t.stop();}); cameraStream=null; }
+    camVideo.srcObject=null; camBtn.innerHTML='<i class="fas fa-camera"></i> Start Camera';
+    captureBtn.style.display='none'; pulseBtn.style.display='none';
+  }
+  function snap(){
+    var c=document.createElement('canvas'); c.width=camVideo.videoWidth||640; c.height=camVideo.videoHeight||480;
+    c.getContext('2d').drawImage(camVideo,0,0,c.width,c.height);
+    return c.toDataURL('image/jpeg',0.85);
+  }
+  captureBtn.addEventListener('click', function(){
+    camStatus.textContent='Analyzing pallor…';
+    fetch('/api/triage/pallor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:snap(),zone:lastZone})})
+      .then(function(r){return r.json();})
+      .then(function(res){ showResult(res); camStatus.textContent='Pallor analysis done.'; })
+      .catch(function(e){ camStatus.textContent='Pallor failed: '+e.message; });
+  });
+  pulseBtn.addEventListener('click', function(){
+    if(pulseActive){ return; }
+    pulseActive=true; pulseFrames=[]; pulseBtn.disabled=true;
+    var start=Date.now(); camStatus.textContent='Recording 15s of pulse frames…';
+    pulseTimer=setInterval(function(){
+      pulseFrames.push(snap());
+      if(Date.now()-start>=15000){ clearInterval(pulseTimer); finishPulse(); }
+    },250);
+  });
+  function finishPulse(){
+    camStatus.textContent='Analyzing rPPG pulse…';
+    fetch('/api/triage/rppg',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({frames:pulseFrames,fps:4})})
+      .then(function(r){return r.json();})
+      .then(function(res){ showResult(res); camStatus.textContent='Pulse analysis done.'; })
+      .catch(function(e){ camStatus.textContent='rPPG failed: '+e.message; })
+      .finally(function(){ pulseActive=false; pulseBtn.disabled=false; });
+  }
+
+  // ---- result card ----
+  function showResult(res){
+    if(!res || res.status!=='ok'){ alert('Diagnostic failed: '+(res&&res.error||'unknown')); return; }
+    lastResult=res;
+    var risk=res.risk||'normal';
+    var rc=triageCfg.risk_levels[risk]||{label:risk};
+    var rclass=riskClass(risk);
+    resultBody.innerHTML=
+      '<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem;">'
+      +'<span style="padding:.4rem 1rem;border-radius:999px;font-size:.85rem;font-weight:700;color:#fff;background:'+(rc.colour||'#0e7490')+';" class="'+rclass+'">'+rc.label+'</span>'
+      +'<span style="font-size:.9rem;color:#263e50;"><b>'+(res.metric_value||'—')+'</b></span>'
+      +'<span style="font-size:.78rem;color:#6b7f8d;">'+res.metric_name+'</span>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:.6rem 0;">'
+      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Metric</span><span style="font-size:.9rem;font-weight:600;color:#263e50;">'+(res.metric_value||'—')+'</span></div>'
+      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Confidence</span><span style="font-size:.9rem;font-weight:600;color:#263e50;">'+Math.round((res.confidence||0)*100)+'%</span></div>'
+      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Detail</span><span style="font-size:.82rem;font-weight:600;color:#263e50;">'+(res.metric_extra||'')+'</span></div>'
+      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Triage Action</span><span style="font-size:.82rem;font-weight:600;color:#263e50;">'+(res.action||'')+'</span></div>'
+      +'</div>'
+      +(res.band_advice?'<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;line-height:1.6;"><b>Advice:</b> '+res.band_advice+'</p>':'')
+      +(res.sample_id?'<p style="margin:.3rem 0;font-size:.72rem;color:#6b7f8d;">Sample: '+res.sample_id+' · Zone: '+res.zone+'</p>':'')
+      +'<div style="margin-top:.6rem;display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;">'
+      +'<label style="font-size:.78rem;color:#3d5a6e;">Voice lang <select id="triageVoiceSel"></select></label>'
+      +'</div>';
+    populateVoiceSelect();
+    resultCard.style.display='block';
+  }
+  function populateVoiceSelect(){
+    var vs=$('triageVoiceSel');
+    if(!vs||!triageCfg) return;
+    vs.innerHTML='';
+    Object.keys(triageCfg.languages).forEach(function(k){
+      var o=document.createElement('option'); o.value=k; o.textContent=triageCfg.languages[k]; vs.appendChild(o);
+    });
+    vs.value=uiLangSel.value;
+  }
+  exportBtn.addEventListener('click', function(){
+    if(!lastResult){ alert('No result to export.'); return; }
+    var pid=prompt('Patient ID (optional):')||'';
+    var age=prompt('Age (optional):')||'';
+    fetch('/api/triage/export',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({result:lastResult,patient:{id:pid,age:age},zone:lastZone,ui_lang:uiLangSel.value,voice_lang:($('triageVoiceSel')||{value:'en'}).value})})
+      .then(function(r){return r.blob();})
+      .then(function(blob){
+        var url=URL.createObjectURL(blob); var a=document.createElement('a');
+        a.href=url; a.download='nova_triage_'+Date.now()+'.csv'; document.body.appendChild(a); a.click(); a.remove();
+      })
+      .catch(function(e){ alert('Export failed: '+e.message); });
+  });
+  speakBtn.addEventListener('click', function(){
+    if(!lastResult){ alert('No result to speak.'); return; }
+    var vs=$('triageVoiceSel'); var lang=vs?vs.value:'en';
+    var text='Pulse and triage result. '+lastResult.metric_name+': '+lastResult.metric_value+'. '+(lastResult.band_advice||'')+' '+(lastResult.action||'');
+    fetch('/api/triage/speech',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text,lang:lang})})
+      .then(function(r){return r.blob();})
+      .then(function(blob){
+        var url=URL.createObjectURL(blob);
+        var box=$('triageSpeechBox'); if(!box){ box=document.createElement('div'); box.id='triageSpeechBox'; resultBody.appendChild(box); }
+        box.innerHTML='<audio src="'+url+'" controls autoplay style="width:100%;margin-top:.5rem;"></audio>';
+      })
+      .catch(function(e){ alert('Speech failed: '+e.message); });
+  });
 })();
 
 /* (openBotFromView removed — AI Health Guide is a sidebar page) */
@@ -7983,63 +8281,63 @@ setMode('doctor');
 (function(){
   var TRANSLATIONS = {
     hi: {
-      'Dashboard':'डैशबोर्ड','New Analysis':'नया विश्लेषण','Report History':'रिपोर्ट इतिहास','Patients':'मरीज़','Compare Scans':'स्कैन की तुलना करें','Lab Test Analysis':'लैब परीक्षण विश्लेषण','Respiratory Triage':'श्वसन ट्रायेज','Model Performance':'मॉडल प्रदर्शन','AI Assistant':'AI सहायक','AI Health Guide':'AI स्वास्थ्य मार्गदर्शिका','Why Nova?':'नोवा क्यों?','Settings':'सेटिंग्स',
+      'Dashboard':'डैशबोर्ड','New Analysis':'नया विश्लेषण','Report History':'रिपोर्ट इतिहास','Patients':'मरीज़','Compare Scans':'स्कैन की तुलना करें','Lab Test Analysis':'लैब परीक्षण विश्लेषण','Respiratory Triage':'श्वसन ट्रायेज','Smart Triage':'स्मार्ट ट्रायेज','Model Performance':'मॉडल प्रदर्शन','AI Assistant':'AI सहायक','AI Health Guide':'AI स्वास्थ्य मार्गदर्शिका','Why Nova?':'नोवा क्यों?','Settings':'सेटिंग्स',
       'Nova AI':'नोवा AI','From Image & Sound to Insight.':'"छवि और ध्वनि से अंतर्दृष्टि तक।"','Dashboard':'डैशबोर्ड',
       'NOVA RESPIRATORY':'नोवा श्वसन ट्रायेज','Lung-sound triage':'फेफड़े-ध्वनि ट्रायेज','Normal · Crackles · Wheezes · Both':'सामान्य · कर्कश · घरघराहट · दोनों',
       'Patient Information':'रोगी जानकारी','Patient Name':'रोगी का नाम','Age':'उम्र','Gender':'लिंग','Select':'चुनें','Male':'पुरुष','Female':'महिला','Other':'अन्य',
       'Breath-Sound Input':'सांस-ध्वनि इनपुट','Start Recording':'रिकॉर्डिंग शुरू करें','Stop Recording':'रिकॉर्डिंग रोकें','Analyze Breath Sound':'सांस की ध्वनि का विश्लेषण करें','Nova Respiratory Report':'नोवा श्वसन रिपोर्ट','Download Excel':'एक्सेल डाउनलोड करें'
     },
     ta: {
-      'Dashboard':'டாஷ்போர்டு','New Analysis':'புதிய பகுப்பாய்வு','Report History':'அறிக்கை வரலாறு','Patients':'நோயாளிகள்','Compare Scans':'ஸ்கேன்களை ஒப்பிடு','Lab Test Analysis':'ஆய்வக சோதனை பகுப்பாய்வு','Respiratory Triage':'சுவாச மருத்துவம்','Model Performance':'மாதிரி செயல்திறன்','AI Assistant':'AI உதவியாளர்','AI Health Guide':'AI சுகாதார வழிகாட்டி','Why Nova?':'நோவா ஏன்?','Settings':'அமைப்புகள்',
+      'Dashboard':'டாஷ்போர்டு','New Analysis':'புதிய பகுப்பாய்வு','Report History':'அறிக்கை வரலாறு','Patients':'நோயாளிகள்','Compare Scans':'ஸ்கேன்களை ஒப்பிடு','Lab Test Analysis':'ஆய்வக சோதனை பகுப்பாய்வு','Respiratory Triage':'சுவாச மருத்துவம்','Smart Triage':'ஸ்மார்ட் ட்ரையேஜ்','Model Performance':'மாதிரி செயல்திறன்','AI Assistant':'AI உதவியாளர்','AI Health Guide':'AI சுகாதார வழிகாட்டி','Why Nova?':'நோவா ஏன்?','Settings':'அமைப்புகள்',
       'Nova AI':'நோவா AI',
       'NOVA RESPIRATORY':'நோவா சுவாச மருத்துவம்','Lung-sound triage':'நுரையீரல்-ஒலி மருத்துவம்','Normal · Crackles · Wheezes · Both':'சாதாரணம் · க்ராக்கிள்ஸ் · வீசிங் · இரண்டும்',
       'Patient Information':'நோயாளி தகவல்','Patient Name':'நோயாளி பெயர்','Age':'வயது','Gender':'பாலினம்','Select':'தேர்வு','Male':'ஆண்','Female':'பெண்','Other':'மற்றவை',
       'Breath-Sound Input':'சுவாச-ஒலி உள்ளீடு','Start Recording':'பதிவு தொடங்கு','Stop Recording':'பதிவு நிறுத்து','Analyze Breath Sound':'சுவாச ஒலியை பகுப்பாய்வு செய்','Nova Respiratory Report':'நோவா சுவாச அறிக்கை','Download Excel':'எக்செல் பதிவிறக்கு'
     },
     te: {
-      'Dashboard':'డాష్బోర్డ్','New Analysis':'కొత్త విశ్లేషణ','Report History':'నివేదిక చరిత్ర','Patients':'రోగులు','Compare Scans':'స్కాన్లను పోల్చండి','Lab Test Analysis':'ల్యాబ్ పరీక్ష విశ్లేషణ','Respiratory Triage':'శ్వాసకోశ ట్రయాజ్','Model Performance':'మోడల్ పనితీరు','AI Assistant':'AI సహాయకుడు','AI Health Guide':'AI ఆరోగ్య గైడ్','Why Nova?':'నోవా ఎందుకు?','Settings':'సెట్టింగులు',
+      'Dashboard':'డాష్బోర్డ్','New Analysis':'కొత్త విశ్లేషణ','Report History':'నివేదిక చరిత్ర','Patients':'రోగులు','Compare Scans':'స్కాన్లను పోల్చండి','Lab Test Analysis':'ల్యాబ్ పరీక్ష విశ్లేషణ','Respiratory Triage':'శ్వాసకోశ ట్రయాజ్','Smart Triage':'స్మార్ట్ ట్రయాజ్','Model Performance':'మోడల్ పనితీరు','AI Assistant':'AI సహాయకుడు','AI Health Guide':'AI ఆరోగ్య గైడ్','Why Nova?':'నోవా ఎందుకు?','Settings':'సెట్టింగులు',
       'Nova AI':'నోవా AI',
       'NOVA RESPIRATORY':'నోవా శ్వాసకోశ ట్రయాజ్','Lung-sound triage':'ఊపిరితిత్తుల-ధ్వని ట్రయాజ్','Normal · Crackles · Wheezes · Both':'సాధారణం · క్రాకిల్స్ · వీజెస్ · రెండూ',
       'Patient Information':'రోగి సమాచారం','Patient Name':'రోగి పేరు','Age':'వయస్సు','Gender':'లింగం','Select':'ఎంచుకోండి','Male':'పురుషుడు','Female':'స్త్రీ','Other':'ఇతర',
       'Breath-Sound Input':'శ్వాస-ధ్వని ఇన్పుట్','Start Recording':'రికార్డింగ్ ప్రారంభించండి','Stop Recording':'రికార్డింగ్ ఆపు','Analyze Breath Sound':'శ్వాస ధ్వనిని విశ్లేషించండి','Nova Respiratory Report':'నోవా శ్వాసకోశ నివేదిక','Download Excel':'ఎక్సెల్ డౌన్లోడ్'
     },
     kn: {
-      'Dashboard':'ಡ್ಯಾಶ್ಬೋರ್ಡ್','New Analysis':'ಹೊಸ ವಿಶ್ಲೇಷಣೆ','Report History':'ವರದಿ ಇತಿಹಾಸ','Patients':'ರೋಗಿಗಳು','Compare Scans':'ಸ್ಕ್ಯಾನ್ ಹೋಲಿಸಿ','Lab Test Analysis':'ಲ್ಯಾಬ್ ಪರೀಕ್ಷಾ ವಿಶ್ಲೇಷಣೆ','Respiratory Triage':'ಉಸಿರಾಟದ ಟ್ರಯಾಜ್','Model Performance':'ಮಾದರಿ ಕಾರ್ಯಕ್ಷಮತೆ','AI Assistant':'AI ಸಹಾಯಕ','AI Health Guide':'AI ಆರೋಗ್ಯ ಮಾರ್ಗದರ್ಶಿ','Why Nova?':'ನೋವಾ ಏಕೆ?','Settings':'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
+      'Dashboard':'ಡ್ಯಾಶ್ಬೋರ್ಡ್','New Analysis':'ಹೊಸ ವಿಶ್ಲೇಷಣೆ','Report History':'ವರದಿ ಇತಿಹಾಸ','Patients':'ರೋಗಿಗಳು','Compare Scans':'ಸ್ಕ್ಯಾನ್ ಹೋಲಿಸಿ','Lab Test Analysis':'ಲ್ಯಾಬ್ ಪರೀಕ್ಷಾ ವಿಶ್ಲೇಷಣೆ','Respiratory Triage':'ಉಸಿರಾಟದ ಟ್ರಯಾಜ್','Smart Triage':'ಸ್ಮಾರ್ಟ್ ಟ್ರಯಾಜ್','Model Performance':'ಮಾದರಿ ಕಾರ್ಯಕ್ಷಮತೆ','AI Assistant':'AI ಸಹಾಯಕ','AI Health Guide':'AI ಆರೋಗ್ಯ ಮಾರ್ಗದರ್ಶಿ','Why Nova?':'ನೋವಾ ಏಕೆ?','Settings':'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
       'Nova AI':'ನೋವಾ AI',
       'NOVA RESPIRATORY':'ನೋವಾ ಉಸಿರಾಟದ ಟ್ರಯಾಜ್','Lung-sound triage':'ಶ್ವಾಸಕೋಶ-ಧ್ವನಿ ಟ್ರಯಾಜ್','Normal · Crackles · Wheezes · Both':'ಸಾಮಾನ್ಯ · ಕ್ರ್ಯಾಕಲ್ಸ್ · ವೀಜಸ್ · ಎರಡೂ',
       'Patient Information':'ರೋಗಿಯ ಮಾಹಿತಿ','Patient Name':'ರೋಗಿಯ ಹೆಸರು','Age':'ವಯಸ್ಸು','Gender':'ಲಿಂಗ','Select':'ಆಯ್ಕೆ','Male':'ಪುರುಷ','Female':'ಮಹಿಳೆ','Other':'ಇತರೆ',
       'Breath-Sound Input':'ಉಸಿರು-ಧ್ವನಿ ಇನ್‌ಪುಟ್','Start Recording':'ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಿ','Stop Recording':'ರೆಕಾರ್ಡಿಂಗ್ ನಿಲ್ಲಿಸಿ','Analyze Breath Sound':'ಉಸಿರಿನ ಧ್ವನಿಯನ್ನು ವಿಶ್ಲೇಷಿಸಿ','Nova Respiratory Report':'ನೋವಾ ಉಸಿರಾಟದ ವರದಿ','Download Excel':'ಎಕ್ಸೆಲ್ ಡೌನ್‌ಲೋಡ್'
     },
     ml: {
-      'Dashboard':'ഡാഷ്ബോർഡ്','New Analysis':'പുതിയ വിശക്‌ലേഷണം','Report History':'റിപ്പോർട്ട് ചരിത്രം','Patients':'രോഗികൾ','Compare Scans':'സ്കാൻ താരതമ്യം','Lab Test Analysis':'ലാബ് പരിശോധന വിശക്‌ലേഷണം','Respiratory Triage':'ശ്വസന ട്രയേജ്','Model Performance':'മോഡൽ പ്രകടനം','AI Assistant':'AI സഹായി','AI Health Guide':'AI ആരോഗ്യ ഗൈഡ്','Why Nova?':'എന്തുകൊണ്ട് നോവ?','Settings':'ക്രമീകരണങ്ങൾ',
+      'Dashboard':'ഡാഷ്ബോർഡ്','New Analysis':'പുതിയ വിശക്‌ലേഷണം','Report History':'റിപ്പോർട്ട് ചരിത്രം','Patients':'രോഗികൾ','Compare Scans':'സ്കാൻ താരതമ്യം','Lab Test Analysis':'ലാബ് പരിശോധന വിശക്‌ലേഷണം','Respiratory Triage':'ശ്വസന ട്രയേജ്','Smart Triage':'സ്മാർട്ട് ട്രയേജ്','Model Performance':'മോഡൽ പ്രകടനം','AI Assistant':'AI സഹായി','AI Health Guide':'AI ആരോഗ്യ ഗൈഡ്','Why Nova?':'എന്തുകൊണ്ട് നോവ?','Settings':'ക്രമീകരണങ്ങൾ',
       'Nova AI':'നോവ AI',
       'NOVA RESPIRATORY':'നോവ ശ്വസന ട്രയേജ്','Lung-sound triage':'ശ്വാസകോശ-ശബ്ദ ട്രയേജ്','Normal · Crackles · Wheezes · Both':'സാധാരണ · ക്രാക്കിൾസ് · വീസസ് · രണ്ടും',
       'Patient Information':'രോഗിയുടെ വിവരങ്ങൾ','Patient Name':'രോഗിയുടെ പേര്','Age':'പ്രായം','Gender':'ലിംഗം','Select':'തിരഞ്ഞെടുക്കുക','Male':'പുരുഷൻ','Female':'സ്ത്രീ','Other':'മറ്റുള്ളവ',
       'Breath-Sound Input':'ശ്വസന-ശബ്ദ ഇൻപുട്ട്','Start Recording':'റെക്കോർഡിംഗ് ആരംഭിക്കുക','Stop Recording':'റെക്കോർഡിംഗ് നിർത്തുക','Analyze Breath Sound':'ശ്വാസശബ്ദം വിശക്‌ലേഷണം ചെയ്യുക','Nova Respiratory Report':'നോവ ശ്വസന റിപ്പോർട്ട്','Download Excel':'എക്സൽ ഡൗൺലോഡ്'
     },
     mr: {
-      'Dashboard':'डॅशबोर्ड','New Analysis':'नवीन विश्लेषण','Report History':'अहवाल इतिहास','Patients':'रुग्ण','Compare Scans':'स्कॅनची तुलना','Lab Test Analysis':'प्रयोगशाळा चाचणी विश्लेषण','Respiratory Triage':'श्वसन ट्रायेज','Model Performance':'मॉडेल कामगिरी','AI Assistant':'AI सहाय्यक','AI Health Guide':'AI आरोग्य मार्गदर्शक','Why Nova?':'नोवा का?','Settings':'सेटिंग्ज',
+      'Dashboard':'डॅशबोर्ड','New Analysis':'नवीन विश्लेषण','Report History':'अहवाल इतिहास','Patients':'रुग्ण','Compare Scans':'स्कॅनची तुलना','Lab Test Analysis':'प्रयोगशाळा चाचणी विश्लेषण','Respiratory Triage':'श्वसन ट्रायेज','Smart Triage':'स्मार्ट ट्रायेज','Model Performance':'मॉडेल कामगिरी','AI Assistant':'AI सहाय्यक','AI Health Guide':'AI आरोग्य मार्गदर्शक','Why Nova?':'नोवा का?','Settings':'सेटिंग्ज',
       'Nova AI':'नोवा AI',
       'NOVA RESPIRATORY':'नोवा श्वसन ट्रायेज','Lung-sound triage':'फुफ्फुस-ध्वनी ट्रायेज','Normal · Crackles · Wheezes · Both':'सामान्य · क्रॅकल्स · घरघर · दोन्ही',
       'Patient Information':'रुग्ण माहिती','Patient Name':'रुग्णाचे नाव','Age':'वय','Gender':'लिंग','Select':'निवडा','Male':'पुरुष','Female':'स्त्री','Other':'इतर',
       'Breath-Sound Input':'श्वास-ध्वनी इनपुट','Start Recording':'रेकॉर्डिंग सुरू करा','Stop Recording':'रेकॉर्डिंग थांबवा','Analyze Breath Sound':'श्वासाच्या ध्वनीचे विश्लेषण करा','Nova Respiratory Report':'नोवा श्वसन अहवाल','Download Excel':'एक्सेल डाउनलोड करा'
     },
     bn: {
-      'Dashboard':'ড্যাশবোর্ড','New Analysis':'নতুন বিশ্লেষণ','Report History':'রিপোর্ট ইতিহাস','Patients':'রোগী','Compare Scans':'স্ক্যান তুলনা','Lab Test Analysis':'ল্যাব পরীক্ষা বিশ্লেষণ','Respiratory Triage':'শ্বাসযন্ত্র ট্রায়েজ','Model Performance':'মডেল কর্মক্ষমতা','AI Assistant':'AI সহকারী','AI Health Guide':'AI স্বাস্থ্য গাইড','Why Nova?':'কেন নোভা?','Settings':'সেটিংস',
+      'Dashboard':'ড্যাশবোর্ড','New Analysis':'নতুন বিশ্লেষণ','Report History':'রিপোর্ট ইতিহাস','Patients':'রোগী','Compare Scans':'স্ক্যান তুলনা','Lab Test Analysis':'ল্যাব পরীক্ষা বিশ্লেষণ','Respiratory Triage':'শ্বাসযন্ত্র ট্রায়েজ','Smart Triage':'স্মার্ট ট্রায়েজ','Model Performance':'মডেল কর্মক্ষমতা','AI Assistant':'AI সহকারী','AI Health Guide':'AI স্বাস্থ্য গাইড','Why Nova?':'কেন নোভা?','Settings':'সেটিংস',
       'Nova AI':'নোভা AI',
       'NOVA RESPIRATORY':'নোভা শ্বসন ট্রায়েজ','Lung-sound triage':'ফুসফুস-শব্দ ট্রায়েজ','Normal · Crackles · Wheezes · Both':'স্বাভাবিক · ক্র্যাকলস · হুইজেস · উভয়',
       'Patient Information':'রোগীর তথ্য','Patient Name':'রোগীর নাম','Age':'বয়স','Gender':'লিঙ্গ','Select':'নির্বাচন','Male':'পুরুষ','Female':'মহিলা','Other':'অন্যান্য',
       'Breath-Sound Input':'শ্বাস-শব্দ ইনপুট','Start Recording':'রেকর্ডিং শুরু করুন','Stop Recording':'রেকর্ডিং বন্ধ করুন','Analyze Breath Sound':'শ্বাসের শব্দ বিশ্লেষণ করুন','Nova Respiratory Report':'নোভা শ্বসন রিপোর্ট','Download Excel':'এক্সেল ডাউনলোড'
     },
     gu: {
-      'Dashboard':'ડેશબોર્ડ','New Analysis':'નવું વિશ્લેષણ','Report History':'રિપોર્ટ ઇતિહાસ','Patients':'દર્દીઓ','Compare Scans':'સ્કેન સરખામણી','Lab Test Analysis':'લેબ પરીક્ષણ વિશ્લેષણ','Respiratory Triage':'શ્વસન ટ્રાયેજ','Model Performance':'મોડેલ પ્રદર્શન','AI Assistant':'AI સહાયક','AI Health Guide':'AI આરોગ્ય માર્ગદર્શિકા','Why Nova?':'નોવા કેમ?','Settings':'સેટિંગ્સ',
+      'Dashboard':'ડેશબોર્ડ','New Analysis':'નવું વિશ્લેષણ','Report History':'રિપોર્ટ ઇતિહાસ','Patients':'દર્દીઓ','Compare Scans':'સ્કેન સરખામણી','Lab Test Analysis':'લેબ પરીક્ષણ વિશ્લેષણ','Respiratory Triage':'શ્વસન ટ્રાયેજ','Smart Triage':'સ્માર્ટ ટ્રાયેજ','Model Performance':'મોડેલ પ્રદર્શન','AI Assistant':'AI સહાયક','AI Health Guide':'AI આરોગ્ય માર્ગદર્શિકા','Why Nova?':'નોવા કેમ?','Settings':'સેટિંગ્સ',
       'Nova AI':'નોવા AI',
       'NOVA RESPIRATORY':'નોવા શ્વસન ટ્રાયેજ','Lung-sound triage':'ફેફસાં-ધ્વનિ ટ્રાયેજ','Normal · Crackles · Wheezes · Both':'સામાન્ય · ક્રેકલ્સ · વ્હિઝિસ · બંને',
       'Patient Information':'દર્દીની માહિતી','Patient Name':'દર્દીનું નામ','Age':'ઉંમર','Gender':'લિંગ','Select':'પસંદ કરો','Male':'પુરુષ','Female':'સ્ત્રી','Other':'અન્ય',
       'Breath-Sound Input':'શ્વાસ-ધ્વનિ ઇનપુટ','Start Recording':'રેકોર્ડિંગ શરૂ કરો','Stop Recording':'રેકોર્ડિંગ બંધ કરો','Analyze Breath Sound':'શ્વાસની ધ્વનિનું વિશ્લેષણ કરો','Nova Respiratory Report':'નોવા શ્વસન રિપોર્ટ','Download Excel':'એક્સેલ ડાઉનલોડ કરો'
     },
     pa: {
-      'Dashboard':'ਡੈਸ਼ਬੋਰਡ','New Analysis':'ਨਵਾਂ ਵਿਸ਼ਲੇਸ਼ਣ','Report History':'ਰਿਪੋਰਟ ਇਤਿਹਾਸ','Patients':'ਮਰੀਜ਼','Compare Scans':'ਸਕੈਨ ਤੁਲਨਾ','Lab Test Analysis':'ਲੈਬ ਟੈਸਟ ਵਿਸ਼ਲੇਸ਼ਣ','Respiratory Triage':'ਸਾਹ ਟ੍ਰਾਈਜ','Model Performance':'ਮਾਡਲ ਪ੍ਰਦਰਸ਼ਨ','AI Assistant':'AI ਸਹਾਇਕ','AI Health Guide':'AI ਸਿਹਤ ਗਾਈਡ','Why Nova?':'ਨੋਵਾ ਕਿਉਂ?','Settings':'ਸੈਟਿੰਗਾਂ',
+      'Dashboard':'ਡੈਸ਼ਬੋਰਡ','New Analysis':'ਨਵਾਂ ਵਿਸ਼ਲੇਸ਼ਣ','Report History':'ਰਿਪੋਰਟ ਇਤਿਹਾਸ','Patients':'ਮਰੀਜ਼','Compare Scans':'ਸਕੈਨ ਤੁਲਨਾ','Lab Test Analysis':'ਲੈਬ ਟੈਸਟ ਵਿਸ਼ਲੇਸ਼ਣ','Respiratory Triage':'ਸਾਹ ਟ੍ਰਾਈਜ','Smart Triage':'ਸਮਾਰਟ ਟ੍ਰਾਈਜ','Model Performance':'ਮਾਡਲ ਪ੍ਰਦਰਸ਼ਨ','AI Assistant':'AI ਸਹਾਇਕ','AI Health Guide':'AI ਸਿਹਤ ਗਾਈਡ','Why Nova?':'ਨੋਵਾ ਕਿਉਂ?','Settings':'ਸੈਟਿੰਗਾਂ',
       'Nova AI':'ਨੋਵਾ AI',
       'NOVA RESPIRATORY':'ਨੋਵਾ ਸਾਹ ਟ੍ਰਾਈਜ','Lung-sound triage':'ਫੇਫੜੇ-ਆਵਾਜ਼ ਟ੍ਰਾਈਜ','Normal · Crackles · Wheezes · Both':'ਆਮ · ਕ੍ਰੈਕਲਜ਼ · ਵ੍ਹੀਜ਼ · ਦੋਵੇਂ',
       'Patient Information':'ਮਰੀਜ਼ ਜਾਣਕਾਰੀ','Patient Name':'ਮਰੀਜ਼ ਦਾ ਨਾਮ','Age':'ਉਮਰ','Gender':'ਲਿੰਗ','Select':'ਚੁਣੋ','Male':'ਮਰਦ','Female':'ਔਰਤ','Other':'ਹੋਰ',
@@ -8051,7 +8349,7 @@ setMode('doctor');
   var EN_DEFAULTS = {
     'Dashboard':'Dashboard','New Analysis':'New Analysis','Report History':'Report History',
     'Patients':'Patients','Compare Scans':'Compare Scans','Lab Test Analysis':'Lab Test Analysis',
-    'Respiratory Triage':'Respiratory Triage','Model Performance':'Model Performance',
+    'Respiratory Triage':'Respiratory Triage','Smart Triage':'Smart Triage','Model Performance':'Model Performance',
     'AI Assistant':'AI Assistant','AI Health Guide':'AI Health Guide','Why Nova?':'Why Nova?',
     'Settings':'Settings','Workspace':'Workspace','Nova Clinical':'Nova Clinical',
     'Diagnostics':'Diagnostics','Intelligence':'Intelligence','System':'System',
@@ -8187,6 +8485,23 @@ setMode('doctor');
           else opt.textContent = ok;
         });
       }
+    }
+
+    // 6) Smart Triage view content
+    var tgBanner = document.querySelector('#view-triage .ai-banner .tag');
+    if (tgBanner) {
+      if (!tgBanner.getAttribute('data-orig')) tgBanner.setAttribute('data-orig', tgBanner.innerHTML);
+      if (t['NOVA SMART TRIAGE'] != null) tgBanner.innerHTML = t['NOVA SMART TRIAGE'];
+      else tgBanner.innerHTML = tgBanner.getAttribute('data-orig');
+    }
+    var tgHeading = el('triageInputHeading');
+    if (tgHeading) {
+      if (!tgHeading.getAttribute('data-orig')) tgHeading.setAttribute('data-orig', tgHeading.innerHTML);
+      var tgOrig = tgHeading.getAttribute('data-orig');
+      var tgIcon = tgHeading.querySelector('i');
+      var tgIconHtml = tgIcon ? tgIcon.outerHTML + ' ' : '';
+      if (t['Smart Triage — Camera & Acoustic Diagnostics'] != null) tgHeading.innerHTML = tgIconHtml + t['Smart Triage — Camera & Acoustic Diagnostics'];
+      else tgHeading.innerHTML = tgOrig;
     }
 
     localStorage.setItem('nova_lang', lang);
