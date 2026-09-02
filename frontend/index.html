@@ -3604,116 +3604,123 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
       <div class="ai-banner">
         <span class="tag" id="triageBannerTag"><i class="fas fa-heart-pulse"></i> NOVA SMART TRIAGE</span>
         <span class="divider"></span>
-        <span class="chip"><i class="fas fa-video"></i> rPPG Pulse · Pallor</span>
+        <span class="chip"><i class="fas fa-video"></i> <span id="tgChipCam">rPPG Pulse · Pallor</span></span>
         <span class="divider"></span>
-        <span class="chip"><i class="fas fa-wave-square"></i> Cough · Tachypnea</span>
+        <span class="chip"><i class="fas fa-wave-square"></i> <span id="tgChipMic">Cough · Breathing</span></span>
       </div>
 
-      <div class="card">
-        <div class="section-heading" id="triageInputHeading"><i class="fas fa-sliders"></i> Smart Triage — Camera &amp; Acoustic Diagnostics</div>
-        <p style="font-size:.82rem;color:#3d5a6e;line-height:1.7;margin-bottom:1rem;">
-          Measure <b>pulse</b> and <b>pallor</b> from the live camera, and classify <b>cough</b> / count
-          <b>breathing</b> from the microphone — designed for offline rural clinics. Use the
-          <b>Sample data</b> buttons below to test every module without a camera or mic.
-        </p>
-
-        <div style="display:flex;flex-wrap:wrap;gap:1.2rem;align-items:center;">
-          <div class="field-group"><label>UI Language</label>
-            <select id="triageUiLang" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;"></select>
-          </div>
-          <div class="field-group"><label>Target Scan Zone</label>
-            <select id="triageZone" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;"></select>
-          </div>
-          <div class="field-group"><label>Acoustic Mode</label>
-            <select id="triageAcousticMode" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;">
-              <option value="cough">Cough Profile (wet / dry)</option>
-              <option value="tachypnea">Tachypnea (Breath Count, 30s)</option>
-            </select>
-          </div>
-          <div class="field-group" style="display:flex;flex-direction:column;">
-            <label>🎙️ Hands-Free Voice</label>
-            <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer;">
-              <input type="checkbox" id="triageHandsFree" style="width:18px;height:18px;">
-              Say <b>“record”</b>, <b>“capture”</b>, <b>“go”</b>, <b>“reset”</b>
-            </label>
+      <!-- STEP 1: CHOOSE -->
+      <div class="card tg" id="tgPickCard">
+        <div class="tg-head">
+          <div class="section-heading" style="margin-bottom:0;"><i class="fas fa-list-check"></i> <span id="tgTitleChoose">What would you like to check?</span></div>
+          <p class="tg-sub" id="tgChooseSub">A quick, camera &amp; microphone screening for pulse, pallor, cough and breathing — built for rural clinics without internet. No camera? Use the built-in sample data below.</p>
+          <div class="tg-steps">
+            <div class="tg-step"><span class="tg-step-num">1</span><div><b id="tgStep1T">Choose</b><span id="tgStep1S">a test below</span></div></div>
+            <div class="tg-step"><span class="tg-step-num">2</span><div><b id="tgStep2T">Capture</b><span id="tgStep2S">camera or mic input</span></div></div>
+            <div class="tg-step"><span class="tg-step-num">3</span><div><b id="tgStep3T">Review</b><span id="tgStep3S">the result &amp; advice</span></div></div>
           </div>
         </div>
-        <div id="triageVoiceStatus" style="font-size:.78rem;color:#0e7490;margin-top:.3rem;"></div>
+
+        <div class="tg-section-label"><i class="fas fa-sliders"></i> <span id="tgPickLabel">Choose a diagnostic</span></div>
+        <div class="tg-grid" id="tgModeGrid">
+          <button class="tg-mode active" id="tgModePulse" type="button">
+            <div class="tg-mode-icon"><i class="fas fa-heart-pulse"></i></div>
+            <b id="tgModePulseT">Pulse &amp; Pallor</b>
+            <p id="tgModePulseS">Heart rate from your forehead and anemia screening from the eyelid or nail.</p>
+          </button>
+          <button class="tg-mode" id="tgModeCough" type="button">
+            <div class="tg-mode-icon"><i class="fas fa-microphone"></i></div>
+            <b id="tgModeCoughT">Cough Sound</b>
+            <p id="tgModeCoughS">Classify a cough as wet or dry from a short mic recording.</p>
+          </button>
+          <button class="tg-mode" id="tgModeBreath" type="button">
+            <div class="tg-mode-icon"><i class="fas fa-wind"></i></div>
+            <b id="tgModeBreathT">Breathing Rate</b>
+            <p id="tgModeBreathS">Count breaths per minute with a 30-second mic recording.</p>
+          </button>
+        </div>
+
+        <div class="tg-section-label"><i class="fas fa-map-location-dot"></i> <span id="tgZoneLabel">Target zone</span></div>
+        <select id="triageZone" class="tg-zone-select" style="max-width:420px;padding:.6rem .8rem;border:1px solid var(--border-light,#d8e4ea);border-radius:10px;font-size:.84rem;background:var(--surface,#fff);color:var(--text,#263e50);"></select>
+
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;">
+          <span class="tg-chip"><i class="fas fa-microphone-lines"></i> <span id="tgHandsFreeLabel">Hands-free voice</span></span>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--text,#263e50);cursor:pointer;">
+            <input type="checkbox" id="triageHandsFree" style="width:17px;height:17px;accent-color:var(--accent,#0e7490);">
+            <span id="tgHandsFreeHint">Say “record”, “capsule”, “go” or “reset”</span>
+          </label>
+        </div>
+        <div id="triageVoiceStatus" class="tg-status" style="color:var(--accent,#0e7490);margin-top:8px;"></div>
       </div>
 
-      <div class="card">
-        <div class="section-heading" id="triageLiveHeading"><i class="fas fa-video"></i> Live Camera Diagnostics</div>
-        <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;">
-          <div style="flex:1;min-width:240px;">
-            <video id="triageCam" autoplay playsinline muted style="width:100%;max-width:360px;border-radius:12px;background:#0b1220;border:1px solid #243350;"></video>
-            <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.7rem;">
-              <button class="primary-btn" id="triageCamBtn" type="button" style="padding:.55rem 1.1rem;border-radius:10px;border:none;background:#0e7490;color:#fff;font-weight:600;cursor:pointer;">
-                <i class="fas fa-camera"></i> Start Camera
-              </button>
-              <button class="primary-btn" id="triageCaptureBtn" type="button" style="padding:.55rem 1.1rem;border-radius:10px;border:none;background:#0e7490;color:#fff;font-weight:600;cursor:pointer;display:none;">
-                <i class="fas fa-circle-dot"></i> Capture (Pallor)
-              </button>
-              <button class="primary-btn" id="triagePulseBtn" type="button" style="padding:.55rem 1.1rem;border-radius:10px;border:none;background:#7c3aed;color:#fff;font-weight:600;cursor:pointer;display:none;">
-                <i class="fas fa-heartbeat"></i> Record Pulse (15s)
-              </button>
+      <!-- STEP 2: CAPTURE -->
+      <div class="card tg" id="tgCaptureCard" style="display:none;">
+        <div class="section-heading" style="margin-bottom:0;"><i class="fas fa-video"></i> <span id="tgTitleCapture">Capture</span></div>
+        <p class="tg-sub" id="tgCaptureSub" style="margin-top:10px;">Follow the placement guide, then press the button to capture.</p>
+
+        <div class="tg-live" style="margin-top:14px;">
+          <div class="tg-cambox">
+            <video id="triageCam" autoplay playsinline muted class="tg-cam"></video>
+            <div class="tg-actions">
+              <button class="tg-btn" id="triageCamBtn" type="button"><i class="fas fa-camera"></i> <span id="tgStartCam">Start Camera</span></button>
+              <button class="tg-btn" id="triageCaptureBtn" type="button" style="display:none;"><i class="fas fa-circle-dot"></i> <span id="tgCaptureBtnT">Capture (Pallor)</span></button>
+              <button class="tg-btn violet" id="triagePulseBtn" type="button" style="display:none;"><i class="fas fa-heartbeat"></i> <span id="tgPulseBtnT">Record Pulse (15s)</span></button>
+              <button class="tg-btn violet" id="triageAudioBtn" type="button" style="display:none;"><i class="fas fa-microphone"></i> <span id="tgAudioBtnT">Record &amp; Analyze (30s)</span></button>
             </div>
-            <div id="triageCamStatus" style="font-size:.78rem;color:#5a6b7a;margin-top:.5rem;"></div>
+            <div id="triageCamStatus" class="tg-status"></div>
           </div>
-          <div style="flex:1;min-width:220px;" id="triagePlacement">
-            <div class="section-heading"><i class="fas fa-map-location-dot"></i> Placement Guide</div>
-            <p style="font-size:.8rem;color:#3d5a6e;line-height:1.6;">Select a scan zone above to see placement guidance.</p>
+          <div class="tg-guide">
+            <h4><i class="fas fa-map-location-dot"></i> <span id="tgPlacementT">Placement guide</span></h4>
+            <div id="triagePlacement"></div>
           </div>
         </div>
-        <div id="triagePulsePanel" style="margin-top:1rem;background:#0b1220;border-radius:10px;padding:.6rem .8rem;display:none;">
-          <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin-bottom:.3rem;">
-            <span style="font-size:.78rem;color:#93a4c0;">💓 Live pulse signal</span>
-            <span id="triageLiveBpm" style="font-size:1.1rem;font-weight:700;color:#22d3ee;">--</span>
-            <span style="font-size:.75rem;color:#93a4c0;">bpm (rolling)</span>
-            <span id="triagePulseTimer" style="font-size:.78rem;color:#34d399;font-weight:600;"></span>
+
+        <div class="tg-pulse" id="triagePulsePanel">
+          <div class="tg-pulse-head">
+            <label id="tgPulseSignal">💓 Live pulse signal</label>
+            <span class="tg-livebpm" id="triageLiveBpm">--</span>
+            <label id="tgPulseBpm">bpm</label>
+            <span style="margin-left:auto;color:#34d399;font-weight:600;font-size:.8rem;" id="triagePulseTimer"></span>
           </div>
-          <canvas id="triagePulseWave" width="640" height="90" style="width:100%;height:90px;background:#0b1220;border-radius:8px;"></canvas>
+          <canvas id="triagePulseWave" width="640" height="88" class="tg-wave"></canvas>
         </div>
       </div>
 
-      <div class="card">
-        <div class="section-heading" id="triageSampleHeading"><i class="fas fa-flask"></i> Sample Test Data (no camera / mic needed)</div>
-        <p style="font-size:.8rem;color:#3d5a6e;line-height:1.6;margin-bottom:.8rem;">
-          Tap a sample to run that diagnostic end-to-end with built-in test data.
-        </p>
-        <div class="section-heading" style="font-size:.85rem;margin-top:.5rem;color:#0e7490;"><i class="fas fa-heartbeat"></i> rPPG Pulse videos (known BPM)</div>
-        <div id="triageVideoSamples" style="display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:1rem;"></div>
-        <div class="section-heading" style="font-size:.85rem;color:#0e7490;"><i class="fas fa-wave-square"></i> Cough samples</div>
-        <div id="triageCoughSamples" style="display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:1rem;"></div>
-        <div class="section-heading" style="font-size:.85rem;color:#0e7490;"><i class="fas fa-wind"></i> Breathing / Tachypnea samples</div>
-        <div id="triageBreathSamples" style="display:flex;flex-wrap:wrap;gap:.6rem;"></div>
+      <!-- SAMPLE TEST DATA -->
+      <div class="card tg" id="tgSamplesCard">
+        <div class="section-heading" style="margin-bottom:0;"><i class="fas fa-flask"></i> <span id="tgSamplesTitle">Try it with sample data</span></div>
+        <p class="tg-sub" style="margin-top:10px;" id="tgSamplesSub">No camera or mic? Tap a built-in sample to run that diagnostic end-to-end.</p>
+
+        <div class="tg-section-label"><i class="fas fa-heartbeat"></i> <span id="tgSamplesPulse">Pulse samples (known BPM)</span></div>
+        <div class="tg-sample-row" id="triageVideoSamples"></div>
+
+        <div class="tg-section-label"><i class="fas fa-microphone"></i> <span id="tgSamplesCough">Cough samples</span></div>
+        <div class="tg-sample-row" id="triageCoughSamples"></div>
+
+        <div class="tg-section-label"><i class="fas fa-wind"></i> <span id="tgSamplesBreath">Breathing samples</span></div>
+        <div class="tg-sample-row" id="triageBreathSamples"></div>
       </div>
 
-      <div class="card" id="triageResultCard" style="display:none;">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem;">
-          <div class="section-heading" id="triageReportHeading" style="margin:0;"><i class="fas fa-clipboard-check"></i> Nova Triage Alert Card</div>
-          <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-            <button id="triageExportBtn" type="button" style="padding:.4rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;cursor:pointer;font-size:.78rem;">
-              <i class="fas fa-download"></i> Download CSV
-            </button>
-            <button id="triageSpeakBtn" type="button" style="padding:.4rem 1rem;border-radius:8px;border:1px solid #7c3aed;background:#fff;color:#7c3aed;font-weight:600;cursor:pointer;font-size:.78rem;">
-              <i class="fas fa-volume-high"></i> Speak Report
-            </button>
+      <!-- STEP 3: RESULT -->
+      <div class="card tg tg-result-card" id="triageResultCard" style="display:none;">
+        <div class="tg-result-head">
+          <div class="section-heading" id="triageReportHeading" style="margin:0;border:none;padding:0;"><i class="fas fa-clipboard-check"></i> <span id="tgResultTitle">Result &amp; Advice</span></div>
+          <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="tg-btn ghost" id="triageExportBtn" type="button"><i class="fas fa-download"></i> <span id="tgCsv">CSV</span></button>
+            <button class="tg-btn ghost violet" id="triageSpeakBtn" type="button"><i class="fas fa-volume-high"></i> <span id="tgSpeak">Speak</span></button>
           </div>
         </div>
         <div id="triageResultBody"></div>
       </div>
 
-      <div class="card" id="triageHistoryCard">
-        <div class="section-heading" id="triageHistoryHeading"><i class="fas fa-clock-rotate-left"></i> Triage Report History</div>
-        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem;">
-          <button id="triageHistoryRefresh" type="button" style="padding:.45rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;cursor:pointer;font-size:.78rem;">
-            <i class="fas fa-rotate"></i> Refresh
-          </button>
-          <button id="triageHistoryCsv" type="button" style="padding:.45rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;cursor:pointer;font-size:.78rem;">
-            <i class="fas fa-download"></i> Export All (CSV)
-          </button>
+      <!-- HISTORY -->
+      <div class="card tg" id="triageHistoryCard">
+        <div class="section-heading" style="margin-bottom:0;"><i class="fas fa-clock-rotate-left"></i> <span id="tgHistoryTitle">Saved reports</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;margin-bottom:6px;">
+          <button class="tg-btn ghost" id="triageHistoryRefresh" type="button"><i class="fas fa-rotate"></i> <span id="tgRefresh">Refresh</span></button>
+          <button class="tg-btn ghost" id="triageHistoryCsv" type="button"><i class="fas fa-download"></i> <span id="tgExportAll">Export all (CSV)</span></button>
         </div>
-        <div id="triageHistoryList" style="font-size:.78rem;color:#5a6b7a;">Loading saved reports…</div>
+        <div id="triageHistoryList" class="tg-status" style="margin-top:10px;">Loading saved reports…</div>
       </div>
 
     </section>
@@ -4580,6 +4587,221 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
   }
 }
 
+/* ============ Nova Smart Triage (clean redesign) ============ */
+.tg {
+  --tg-accent: var(--accent, #0e7490);
+  --tg-ink: var(--text, #0f172a);
+  --tg-muted: #64748b;
+  --tg-line: var(--border-light, #e2e8f0);
+  --tg-soft: #f1f5f9;
+  --tg-panel: var(--surface, #ffffff);
+  --tg-radius: 14px;
+}
+.tg .tg-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3, 12px);
+}
+.tg .tg-sub {
+  color: var(--tg-muted);
+  font-size: .86rem;
+  line-height: 1.7;
+  margin: 0;
+}
+.tg .tg-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-3, 12px);
+  margin: var(--s-4, 16px) 0 0;
+}
+.tg .tg-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--tg-line);
+  border-radius: var(--tg-radius);
+  background: var(--tg-panel);
+}
+.tg .tg-step-num {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--tg-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: .8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tg .tg-step b { display: block; font-size: .84rem; color: var(--tg-ink); }
+.tg .tg-step span { display: block; font-size: .72rem; color: var(--tg-muted); margin-top: 2px; }
+
+.tg .tg-section {
+  margin-bottom: var(--s-4, 16px);
+}
+.tg .tg-section-label {
+  font-weight: 700;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--tg-accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: var(--s-4, 16px) 0 10px;
+}
+.tg .tg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+.tg .tg-mode {
+  cursor: pointer;
+  text-align: left;
+  border: 1px solid var(--tg-line);
+  background: var(--tg-panel);
+  border-radius: var(--tg-radius);
+  padding: 16px;
+  transition: border-color .15s, box-shadow .15s, transform .05s;
+}
+.tg .tg-mode:hover { border-color: var(--tg-accent); box-shadow: 0 4px 14px rgba(14,116,144,.12); }
+.tg .tg-mode.active { border-color: var(--tg-accent); box-shadow: 0 0 0 2px rgba(14,116,144,.15); }
+.tg .tg-mode .tg-mode-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem; margin-bottom: 10px; background: var(--tg-soft); color: var(--tg-accent);
+}
+.tg .tg-mode.active .tg-mode-icon { background: var(--tg-accent); color: #fff; }
+.tg .tg-mode b { display: block; color: var(--tg-ink); font-size: .9rem; margin-bottom: 4px; }
+.tg .tg-mode p { font-size: .74rem; color: var(--tg-muted); line-height: 1.5; margin: 0; }
+
+.tg .tg-live {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4, 16px);
+  align-items: flex-start;
+}
+.tg .tg-cambox {
+  flex: 1 1 260px;
+  background: #0b1220;
+  border-radius: var(--tg-radius);
+  padding: 10px;
+}
+.tg .tg-cam { width: 100%; border-radius: 10px; background: #0b1220; display: block; }
+.tg .tg-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.tg .tg-guide {
+  flex: 1 1 240px;
+  background: var(--tg-soft);
+  border: 1px solid var(--tg-line);
+  border-radius: var(--tg-radius);
+  padding: 16px;
+}
+.tg .tg-guide h4 { margin: 0 0 8px; font-size: .9rem; color: var(--tg-ink); display: flex; gap: 8px; align-items: center; }
+.tg .tg-guide p { margin: 0; font-size: .8rem; color: var(--tg-muted); line-height: 1.6; }
+
+.tg .tg-btn {
+  border: none;
+  border-radius: 10px;
+  padding: .6rem 1.15rem;
+  font-weight: 600;
+  font-size: .8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity .12s;
+  color: #fff;
+  background: var(--tg-accent);
+}
+.tg .tg-btn:hover { opacity: .9; }
+.tg .tg-btn:disabled { opacity: .45; cursor: not-allowed; }
+.tg .tg-btn.ghost { background: transparent; color: var(--tg-accent); border: 1px solid var(--tg-accent); }
+.tg .tg-btn.violet { background: #7c3aed; }
+.tg .tg-btn.ghost.violet { background: transparent; color: #7c3aed; border-color: #7c3aed; }
+.tg .tg-btn svg, .tg .tg-btn i { font-size: .85rem; }
+
+.tg .tg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--tg-soft);
+  color: var(--tg-ink);
+  font-size: .74rem;
+  font-weight: 600;
+  border: 1px solid var(--tg-line);
+}
+.tg .tg-sample-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 10px;
+}
+.tg .tg-sample {
+  cursor: pointer;
+  text-align: left;
+  border: 1px solid #243350;
+  background: #131c2e;
+  color: #e6edf7;
+  border-radius: 11px;
+  padding: 11px 12px;
+  font-weight: 600;
+  font-size: .76rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: border-color .12s, transform .05s;
+}
+.tg .tg-sample:hover { border-color: var(--tg-accent); transform: translateY(-1px); }
+.tg .tg-sample .tg-bpm { margin-left: auto; font-weight: 700; color: #22d3ee; font-size: .72rem; }
+
+.tg .tg-pulse {
+  margin-top: 14px;
+  background: #0b1220;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: none;
+}
+.tg .tg-pulse .tg-pulse-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.tg .tg-pulse label { font-size: .76rem; color: #93a4c0; }
+.tg .tg-livebpm { font-size: 1.2rem; font-weight: 700; color: #22d3ee; }
+.tg .tg-wave { width: 100%; height: 88px; background: #0b1220; border-radius: 8px; }
+
+.tg .tg-result-card { border-color: var(--tg-line); }
+.tg .tg-result-head {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--tg-line);
+}
+.tg .tg-pill {
+  padding: 5px 14px; border-radius: 999px; color: #fff; font-weight: 700; font-size: .82rem;
+}
+.tg .tg-metric-val { font-size: 1.4rem; font-weight: 800; color: var(--tg-ink); }
+.tg .tg-metric-name { font-size: .8rem; color: var(--tg-muted); }
+.tg .tg-tiles {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;
+}
+.tg .tg-tile {
+  background: var(--tg-soft); border: 1px solid var(--tg-line); border-radius: 10px; padding: 10px 12px;
+}
+.tg .tg-tile span { display: block; font-size: .68rem; color: var(--tg-muted); text-transform: uppercase; letter-spacing: .03em; }
+.tg .tg-tile b { font-size: .86rem; color: var(--tg-ink); font-weight: 600; }
+.tg .tg-advice {
+  margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+  background: #f0f7fb; border-left: 4px solid var(--tg-accent); font-size: .82rem; line-height: 1.65; color: var(--tg-ink);
+}
+.tg .tg-status { font-size: .78rem; color: var(--tg-muted); margin-top: 8px; }
+.tg .tg-history-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 0; border-bottom: 1px solid var(--tg-line);
+}
+.tg .tg-history-row:last-child { border-bottom: none; }
+
+@media (max-width: 720px) {
+  .tg .tg-steps { grid-template-columns: 1fr; }
+}
 </style>
 
 
@@ -6058,456 +6280,760 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
   }
 })();
 
-/* ---- Nova Smart Triage handler (camera rPPG/pallor + acoustic + samples) ---- */
+/* ---- Nova Smart Triage handler (clean, fully multilingual) ---- */
 (function(){
-  // ---- element refs ----
   var $ = function(id){ return document.getElementById(id); };
-  var zoneSel=$('triageZone'), modeSel=$('triageAcousticMode'), uiLangSel=$('triageUiLang');
-  var camVideo=$('triageCam'), camBtn=$('triageCamBtn'), captureBtn=$('triageCaptureBtn'), pulseBtn=$('triagePulseBtn');
+  var zoneSel=$('triageZone');
+  var camVideo=$('triageCam'), camBtn=$('triageCamBtn'), captureBtn=$('triageCaptureBtn'), pulseBtn=$('triagePulseBtn'), audioBtn=$('triageAudioBtn');
   var camStatus=$('triageCamStatus'), placement=$('triagePlacement');
   var videoSamples=$('triageVideoSamples'), coughSamples=$('triageCoughSamples'), breathSamples=$('triageBreathSamples');
   var resultCard=$('triageResultCard'), resultBody=$('triageResultBody');
   var exportBtn=$('triageExportBtn'), speakBtn=$('triageSpeakBtn');
+  var modePulse=$('tgModePulse'), modeCough=$('tgModeCough'), modeBreath=$('tgModeBreath');
+  var captureCard=$('tgCaptureCard');
 
   var triageCfg=null, cameraStream=null, lastResult=null, lastZone='forehead';
-  var pulseFrames=[], pulseTimer=null, pulseActive=false;
+  var pulseFrames=[], pulseTime=[], pulseTimer=null, pulseActive=false;
+  var currentMode='pulse'; // pulse | cough | breath
+  var audioRec=null, audioChunks=[], audioTimer=null, mediaStream=null;
 
-  function riskClass(r){ return r==='high'?'risk-h':r==='moderate'?'risk-m':r==='low'?'risk-l':'risk-n'; }
+  /* ================= TRIAGE I18N (driven by the global language) ================= */
+  var _i18n = {
+    en: {
+      chooseTitle:'What would you like to check?', chooseSub:'A quick camera & microphone screening for pulse, pallor, cough and breathing — built for rural clinics. No camera? Use the built-in sample data below.',
+      step1T:'Choose', step1S:'a test below', step2T:'Capture', step2S:'camera or mic input', step3T:'Review', step3S:'the result & advice',
+      pickLabel:'Choose a diagnostic',
+      modePulseT:'Pulse & Pallor', modePulseS:'Heart rate from the forehead, and anemia screening from the eyelid or nail.',
+      modeCoughT:'Cough Sound', modeCoughS:'Classify a cough as wet or dry from a short mic recording.',
+      modeBreathT:'Breathing Rate', modeBreathS:'Count breaths per minute with a 30-second mic recording.',
+      zoneLabel:'Target zone', handsFreeLabel:'Hands-free voice', handsFreeHint:'Say "record", "capture", "go" or "reset"',
+      captureTitle:'Capture', captureSub:'Follow the placement guide, then press the button to begin.',
+      startCam:'Start Camera', stopCam:'Stop Camera', captureBtnT:'Capture (Pallor)', pulseBtnT:'Record Pulse (15s)', audioBtnT:'Record & Analyze (30s)',
+      placementT:'Placement guide', pulseSignal:'Live pulse signal', pulseBpm:'bpm',
+      analyzing:'Analyzing…', done:'Done.', camLive:'Camera live — capture pallor or record pulse.',
+      samplesTitle:'Try it with sample data', samplesSub:'No camera or mic? Tap a built-in sample to run that diagnostic end-to-end.',
+      samplesPulse:'Pulse samples (known BPM)', samplesCough:'Cough samples', samplesBreath:'Breathing samples',
+      resultTitle:'Result & Advice', csv:'CSV', speak:'Speak', saveReport:'Save report', excel:'Excel',
+      historyTitle:'Saved reports', refresh:'Refresh', exportAll:'Export all (CSV)', historyEmpty:'No saved reports yet. Run a diagnostic and press "Save report".',
+      sample:'Sample', zone:'Zone', module:'Module', metric:'Metric', confidence:'Confidence', detail:'Detail', action:'Action',
+      signal:'Signal', wetIndex:'Wet index', centroid:'Centroid', ageRule:'Age rule',
+      advCap:'Advice', speakBox:'Speaking (browser voice)…', speechUnavail:'Spoken report unavailable. Try installing gTTS.',
+      listening:'Listening… say "record", "capture", "go" or "reset"', heard:'Heard: "{w}"',
+      camDenied:'Camera denied: {e}', failed:'Failed: {e}', runs:'Recording {n}s…', noFrames:'No frames recorded yet. Say "pulse" to record first.',
+      pids:'Patient ID (optional)', age:'Age (optional)', saved:'Report saved: {id}', saveFailed:'Save failed: {e}',
+      nothingExport:'Nothing to export yet.', speechUnsup:'Spoken report unavailable in this browser.',
+      bannerCam:'rPPG Pulse · Pallor', bannerMic:'Cough · Breathing'
+    },
+    hi: {
+      chooseTitle:'आप क्या जांचना चाहेंगे?', chooseSub:'नाड़ी, पीली पड़ने, खांसी और सांस की त्वरित जांच — ग्रामीण क्लीनिकों के लिए। कैमरा नहीं? नीचे in-built सैंपल डेटा उपयोग करें।',
+      step1T:'चुनें', step1S:'नीचे कोई परीक्षण', step2T:'कैप्चर करें', step2S:'कैमरा या माइक', step3T:'समीक्षा', step3S:'परिणाम और सलाह',
+      pickLabel:'एक डायग्नोस्टिक चुनें',
+      modePulseT:'नाड़ी और पीली पड़ना', modePulseS:'माथे से हृदय गति, और पलक या नाखून से एनीमिया जांच।',
+      modeCoughT:'खांसी की ध्वनि', modeCoughS:'छोटी माइक रिकॉर्डिंग से खांसी को गीली या सूखी वर्गीकृत करें।',
+      modeBreathT:'सांस की दर', modeBreathS:'30-सेकंड माइक रिकॉर्डिंग से प्रति मिनट सांसें गिनें।',
+      zoneLabel:'लक्ष्य क्षेत्र', handsFreeLabel:'हैंड्स-फ्री आवाज़', handsFreeHint:'"record", "capture", "go" या "reset" बोलें',
+      captureTitle:'कैप्चर', captureSub:'प्लेसमेंट गाइड का पालन करें, फिर शुरू करने का बटन दबाएँ।',
+      startCam:'कैमरा शुरू करें', stopCam:'कैमरा बंद करें', captureBtnT:'कैप्चर (पीली पड़ना)', pulseBtnT:'नाड़ी रिकॉर्ड करें (15s)', audioBtnT:'रिकॉर्ड और विश्लेषण (30s)',
+      placementT:'प्लेसमेंट गाइड', pulseSignal:'लाइव नाड़ी संकेत', pulseBpm:'bpm',
+      analyzing:'विश्लेषण हो रहा है…', done:'पूर्ण।', camLive:'कैमरा चालू — पीली पड़ना कैप्चर करें या नाड़ी रिकॉर्ड करें।',
+      samplesTitle:'सैंपल डेटा से आज़माएँ', samplesSub:'कैमरा या माइक नहीं? नीचे built-in सैंपल दबाएँ।',
+      samplesPulse:'नाड़ी सैंपल (ज्ञात BPM)', samplesCough:'खांसी सैंपल', samplesBreath:'सांस सैंपल',
+      resultTitle:'परिणाम और सलाह', csv:'CSV', speak:'बोलें', saveReport:'रिपोर्ट सहेजें', excel:'एक्सेल',
+      historyTitle:'सहेजी गई रिपोर्ट', refresh:'रीफ्रेश', exportAll:'सभी निर्यात (CSV)', historyEmpty:'अभी तक कोई सहेजी रिपोर्ट नहीं। डायग्नोस्टिक चलाएँ और "Save report" दबाएँ।',
+      sample:'सैंपल', zone:'क्षेत्र', module:'मॉड्यूल', metric:'माप', confidence:'विश्वास', detail:'विवरण', action:'कार्रवाई',
+      signal:'संकेत', wetIndex:'गीलापन-सूचकांक', centroid:'केंद्रक', ageRule:'आयु-नियम',
+      advCap:'सलाह', speakBox:'बोला जा रहा है (ब्राउज़र आवाज़)…', speechUnavail:'बोली गई रिपोर्ट उपलब्ध नहीं। gTTS इंस्टॉल करें।',
+      listening:'सुन रहे हैं… "record", "capture", "go" या "reset" बोलें', heard:'सुना: "{w}"',
+      camDenied:'कैमरा अस्वीकृत: {e}', failed:'विफल: {e}', runs:'रिकॉर्ड हो रहा है {n}s…', noFrames:'अभी फ्रेम रिकॉर्ड नहीं हुए। पहले "pulse" बोलें।',
+      pids:'रोगी ID (वैकल्पिक)', age:'आयु (वैकल्पिक)', saved:'रिपोर्ट सहेजी: {id}', saveFailed:'सहेजने में विफल: {e}',
+      nothingExport:'अभी निर्यात करने को कुछ नहीं।', speechUnsup:'इस ब्राउज़र में बोली गई रिपोर्ट उपलब्ध नहीं।',
+      bannerCam:'rPPG नाड़ी · पीली पड़ना', bannerMic:'खांसी · सांस'
+    },
+    ta: {
+      chooseTitle:'எதைச் சரிபார்க்க விரும்புகிறீர்கள்?', chooseSub:'நாடித்துடிப்பு, வெளிறிய தோல், இருமல், சுவாசம் — கிராமப்புற மருத்துவமனைகளுக்கு. கேமரா இல்லையா? கீழே உள்ள மாதிரி தரவைப் பயன்படுத்துங்கள்.',
+      step1T:'தேர்வு', step1S:'கீழே ஒரு சோதனை', step2T:'படமெடு', step2S:'கேமரா / மைக்', step3T:'மதிப்பாய்வு', step3S:'முடிவு & ஆலோசனை',
+      pickLabel:'நோயறிதலைத் தேர்வு',
+      modePulseT:'நாடித்துடிப்பு & வெளிறிய தோல்', modePulseS:'நெற்றியிலிருந்து இதயத் துடிப்பு, கண்ணிமை / நகத்திலிருந்து இரத்தசோகை தேர்வு.',
+      modeCoughT:'இருமல் ஒலி', modeCoughS:'சிறிய மைக் பதிவில் இருமலை ஈரமான / உலர்ந்த என வகைப்படுத்துங்கள்.',
+      modeBreathT:'சுவாச வீதம்', modeBreathS:'30-செகண்ட் மைக் பதிவில் நிமிட சுவாசங்களை எண்ணுங்கள்.',
+      zoneLabel:'இலக்கு பகுதி', handsFreeLabel:'கை-இல்லா குரல்', handsFreeHint:'"record", "capture", "go" அல்லது "reset" சொல்லுங்கள்',
+      captureTitle:'படமெடு', captureSub:'திசை வழிகாட்டியைப் பின்பற்றி, பின் தொடங்க பொத்தான் அழுத்துங்கள்.',
+      startCam:'கேமரா தொடங்கு', stopCam:'கேமரா நிறுத்து', captureBtnT:'படமெடு (வெளிறிய தோல்)', pulseBtnT:'நாடித்துடிப்பு பதிவு (15s)', audioBtnT:'பதிவு & பகுப்பாய்வு (30s)',
+      placementT:'திசை வழிகாட்டி', pulseSignal:'நேரடி நாடித்துடிப்பு சமிக்ஞை', pulseBpm:'bpm',
+      analyzing:'பகுப்பாய்வு…', done:'முடிந்தது.', camLive:'கேமரா நேரடி — வெளிறிய தோலை படமெடுக்கவும் அல்லது நாடித்துடிப்பு பதிவு செய்யவும்.',
+      samplesTitle:'மாதிரி தரவுடன் முயலுங்கள்', samplesSub:'கேமரா / மைக் இல்லையா? கீழே உள்ள மாதிரியைத் தட்டுங்கள்.',
+      samplesPulse:'நாடித்துடிப்பு மாதிரிகள் (BPM)', samplesCough:'இருமல் மாதிரிகள்', samplesBreath:'சுவாச மாதிரிகள்',
+      resultTitle:'முடிவு & ஆலோசனை', csv:'CSV', speak:'பேசு', saveReport:'அறிக்கையை சேமி', excel:'எக்செல்',
+      historyTitle:'சேமித்த அறிக்கைகள்', refresh:'புதுப்பி', exportAll:'அனைத்தையும் ஏற்றுமதி (CSV)', historyEmpty:'இன்னும் சேமித்த அறிக்கைகள் இல்லை. நோயறிதலை இயக்கி "Save report" அழுத்துங்கள்.',
+      sample:'மாதிரி', zone:'பகுதி', module:'தொகுதி', metric:'அளவீடு', confidence:'நம்பிக்கை', detail:'விவரம்', action:'செயல்',
+      signal:'சமிக்ஞை', wetIndex:'ஈர குறியீடு', centroid:'மையம்', ageRule:'வயது-விதி',
+      advCap:'ஆலோசனை', speakBox:'பேசுகிறது (உலாவி குரல்)…', speechUnavail:'பேசிய அறிக்கை கிடைக்கவில்லை. gTTS நிறுவவும்.',
+      listening:'கேட்கிறது… "record", "capture", "go" அல்லது "reset" சொல்லுங்கள்', heard:'கேட்டது: "{w}"',
+      camDenied:'கேமரா மறுக்கப்பட்டது: {e}', failed:'தோல்வி: {e}', runs:'பதிவாகிறது {n}s…', noFrames:'இன்னும் பதிவு இல்லை. முதலில் "pulse" சொல்லுங்கள்.',
+      pids:'நோயாளி ID (விருப்ப)', age:'வயது (விருப்ப)', saved:'அறிக்கை சேமிக்கப்பட்டது: {id}', saveFailed:'சேமிக்க முடியவில்லை: {e}',
+      nothingExport:'இன்னும் ஏற்றுமதி செய்ய ஒன்றும் இல்லை.', speechUnsup:'இந்த உலாவியில் பேசிய அறிக்கை இல்லை.',
+      bannerCam:'rPPG நாடித்துடிப்பு · வெளிறிய தோல்', bannerMic:'இருமல் · சுவாசம்'
+    },
+    te: {
+      chooseTitle:'మీరు ఏమి తనిఖీ చేయాలనుకుంటున్నారు?', chooseSub:'పల్స్, పాలిపోవడం, దగ్గు, శ్వాస — గ్రామీణ క్లినిక్లకు. కెమెరా లేదా? క్రింద నమూనా డేటాను వాడండి.',
+      step1T:'ఎంచుకోండి', step1S:'క్రింద ఒక పరీక్ష', step2T:'సంగ్రహించండి', step2S:'కెమెరా / మైక్', step3T:'సమీక్ష', step3S:'ఫలితం & సలహా',
+      pickLabel:'రోగనిర్ధారణను ఎంచుకోండి',
+      modePulseT:'పల్స్ & పాలిపోవడం', modePulseS:'నుదురు నుండి హృదయ స్పందన, కనురెప్ప / గోరు నుండి రక్తహీనత పరీక్ష.',
+      modeCoughT:'దగ్గు ధ్వని', modeCoughS:'చిన్న మైక్ రికార్డింగ్‌లో దగ్గును తడి / పొడిగా వర్గీకరించండి.',
+      modeBreathT:'శ్వాస రేటు', modeBreathS:'30-సెకన్ల మైక్ రికార్డింగ్‌లో నిమిషానికి శ్వాసలను లెక్కించండి.',
+      zoneLabel:'లక్ష్య ప్రాంతం', handsFreeLabel:'చేతులు-లేని స్వరం', handsFreeHint:'"record", "capture", "go" లేదా "reset" అనండి',
+      captureTitle:'సంగ్రహించండి', captureSub:'ప్లేస్‌మెంట్ గైడ్ అనుసరించి, ఆపై ప్రారంభ బటన్ నొక్కండి.',
+      startCam:'కెమెరా ప్రారంభించండి', stopCam:'కెమెరా ఆపండి', captureBtnT:'సంగ్రహం (పాలిపోవడం)', pulseBtnT:'పల్స్ రికార్డ్ (15s)', audioBtnT:'రికార్డ్ & విశ్లేషణ (30s)',
+      placementT:'ప్లేస్‌మెంట్ గైడ్', pulseSignal:'లైవ్ పల్స్ సిగ్నల్', pulseBpm:'bpm',
+      analyzing:'విశ్లేషిస్తోంది…', done:'పూర్తయింది.', camLive:'కెమెరా ప్రత్యక్షం — పాలిపోవడం సంగ్రహించండి లేదా పల్స్ రికార్డ్ చేయండి.',
+      samplesTitle:'నమూనా డేటాతో ప్రయత్నించండి', samplesSub:'కెమెరా / మైక్ లేదా? క్రింద నమూనా నొక్కండి.',
+      samplesPulse:'పల్స్ నమూనాలు (BPM)', samplesCough:'దగ్గు నమూనాలు', samplesBreath:'శ్వాస నమూనాలు',
+      resultTitle:'ఫలితం & సలహా', csv:'CSV', speak:'మాట్లాడండి', saveReport:'నివేదిక సేవ్ చేయండి', excel:'ఎక్సెల్',
+      historyTitle:'సేవ్ చేసిన నివేదికలు', refresh:'రిఫ్రెష్', exportAll:'అన్నీ ఎగుమతి (CSV)', historyEmpty:'ఇంకా నివేదికలు లేవు. రోగనిర్ధారణ నడిపించి "Save report" నొక్కండి.',
+      sample:'నమూనా', zone:'ప్రాంతం', module:'మాడ్యూల్', metric:'కొలత', confidence:'విశ్వాసం', detail:'వివరం', action:'చర్య',
+      signal:'సిగ్నల్', wetIndex:'తేమ-సూచిక', centroid:'కేంద్రకం', ageRule:'వయసు-నియమం',
+      advCap:'సలహా', speakBox:'మాట్లాడుతోంది (బ్రౌజర్ గొంతు)…', speechUnavail:'మాట్లాడిన నివేదిక అందుబాటులో లేదు. gTTS ఇన్‌స్టాల్ చేయండి.',
+      listening:'వింటోంది… "record", "capture", "go" లేదా "reset" అనండి', heard:'విన్నది: "{w}"',
+      camDenied:'కెమెరా నిరాకరించబడింది: {e}', failed:'విఫలం: {e}', runs:'రికార్డ్ అవుతోంది {n}s…', noFrames:'ఇంకా రికార్డ్ కాలేదు. ముందు "pulse" అనండి.',
+      pids:'రోగి ID (ఐచ్ఛికం)', age:'వయస్సు (ఐచ్ఛికం)', saved:'నివేదిక సేవ్ చేయబడింది: {id}', saveFailed:'సేవ్ విఫలమైంది: {e}',
+      nothingExport:'ఇంకా ఎగుమతి చేయడానికి ఏదీ లేదు.', speechUnsup:'ఈ బ్రౌజర్‌లో మాట్లాడిన నివేదిక లేదు.',
+      bannerCam:'rPPG పల్స్ · పాలిపోవడం', bannerMic:'దగ్గు · శ్వాస'
+    },
+    kn: {
+      chooseTitle:'ನೀವು ಏನನ್ನು ಪರೀಕ್ಷಿಸಲು ಬಯಸುತ್ತೀರಿ?', chooseSub:'ನಾಡಿ, ಬಣ್ಣಗೆಡುವಿಕೆ, ಕೆಮ್ಮು, ಉಸಿರಾಟ — ಗ್ರಾಮೀಣ ಕ್ಲಿನಿಕ್‌ಗಳಿಗೆ. ಕ್ಯಾಮೆರಾ ಇಲ್ಲವೇ? ಕೆಳಗಿನ ಮಾದರಿ ಡೇಟಾ ಬಳಸಿ.',
+      step1T:'ಆಯ್ಕೆ', step1S:'ಕೆಳಗೆ ಒಂದು ಪರೀಕ್ಷೆ', step2T:'ಸೆರೆಹಿಡಿಯಿರಿ', step2S:'ಕ್ಯಾಮೆರಾ / ಮೈಕ್', step3T:'ವಿಮರ್ಶೆ', step3S:'ಫಲಿತಾಂಶ & ಸಲಹೆ',
+      pickLabel:'ರೋಗನಿರ್ಣಯ ಆಯ್ಕೆಮಾಡಿ',
+      modePulseT:'ನಾಡಿ & ಬಣ್ಣಗೆಡುವಿಕೆ', modePulseS:'ಹಣೆಯಿಂದ ಹೃದಯ ಬಡಿತ, ರೆಪ್ಪೆ / ಉಗುರಿನಿಂದ ರಕ್ತಹೀನತೆ ಪರೀಕ್ಷೆ.',
+      modeCoughT:'ಕೆಮ್ಮು ಧ್ವನಿ', modeCoughS:'ಸಣ್ಣ ಮೈಕ್ ರೆಕಾರ್ಡಿಂಗ್‌ನಲ್ಲಿ ಕೆಮ್ಮನ್ನು ಆರ್ದ್ರ / ಶುಷ್ಕ ಎಂದು ವರ್ಗೀಕರಿಸಿ.',
+      modeBreathT:'ಉಸಿರಾಟದ ದರ', modeBreathS:'30-ಸೆಕೆಂಡ್ ಮೈಕ್ ರೆಕಾರ್ಡಿಂಗ್‌ನಲ್ಲಿ ನಿಮಿಷದ ಉಸಿರಾಟಗಳನ್ನು ಎಣಿಸಿ.',
+      zoneLabel:'ಗುರಿ ಪ್ರದೇಶ', handsFreeLabel:'ಕೈ-ರಹಿತ ಧ್ವನಿ', handsFreeHint:'"record", "capture", "go" ಅಥವಾ "reset" ಎನ್ನಿ',
+      captureTitle:'ಸೆರೆಹಿಡಿಯಿರಿ', captureSub:'ಪ್ಲೇಸ್‌ಮೆಂಟ್ ಮಾರ್ಗದರ್ಶಿ ಅನುಸರಿಸಿ, ಆಪ್ ಪ್ರಾರಂಭ ಬಟನ್ ಒತ್ತಿರಿ.',
+      startCam:'ಕ್ಯಾಮೆರಾ ಪ್ರಾರಂಭಿಸಿ', stopCam:'ಕ್ಯಾಮೆರಾ ನಿಲ್ಲಿಸಿ', captureBtnT:'ಸೆರೆಹಿಡಿ (ಬಣ್ಣಗೆಡುವಿಕೆ)', pulseBtnT:'ನಾಡಿ ರೆಕಾರ್ಡ್ (15s)', audioBtnT:'ರೆಕಾರ್ಡ್ & ವಿಶ್ಲೇಷಣೆ (30s)',
+      placementT:'ಪ್ಲೇಸ್‌ಮೆಂಟ್ ಮಾರ್ಗದರ್ಶಿ', pulseSignal:'ಲೈವ್ ನಾಡಿ ಸಂಕೇತ', pulseBpm:'bpm',
+      analyzing:'ವಿಶ್ಲೇಷಿಸುತ್ತಿದೆ…', done:'ಮುಗಿದಿದೆ.', camLive:'ಕ್ಯಾಮೆರಾ ಲೈವ್ — ಬಣ್ಣಗೆಡುವಿಕೆ ಸೆರೆಹಿಡಿಯಿರಿ ಅಥವಾ ನಾಡಿ ರೆಕಾರ್ಡ್ ಮಾಡಿ.',
+      samplesTitle:'ಮಾದರಿ ಡೇಟಾದೊಂದಿಗೆ ಪ್ರಯತ್ನಿಸಿ', samplesSub:'ಕ್ಯಾಮೆರಾ / ಮೈಕ್ ಇಲ್ಲವೇ? ಕೆಳಗಿನ ಮಾದರಿ ಒತ್ತಿರಿ.',
+      samplesPulse:'ನಾಡಿ ಮಾದರಿಗಳು (BPM)', samplesCough:'ಕೆಮ್ಮು ಮಾದರಿಗಳು', samplesBreath:'ಉಸಿರಾಟ ಮಾದರಿಗಳು',
+      resultTitle:'ಫಲಿತಾಂಶ & ಸಲಹೆ', csv:'CSV', speak:'ಮಾತನಾಡಿಸಿ', saveReport:'ವರದಿ ಉಳಿಸಿ', excel:'ಎಕ್ಸೆಲ್',
+      historyTitle:'ಉಳಿಸಿದ ವರದಿಗಳು', refresh:'ರಿಫ್ರೆಶ್', exportAll:'ಎಲ್ಲವನ್ನು ರಫ್ತು (CSV)', historyEmpty:'ಇನ್ನೂ ವರದಿಗಳಿಲ್ಲ. ರೋಗನಿರ್ಣಯ ನಡೆಸಿ "Save report" ಒತ್ತಿರಿ.',
+      sample:'ಮಾದರಿ', zone:'ಪ್ರದೇಶ', module:'ಮಾಡ್ಯೂಲ್', metric:'ಅಳತೆ', confidence:'ವಿಶ್ವಾಸ', detail:'ವಿವರ', action:'ಕ್ರಮ',
+      signal:'ಸಂಕೇತ', wetIndex:'ತೇವ-ಸೂಚ್ಯಂಕ', centroid:'ಕೇಂದ್ರಕ', ageRule:'ವಯಸ್ಸು-ನಿಯಮ',
+      advCap:'ಸಲಹೆ', speakBox:'ಮಾತನಾಡುತ್ತಿದೆ (ಬ್ರೌಸರ್ ಧ್ವನಿ)…', speechUnavail:'ಮಾತನಾಡಿದ ವರದಿ ಲಭ್ಯವಿಲ್ಲ. gTTS ಸ್ಥಾಪಿಸಿ.',
+      listening:'ಕೇಳುತ್ತಿದೆ… "record", "capture", "go" ಅಥವಾ "reset" ಎನ್ನಿ', heard:'ಕೇಳಿದ್ದು: "{w}"',
+      camDenied:'ಕ್ಯಾಮೆರಾ ನಿರಾಕರಿಸಲಾಗಿದೆ: {e}', failed:'ವಿಫಲ: {e}', runs:'ರೆಕಾರ್ಡ್ ಆಗುತ್ತಿದೆ {n}s…', noFrames:'ಇನ್ನೂ ರೆಕಾರ್ಡ್ ಆಗಿಲ್ಲ. ಮೊದಲು "pulse" ಎನ್ನಿ.',
+      pids:'ರೋಗಿ ID (ಐಚ್ಛಿಕ)', age:'ವಯಸ್ಸು (ಐಚ್ಛಿಕ)', saved:'ವರದಿ ಉಳಿಸಲಾಗಿದೆ: {id}', saveFailed:'ಉಳಿಸಲು ವಿಫಲ: {e}',
+      nothingExport:'ಇನ್ನೂ ರಫ್ತು ಮಾಡಲು ಏನೂ ಇಲ್ಲ.', speechUnsup:'ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಮಾತನಾಡಿದ ವರದಿ ಇಲ್ಲ.',
+      bannerCam:'rPPG ನಾಡಿ · ಬಣ್ಣಗೆಡುವಿಕೆ', bannerMic:'ಕೆಮ್ಮು · ಉಸಿರಾಟ'
+    },
+    ml: {
+      chooseTitle:'എന്താണ് പരിശോധിക്കാൻ ആഗ്രഹിക്കുന്നത്?', chooseSub:'നാഡി, വിളറിയത്, ചുമ, ശ്വാസം — ഗ്രാമീണ ക്ലിനിക്കുകൾക്ക്. ക്യാമറയില്ലേ? താഴെയുള്ള സാമ്പിൾ ഡാറ്റ ഉപയോഗിക്കുക.',
+      step1T:'തിരഞ്ഞെടുക്കുക', step1S:'താഴെ ഒരു പരിശോധന', step2T:'പകർത്തുക', step2S:'ക്യാമറ / മൈക്ക്', step3T:'അവലോകനം', step3S:'ഫലവും നിർദ്ദേശവും',
+      pickLabel:'രോഗനിർണയം തിരഞ്ഞെടുക്കുക',
+      modePulseT:'നാഡി & വിളറിയത്', modePulseS:'നെറ്റിയിൽ നിന്ന് ഹൃദയമിടിപ്പ്, കൺപോള / നഖത്തിൽ നിന്ന് വിളർച്ച പരിശോധന.',
+      modeCoughT:'ചുമ ശബ്ദം', modeCoughS:'ഹ്രസ്വ മൈക്ക് റെക്കോർഡിംഗിൽ ചുമ നനഞ്ഞ / വരണ്ട എന്ന് തരംതിരിക്കുക.',
+      modeBreathT:'ശ്വസന നിരക്ക്', modeBreathS:'30-സെക്കൻഡ് മൈക്ക് റെക്കോർഡിംഗിൽ മിനിറ്റിൽ ശ്വാസം എണ്ണുക.',
+      zoneLabel:'ലക്ഷ്യ മേഖല', handsFreeLabel:'കൈ-രഹിത ശബ്ദം', handsFreeHint:'"record", "capture", "go" അല്ലെങ്കിൽ "reset" പറയുക',
+      captureTitle:'പകർത്തുക', captureSub:'പ്ലേസ്മെന്റ് ഗൈഡ് പിന്തുടർന്ന് ആരംഭ ബട്ടൺ അമർത്തുക.',
+      startCam:'ക്യാമറ ആരംഭിക്കുക', stopCam:'ക്യാമറ നിർത്തുക', captureBtnT:'പകർത്തുക (വിളറിയത്)', pulseBtnT:'നാഡി റെക്കോർഡ് (15s)', audioBtnT:'റെക്കോർഡ് & വിശക്‌ലേഷണം (30s)',
+      placementT:'പ്ലേസ്മെന്റ് ഗൈഡ്', pulseSignal:'തത്സമയ നാഡി സിഗ്നൽ', pulseBpm:'bpm',
+      analyzing:'വിശക്‌ലേഷണം…', done:'പൂർത്തിയായി.', camLive:'ക്യാമറ തത്സമയം — വിളറിയത് പകർത്തുക അല്ലെങ്കിൽ നാഡി റെക്കോർഡ് ചെയ്യുക.',
+      samplesTitle:'സാമ്പിൾ ഡാറ്റയിൽ പരീക്ഷിക്കുക', samplesSub:'ക്യാമറ / മൈക്ക് ഇല്ലേ? താഴെയുള്ള സാമ്പിൾ അമർത്തുക.',
+      samplesPulse:'നാഡി സാമ്പിളുകൾ (BPM)', samplesCough:'ചുമ സാമ്പിളുകൾ', samplesBreath:'ശ്വസന സാമ്പിളുകൾ',
+      resultTitle:'ഫലവും നിർദ്ദേശവും', csv:'CSV', speak:'സംസാരിക്കുക', saveReport:'റിപ്പോർട്ട് സംരക്ഷിക്കുക', excel:'എക്സൽ',
+      historyTitle:'സംരക്ഷിച്ച റിപ്പോർട്ടുകൾ', refresh:'പുതുക്കുക', exportAll:'എല്ലാം കയറ്റുമതി (CSV)', historyEmpty:'ഇതുവരെ റിപ്പോർട്ടുകൾ ഇല്ല. രോഗനിർണയം നടത്തി "Save report" അമർത്തുക.',
+      sample:'സാമ്പിൾ', zone:'മേഖല', module:'മൊഡ്യൂൾ', metric:'അളവ്', confidence:'വിശ്വാസം', detail:'വിശദാംശം', action:'നടപടി',
+      signal:'സിഗ്നൽ', wetIndex:'നനവ്-സൂചിക', centroid:'കേന്ദ്രം', ageRule:'പ്രായം-നിയമം',
+      advCap:'നിർദ്ദേശം', speakBox:'സംസാരിക്കുന്നു (ബ്രൗസർ ശബ്ദം)…', speechUnavail:'സംസാരിച്ച റിപ്പോർട്ട് ലഭ്യമല്ല. gTTS ഇൻസ്റ്റാൾ ചെയ്യുക.',
+      listening:'കേൾക്കുന്നു… "record", "capture", "go" അല്ലെങ്കിൽ "reset" പറയുക', heard:'കേട്ടത്: "{w}"',
+      camDenied:'ക്യാമറ നിരസിച്ചു: {e}', failed:'പരാജയം: {e}', runs:'റെക്കോർഡ് ചെയ്യുന്നു {n}s…', noFrames:'ഇതുവരെ റെക്കോർഡ് ചെയ്തിട്ടില്ല. ആദ്യം "pulse" പറയുക.',
+      pids:'രോഗി ID (ഓപ്ഷണൽ)', age:'പ്രായം (ഓപ്ഷണൽ)', saved:'റിപ്പോർട്ട് സംരക്ഷിച്ചു: {id}', saveFailed:'സംരക്ഷിക്കാൻ കഴിഞ്ഞില്ല: {e}',
+      nothingExport:'ഇതുവരെ കയറ്റുമതി ചെയ്യാൻ ഒന്നുമില്ല.', speechUnsup:'ഈ ബ്രൗസറിൽ സംസാരിച്ച റിപ്പോർട്ട് ഇല്ല.',
+      bannerCam:'rPPG നാഡി · വിളറിയത്', bannerMic:'ചുമ · ശ്വാസം'
+    },
+    mr: {
+      chooseTitle:'तुम्हाला काय तपासायचे आहे?', chooseSub:'नाडी, फिकटपणा, खोकला, श्वास — ग्रामीण क्लिनिकसाठी. कॅमेरा नाही? खाली अंगभूत सॅम्पल डेटा वापरा.',
+      step1T:'निवडा', step1S:'खाली एक चाचणी', step2T:'कॅप्चर करा', step2S:'कॅमेरा / माइक', step3T:'पुनरावलोकन', step3S:'निकाल व सल्ला',
+      pickLabel:'निदान निवडा',
+      modePulseT:'नाडी व फिकटपणा', modePulseS:'कपाळावरून हृदयगती, पापणी / नखावरून ॲनिमिया तपासणी.',
+      modeCoughT:'खोकला आवाज', modeCoughS:'छोट्या माइक रेकॉर्डिंगमधून खोकला ओला / कोरडा वर्गीकृत करा.',
+      modeBreathT:'श्वास दर', modeBreathS:'30-सेकंद माइक रेकॉर्डिंगमधून प्रति मिनिट श्वास मोजा.',
+      zoneLabel:'लक्ष्य क्षेत्र', handsFreeLabel:'हँड्स-फ्री आवाज', handsFreeHint:'"record", "capture", "go" किंवा "reset" म्हणा',
+      captureTitle:'कॅप्चर', captureSub:'प्लेसमेंट गाइड पाळा, नंतर सुरुवात बटण दाबा.',
+      startCam:'कॅमेरा सुरू करा', stopCam:'कॅमेरा थांबवा', captureBtnT:'कॅप्चर (फिकटपणा)', pulseBtnT:'नाडी रेकॉर्ड (15s)', audioBtnT:'रेकॉर्ड आणि विश्लेषण (30s)',
+      placementT:'प्लेसमेंट गाइड', pulseSignal:'लाइव्ह नाडी सिग्नल', pulseBpm:'bpm',
+      analyzing:'विश्लेषण होत आहे…', done:'झाले.', camLive:'कॅमेरा चालू — फिकटपणा कॅप्चर करा किंवा नाडी रेकॉर्ड करा.',
+      samplesTitle:'सॅम्पल डेटासह प्रयत्न करा', samplesSub:'कॅमेरा / माइक नाही? खालील सॅम्पल दाबा.',
+      samplesPulse:'नाडी सॅम्पल (BPM)', samplesCough:'खोकला सॅम्पल', samplesBreath:'श्वास सॅम्पल',
+      resultTitle:'निकाल व सल्ला', csv:'CSV', speak:'बोला', saveReport:'अहवाल जतन करा', excel:'एक्सेल',
+      historyTitle:'जतन केलेले अहवाल', refresh:'रीफ्रेश', exportAll:'सर्व निर्यात (CSV)', historyEmpty:'अजून अहवाल नाहीत. निदान चालवा आणि "Save report" दाबा.',
+      sample:'सॅम्पल', zone:'क्षेत्र', module:'मॉड्यूल', metric:'माप', confidence:'विश्वास', detail:'तपशील', action:'कृती',
+      signal:'सिग्नल', wetIndex:'ओलावा-निर्देशांक', centroid:'केंद्रक', ageRule:'वय-नियम',
+      advCap:'सल्ला', speakBox:'बोलत आहे (ब्राउझर आवाज)…', speechUnavail:'बोललेला अहवाल उपलब्ध नाही. gTTS स्थापित करा.',
+      listening:'ऐकत आहे… "record", "capture", "go" किंवा "reset" म्हणा', heard:'ऐकले: "{w}"',
+      camDenied:'कॅमेरा नाकारला: {e}', failed:'अयशस्वी: {e}', runs:'रेकॉर्ड होत आहे {n}s…', noFrames:'अजून रेकॉर्ड नाही. आधी "pulse" म्हणा.',
+      pids:'रुग्ण ID (ऐच्छिक)', age:'वय (ऐच्छिक)', saved:'अहवाल जतन: {id}', saveFailed:'जतन अयशस्वी: {e}',
+      nothingExport:'अजून निर्यात करण्यासारखे काही नाही.', speechUnsup:'या ब्राउझरमध्ये बोललेला अहवाल नाही.',
+      bannerCam:'rPPG नाडी · फिकटपणा', bannerMic:'खोकला · श्वास'
+    },
+    bn: {
+      chooseTitle:'আপনি কী পরীক্ষা করতে চান?', chooseSub:'নাড়ি, ফ্যাকাশে, কাশি, শ্বাস — গ্রামীণ ক্লিনিকের জন্য. ক্যামেরা নেই? নিচের নমুনা ডেটা ব্যবহার করুন।',
+      step1T:'চয়ন', step1S:'নিচে একটি পরীক্ষা', step2T:'ক্যাপচার', step2S:'ক্যামেরা / মাইক', step3T:'পর্যালোচনা', step3S:'ফলাফল ও পরামর্শ',
+      pickLabel:'রোগনির্ণয় চয়ন করুন',
+      modePulseT:'নাড়ি ও ফ্যাকাশে', modePulseS:'কপাল থেকে হৃৎস্পন্দন, চোখের পাতা / নখ থেকে রক্তাল্পতা পরীক্ষা।',
+      modeCoughT:'কাশির শব্দ', modeCoughS:'সংক্ষিপ্ত মাইক রেকর্ডিংয়ে কাশিকে ভেজা / শুকনো হিসেবে শ্রেণীবদ্ধ করুন।',
+      modeBreathT:'শ্বাসের হার', modeBreathS:'৩০-সেকেন্ড মাইক রেকর্ডিংয়ে প্রতি মিনিটে শ্বাস গণনা করুন।',
+      zoneLabel:'লক্ষ্য অঞ্চল', handsFreeLabel:'হ্যান্ডস-ফ্রি ভয়েস', handsFreeHint:'"record", "capture", "go" বা "reset" বলুন',
+      captureTitle:'ক্যাপচার', captureSub:'প্লেসমেন্ট গাইড অনুসরণ করুন, তারপর শুরু বোতাম চাপুন।',
+      startCam:'ক্যামেরা শুরু করুন', stopCam:'ক্যামেরা বন্ধ করুন', captureBtnT:'ক্যাপচার (ফ্যাকাশে)', pulseBtnT:'নাড়ি রেকর্ড (১৫s)', audioBtnT:'রেকর্ড ও বিশ্লেষণ (৩০s)',
+      placementT:'প্লেসমেন্ট গাইড', pulseSignal:'লাইভ নাড়ি সংকেত', pulseBpm:'bpm',
+      analyzing:'বিশ্লেষণ হচ্ছে…', done:'সম্পন্ন।', camLive:'ক্যামেরা লাইভ — ফ্যাকাশে ক্যাপচার করুন বা নাড়ি রেকর্ড করুন।',
+      samplesTitle:'নমুনা ডেটা দিয়ে চেষ্টা করুন', samplesSub:'ক্যামেরা / মাইক নেই? নিচের নমুনা চাপুন।',
+      samplesPulse:'নাড়ি নমুনা (BPM)', samplesCough:'কাশি নমুনা', samplesBreath:'শ্বাস নমুনা',
+      resultTitle:'ফলাফল ও পরামর্শ', csv:'CSV', speak:'বলুন', saveReport:'রিপোর্ট সংরক্ষণ', excel:'এক্সেল',
+      historyTitle:'সংরক্ষিত রিপোর্ট', refresh:'রিফ্রেশ', exportAll:'সব রপ্তানি (CSV)', historyEmpty:'এখনো রিপোর্ট নেই। রোগনির্ণয় চালান এবং "Save report" চাপুন।',
+      sample:'নমুনা', zone:'অঞ্চল', module:'মডিউল', metric:'পরিমাপ', confidence:'আস্থা', detail:'বিস্তারিত', action:'পদক্ষেপ',
+      signal:'সংকেত', wetIndex:'ভেজা-সূচক', centroid:'কেন্দ্রক', ageRule:'বয়স-নিয়ম',
+      advCap:'পরামর্শ', speakBox:'বলছে (ব্রাউজার ভয়েস)…', speechUnavail:'বলা রিপোর্ট অনুপলব্ধ। gTTS ইনস্টল করুন।',
+      listening:'শুনছে… "record", "capture", "go" বা "reset" বলুন', heard:'শোনা গেল: "{w}"',
+      camDenied:'ক্যামেরা অস্বীকার: {e}', failed:'ব্যর্থ: {e}', runs:'রেকর্ড হচ্ছে {n}s…', noFrames:'এখনো রেকর্ড হয়নি। আগে "pulse" বলুন।',
+      pids:'রোগী ID (ঐচ্ছিক)', age:'বয়স (ঐচ্ছিক)', saved:'রিপোর্ট সংরক্ষিত: {id}', saveFailed:'সংরক্ষণ ব্যর্থ: {e}',
+      nothingExport:'এখনো রপ্তানি করার কিছু নেই।', speechUnsup:'এই ব্রাউজারে বলা রিপোর্ট নেই।',
+      bannerCam:'rPPG নাড়ি · ফ্যাকাশে', bannerMic:'কাশি · শ্বাস'
+    },
+    gu: {
+      chooseTitle:'તમારે શું તપાસવું છે?', chooseSub:'નાડી, નિસ્તેજ, ખાંસી, શ્વાસ — ગ્રામીણ ક્લિનિક માટે. કેમેરા નહીં? નીચે બિલ્ટ-ઇન સેમ્પલ ડેટા વાપરો.',
+      step1T:'પસંદ કરો', step1S:'નીચે એક પરીક્ષણ', step2T:'કેપ્ચર', step2S:'કેમેરા / માઇક', step3T:'સમીક્ષા', step3S:'પરિણામ અને સલાહ',
+      pickLabel:'નિદાન પસંદ કરો',
+      modePulseT:'નાડી અને નિસ્તેજ', modePulseS:'કપાળથી હૃદયગતિ, પોપચા / નખથી એનિમિયા પરીક્ષણ.',
+      modeCoughT:'ખાંસી ધ્વનિ', modeCoughS:'ટૂંકી માઇક રેકોર્ડિંગમાં ખાંસીને ભીની / સૂકી વર્ગીકૃત કરો.',
+      modeBreathT:'શ્વાસ દર', modeBreathS:'30-સેકન્ડ માઇક રેકોર્ડિંગમાં પ્રતિ મિનિટ શ્વાસ ગણો.',
+      zoneLabel:'લક્ષ્ય ક્ષેત્ર', handsFreeLabel:'હેન્ડ્સ-ફ્રી અવાજ', handsFreeHint:'"record", "capture", "go" અથવા "reset" બોલો',
+      captureTitle:'કેપ્ચર', captureSub:'પ્લેસમેન્ટ ગાઇડ અનુસરો, પછી શરૂઆત બટન દબાવો.',
+      startCam:'કેમેરા શરૂ કરો', stopCam:'કેમેરા બંધ કરો', captureBtnT:'કેપ્ચર (નિસ્તેજ)', pulseBtnT:'નાડી રેકોર્ડ (15s)', audioBtnT:'રેકોર્ડ અને વિશ્લેષણ (30s)',
+      placementT:'પ્લેસમેન્ટ ગાઇડ', pulseSignal:'લાઇવ નાડી સિગ્નલ', pulseBpm:'bpm',
+      analyzing:'વિશ્લેષણ થઈ રહ્યું છે…', done:'પૂર્ણ.', camLive:'કેમેરા લાઇવ — નિસ્તેજ કેપ્ચર કરો અથવા નાડી રેકોર્ડ કરો.',
+      samplesTitle:'સેમ્પલ ડેટાથી અજમાવો', samplesSub:'કેમેરા / માઇક નથી? નીચે સેમ્પલ દબાવો.',
+      samplesPulse:'નાડી સેમ્પલ (BPM)', samplesCough:'ખાંસી સેમ્પલ', samplesBreath:'શ્વાસ સેમ્પલ',
+      resultTitle:'પરિણામ અને સલાહ', csv:'CSV', speak:'બોલો', saveReport:'રિપોર્ટ સાચવો', excel:'એક્સેલ',
+      historyTitle:'સાચવેલા રિપોર્ટ', refresh:'રિફ્રેશ', exportAll:'બધા નિકાસ (CSV)', historyEmpty:'હજી રિપોર્ટ નથી. નિદાન ચલાવો અને "Save report" દબાવો.',
+      sample:'સેમ્પલ', zone:'ક્ષેત્ર', module:'મોડ્યુલ', metric:'માપ', confidence:'વિશ્વાસ', detail:'વિગત', action:'ક્રિયા',
+      signal:'સિગ્નલ', wetIndex:'ભેજ-સૂચક', centroid:'કેન્દ્રક', ageRule:'ઉંમર-નિયમ',
+      advCap:'સલાહ', speakBox:'બોલી રહ્યું છે (બ્રાઉઝર અવાજ)…', speechUnavail:'બોલાયેલ રિપોર્ટ અનુપલબ્ધ. gTTS ઇન્સ્ટોલ કરો.',
+      listening:'સાંભળી રહ્યા છીએ… "record", "capture", "go" અથવા "reset" બોલો', heard:'સાંભળ્યું: "{w}"',
+      camDenied:'કેમેરા નકારાયો: {e}', failed:'નિષ્ફળ: {e}', runs:'રેકોર્ડ થઈ રહ્યું છે {n}s…', noFrames:'હજી રેકોર્ડ નથી. પહેલા "pulse" બોલો.',
+      pids:'દર્દી ID (વૈકલ્પિક)', age:'ઉંમર (વૈકલ્પિક)', saved:'રિપોર્ટ સાચવ્યો: {id}', saveFailed:'સાચવવામાં નિષ્ફળ: {e}',
+      nothingExport:'હજી નિકાસ કરવા જેવું કંઈ નથી.', speechUnsup:'આ બ્રાઉઝરમાં બોલાયેલ રિપોર્ટ નથી.',
+      bannerCam:'rPPG નાડી · નિસ્તેજ', bannerMic:'ખાંસી · શ્વાસ'
+    },
+    pa: {
+      chooseTitle:'ਤੁਸੀਂ ਕੀ ਜਾਂਚਣਾ ਚਾਹੁੰਦੇ ਹੋ?', chooseSub:'ਨਬਜ਼, ਫਿੱਕਾਪਨ, ਖਾਂਸੀ, ਸਾਹ — ਪੇਂਡੂ ਕਲੀਨਿਕਾਂ ਲਈ. ਕੈਮਰਾ ਨਹੀਂ? ਹੇਠਾਂ ਬਿਲਟ-ਇਨ ਸੈਂਪਲ ਡੇਟਾ ਵਰਤੋ।',
+      step1T:'ਚੁਣੋ', step1S:'ਹੇਠਾਂ ਇੱਕ ਜਾਂਚ', step2T:'ਕੈਪਚਰ', step2S:'ਕੈਮਰਾ / ਮਾਈਕ', step3T:'ਸਮੀਖਿਆ', step3S:'ਨਤੀਜਾ ਅਤੇ ਸਲਾਹ',
+      pickLabel:'ਇੱਕ ਨਿਦਾਨ ਚੁਣੋ',
+      modePulseT:'ਨਬਜ਼ ਅਤੇ ਫਿੱਕਾਪਨ', modePulseS:'ਮੱਥੇ ਤੋਂ ਦਿਲ ਦੀ ਧੜਕਣ, ਪਲਕ / ਨਹੁੰ ਤੋਂ ਖੂਨ ਦੀ ਘਾਟ ਦੀ ਜਾਂਚ।',
+      modeCoughT:'ਖਾਂਸੀ ਦੀ ਆਵਾਜ਼', modeCoughS:'ਛੋਟੀ ਮਾਈਕ ਰਿਕਾਰਡਿੰਗ ਵਿੱਚ ਖਾਂਸੀ ਨੂੰ ਗਿੱਲੀ / ਸੁੱਕੀ ਵਜੋਂ ਵਰਗੀਕ੍ਰਿਤ ਕਰੋ।',
+      modeBreathT:'ਸਾਹ ਦੀ ਦਰ', modeBreathS:'30-ਸਕਿੰਟ ਮਾਈਕ ਰਿਕਾਰਡਿੰਗ ਵਿੱਚ ਪ੍ਰਤੀ ਮਿੰਟ ਸਾਹ ਗਿਣੋ।',
+      zoneLabel:'ਨਿਸ਼ਾਨਾ ਖੇਤਰ', handsFreeLabel:'ਹੈਂਡਸ-ਫ੍ਰੀ ਆਵਾਜ਼', handsFreeHint:'"record", "capture", "go" ਜਾਂ "reset" ਬੋਲੋ',
+      captureTitle:'ਕੈਪਚਰ', captureSub:'ਪਲੇਸਮੈਂਟ ਗਾਈਡ ਦੀ ਪਾਲਣਾ ਕਰੋ, ਫਿਰ ਸ਼ੁਰੂਆਤ ਬਟਨ ਦਬਾਓ।',
+      startCam:'ਕੈਮਰਾ ਸ਼ੁਰੂ ਕਰੋ', stopCam:'ਕੈਮਰਾ ਬੰਦ ਕਰੋ', captureBtnT:'ਕੈਪਚਰ (ਫਿੱਕਾਪਨ)', pulseBtnT:'ਨਬਜ਼ ਰਿਕਾਰਡ (15s)', audioBtnT:'ਰਿਕਾਰਡ ਅਤੇ ਵਿਸ਼ਲੇਸ਼ਣ (30s)',
+      placementT:'ਪਲੇਸਮੈਂਟ ਗਾਈਡ', pulseSignal:'ਲਾਈਵ ਨਬਜ਼ ਸਿਗਨਲ', pulseBpm:'bpm',
+      analyzing:'ਵਿਸ਼ਲੇਸ਼ਣ ਹੋ ਰਿਹਾ ਹੈ…', done:'ਮੁਕੰਮਲ।', camLive:'ਕੈਮਰਾ ਲਾਈਵ — ਫਿੱਕਾਪਨ ਕੈਪਚਰ ਕਰੋ ਜਾਂ ਨਬਜ਼ ਰਿਕਾਰਡ ਕਰੋ।',
+      samplesTitle:'ਸੈਂਪਲ ਡੇਟਾ ਨਾਲ ਅਜ਼ਮਾਓ', samplesSub:'ਕੈਮਰਾ / ਮਾਈਕ ਨਹੀਂ? ਹੇਠਾਂ ਸੈਂਪਲ ਦਬਾਓ।',
+      samplesPulse:'ਨਬਜ਼ ਸੈਂਪਲ (BPM)', samplesCough:'ਖਾਂਸੀ ਸੈਂਪਲ', samplesBreath:'ਸਾਹ ਸੈਂਪਲ',
+      resultTitle:'ਨਤੀਜਾ ਅਤੇ ਸਲਾਹ', csv:'CSV', speak:'ਬੋਲੋ', saveReport:'ਰਿਪੋਰਟ ਸਾਂਭੋ', excel:'ਐਕਸਲ',
+      historyTitle:'ਸਾਂਭੇ ਰਿਪੋਰਟਾਂ', refresh:'ਰਿਫਰੈਸ਼', exportAll:'ਸਾਰੇ ਨਿਰਯਾਤ (CSV)', historyEmpty:'ਅਜੇ ਕੋਈ ਰਿਪੋਰਟ ਨਹੀਂ। ਨਿਦਾਨ ਚਲਾਓ ਅਤੇ "Save report" ਦਬਾਓ।',
+      sample:'ਸੈਂਪਲ', zone:'ਖੇਤਰ', module:'ਮੋਡਿਊਲ', metric:'ਮਾਪ', confidence:'ਵਿਸ਼ਵਾਸ', detail:'ਵੇਰਵਾ', action:'ਕਾਰਵਾਈ',
+      signal:'ਸਿਗਨਲ', wetIndex:'ਗਿੱਲਾਪਣ-ਸੂਚਕ', centroid:'ਕੇਂਦਰਕ', ageRule:'ਉਮਰ-ਨਿਯਮ',
+      advCap:'ਸਲਾਹ', speakBox:'ਬੋਲ ਰਿਹਾ ਹੈ (ਬ੍ਰਾਊਜ਼ਰ ਆਵਾਜ਼)…', speechUnavail:'ਬੋਲੀ ਰਿਪੋਰਟ ਉਪਲਬਧ ਨਹੀਂ। gTTS ਸਥਾਪਿਤ ਕਰੋ।',
+      listening:'ਸੁਣ ਰਹੇ ਹਾਂ… "record", "capture", "go" ਜਾਂ "reset" ਬੋਲੋ', heard:'ਸੁਣਿਆ: "{w}"',
+      camDenied:'ਕੈਮਰਾ ਅਸਵੀਕਾਰ: {e}', failed:'ਅਸਫਲ: {e}', runs:'ਰਿਕਾਰਡ ਹੋ ਰਿਹਾ ਹੈ {n}s…', noFrames:'ਅਜੇ ਰਿਕਾਰਡ ਨਹੀਂ। ਪਹਿਲਾਂ "pulse" ਬੋਲੋ।',
+      pids:'ਮਰੀਜ਼ ID (ਵਿਕਲਪਿਕ)', age:'ਉਮਰ (ਵਿਕਲਪਿਕ)', saved:'ਰਿਪੋਰਟ ਸੰਭਾਲੀ: {id}', saveFailed:'ਸੰਭਾਲਣ ਵਿੱਚ ਅਸਫਲ: {e}',
+      nothingExport:'ਅਜੇ ਨਿਰਯਾਤ ਕਰਨ ਲਈ ਕੁਝ ਨਹੀਂ।', speechUnsup:'ਇਸ ਬ੍ਰਾਊਜ਼ਰ ਵਿੱਚ ਬੋਲੀ ਰਿਪੋਰਟ ਨਹੀਂ।',
+      bannerCam:'rPPG ਨਬਜ਼ · ਫਿੱਕਾਪਨ', bannerMic:'ਖਾਂਸੀ · ਸਾਹ'
+    }
+  };
 
-  // ---- boot: fetch config ----
+  /* ---------- helpers ---------- */
+  function curLang(){ var s=localStorage.getItem('nova_lang'); return (_i18n[s]) ? s : 'en'; }
+  function fmt(s, map){ return s.replace(/\{(\w+)\}/g, function(m,k){ return map[k]!=null?map[k]:m; }); }
+  function tg(key, map){ var d=_i18n[curLang()]; var s=(d[key]!=null)?d[key]:((_i18n.en[key]!=null)?_i18n.en[key]:key); return map?fmt(s,map):s; }
+  function setText(id, key, map){ var n=$(id); if(n) n.textContent = tg(key,map); }
+  function toast(msg){ camStatus.textContent=msg; }
+  function riskClass(r){ return r==='high'?'risk-high':r==='moderate'?'risk-moderate':r==='low'?'risk-low':'risk-normal'; }
+  function riskPillStyle(colour){ return 'background:'+(colour||'#0e7490')+';'; }
+
+  // expose for the global language change handler
+  window.__novaTg = tg;
+  window.__novaTriageLangChanged = function(){ applyStatic(); reRenderSamples(); if(lastResult) reRenderResult(); loadHistory(); };
+
+  /* ---------- static translations ---------- */
+  function applyStatic(){
+    setText('tgTitleChoose','chooseTitle'); setText('tgChooseSub','chooseSub');
+    setText('tgStep1T','step1T'); setText('tgStep1S','step1S');
+    setText('tgStep2T','step2T'); setText('tgStep2S','step2S');
+    setText('tgStep3T','step3T'); setText('tgStep3S','step3S');
+    setText('tgPickLabel','pickLabel');
+    setText('tgModePulseT','modePulseT'); setText('tgModePulseS','modePulseS');
+    setText('tgModeCoughT','modeCoughT'); setText('tgModeCoughS','modeCoughS');
+    setText('tgModeBreathT','modeBreathT'); setText('tgModeBreathS','modeBreathS');
+    setText('tgZoneLabel','zoneLabel'); setText('tgHandsFreeLabel','handsFreeLabel'); setText('tgHandsFreeHint','handsFreeHint');
+    setText('tgTitleCapture','captureTitle'); setText('tgCaptureSub','captureSub');
+    setText('tgCaptureBtnT','captureBtnT'); setText('tgPulseBtnT','pulseBtnT'); setText('tgAudioBtnT','audioBtnT');
+    setText('tgPlacementT','placementT'); setText('tgPulseSignal','pulseSignal'); setText('tgPulseBpm','pulseBpm');
+    setText('tgSamplesTitle','samplesTitle'); setText('tgSamplesSub','samplesSub');
+    setText('tgSamplesPulse','samplesPulse'); setText('tgSamplesCough','samplesCough'); setText('tgSamplesBreath','samplesBreath');
+    setText('tgResultTitle','resultTitle'); setText('tgCsv','csv'); setText('tgSpeak','speak');
+    setText('tgHistoryTitle','historyTitle'); setText('tgRefresh','refresh'); setText('tgExportAll','exportAll');
+    var cb=$('triageCamBtn'); if(cb) cb.innerHTML = '<i class="fas fa-camera"></i> '+(cameraStream?tg('stopCam'):tg('startCam'));
+    setText('tgChipCam','bannerCam'); setText('tgChipMic','bannerMic');
+    syncModeUI();
+  }
+  // banner chips: provide keys
+  // (bannerCam/bannerMic fallback handled by tg's English fallback)
+
+  /* ---------- mode switching ---------- */
+  function setMode(m){
+    currentMode=m;
+    syncModeUI();
+    // show capture card on mode pick
+    if(captureCard) captureCard.style.display='block';
+    // configure zone defaults
+    if(m==='pulse'){ if(zoneSel) zoneSel.value='forehead'; }
+    else if(m==='cough'){ if(zoneSel) zoneSel.value='ull'; }
+    else { if(zoneSel) zoneSel.value='lrl'; }
+    // stop audio recording if switching away from mic modes
+    if(m!=='cough' && m!=='breath'){ stopAudio(); } else { stopCamera(); }
+    // show/hide recorder buttons
+    if(cameraStream){
+      captureBtn.style.display = (m==='pulse')?'inline-flex':'none';
+      pulseBtn.style.display = (m==='pulse')?'inline-flex':'none';
+      audioBtn.style.display = (m==='cough'||m==='breath')?'inline-flex':'none';
+      // mic modes don't need video feed; keep camera off
+      if(m==='cough'||m==='breath'){ stopCamera(); }
+    }
+    showPlacement();
+    applyStatic();
+  }
+  function syncModeUI(){
+    var states=[ [modePulse,'pulse'], [modeCough,'cough'], [modeBreath,'breath'] ];
+    states.forEach(function(pair){
+      var el=pair[0], m=pair[1]; if(!el) return;
+      el.classList.toggle('active', currentMode===m);
+    });
+  }
+  if(modePulse) modePulse.addEventListener('click', function(){ setMode('pulse'); });
+  if(modeCough) modeCough.addEventListener('click', function(){ setMode('cough'); });
+  if(modeBreath) modeBreath.addEventListener('click', function(){ setMode('breath'); });
+
+  /* ---------- config boot ---------- */
   fetch('/api/triage/config').then(function(r){return r.json();}).then(function(c){
     triageCfg=c;
-    fillLangs(); fillZones(); renderSamples();
-  }).catch(function(e){ camStatus.textContent='Triage config failed: '+e.message; });
+    fillZones();
+    applyStatic();
+    reRenderSamples();
+    setMode('pulse');
+  }).catch(function(e){ if(camStatus) camStatus.textContent=tg('failed',{e:e.message}); });
 
-  function fillLangs(){
-    uiLangSel.innerHTML='';
-    Object.keys(triageCfg.languages).forEach(function(k){
-      var o=document.createElement('option'); o.value=k; o.textContent=triageCfg.languages[k]; uiLangSel.appendChild(o);
-    });
-    uiLangSel.value='en';
-    uiLangSel.addEventListener('change',function(){ populateVoiceSelect(); });
-  }
   function fillZones(){
+    if(!zoneSel) return;
     zoneSel.innerHTML='';
     Object.keys(triageCfg.scan_zones).forEach(function(k){
       var z=triageCfg.scan_zones[k];
-      var o=document.createElement('option'); o.value=k; o.textContent=z.icon+' '+z.name; zoneSel.appendChild(o);
+      var o=document.createElement('option'); o.value=k; o.textContent=z.icon+' '+z.name;
+      zoneSel.appendChild(o);
     });
-    zoneSel.addEventListener('change',function(){ lastZone=zoneSel.value; showPlacement(); });
+    zoneSel.addEventListener('change', function(){ lastZone=zoneSel.value; showPlacement(); });
     showPlacement();
   }
   function showPlacement(){
+    if(!triageCfg) return;
     var z=triageCfg.scan_zones[zoneSel.value];
-    if(!z) return;
-    placement.innerHTML='<div class="section-heading"><i class="fas fa-map-location-dot"></i> '+z.icon+' '+z.name+'</div>'
-      +'<p style="font-size:.82rem;color:#3d5a6e;line-height:1.6;">'+z.guide+'</p>';
+    if(!z){ if(placement) placement.textContent=''; return; }
     lastZone=zoneSel.value;
+    if(placement){
+      placement.innerHTML='<h4 style="margin:0 0 8px;font-size:.9rem;color:var(--text,#0f172a);display:flex;gap:8px;align-items:center;"><i class="fas fa-map-location-dot" style="color:var(--accent,#0e7490);"></i> '+z.icon+' '+z.name+'</h4>'
+        +'<p style="margin:0;font-size:.8rem;color:var(--tg-muted,#64748b);line-height:1.6;">'+z.guide+'</p>';
+    }
   }
 
-  // ---- render sample buttons ----
-  function renderSamples(){
+  /* ---------- samples ---------- */
+  function reRenderSamples(){
+    if(!triageCfg) return;
     videoSamples.innerHTML='';
     (triageCfg.samples.videos||[]).forEach(function(v){
-      var wrap=document.createElement('div');
-      wrap.style.cssText='display:flex;align-items:center;gap:.4rem;';
-      var beat=document.createElement('canvas'); beat.width=22; beat.height=22;
-      beat.style.cssText='width:22px;height:22px;border-radius:50%;display:block;';
-      var b=document.createElement('button'); b.type='button';
-      b.style.cssText='padding:.5rem 1rem;border-radius:9px;border:1px solid #243350;background:#131c2e;color:#e6edf7;font-weight:600;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;';
-      b.innerHTML='<i class="fas fa-play"></i> '+v.name+' ('+v.bpm+' bpm)';
+      var b=document.createElement('button'); b.type='button'; b.className='tg-sample';
+      b.innerHTML='<i class="fas fa-heart-pulse"></i> '+v.name+'<span class="tg-bpm">'+v.bpm+'</span>';
       b.onclick=function(){ runSampleVideo(v); };
-      startBeatPreview(beat, v.bpm);
-      wrap.appendChild(beat); wrap.appendChild(b);
-      videoSamples.appendChild(wrap);
+      videoSamples.appendChild(b);
     });
     coughSamples.innerHTML='';
     (triageCfg.samples.audio||[]).filter(function(a){return a.module==='cough';}).forEach(function(a){
-      var b=document.createElement('button'); b.type='button';
-      b.style.cssText='padding:.5rem 1rem;border-radius:9px;border:1px solid #243350;background:#131c2e;color:#e6edf7;font-weight:600;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;';
+      var b=document.createElement('button'); b.type='button'; b.className='tg-sample';
       b.innerHTML='<i class="fas fa-microphone"></i> '+a.name;
       b.onclick=function(){ runSampleAudio(a); };
       coughSamples.appendChild(b);
     });
     breathSamples.innerHTML='';
     (triageCfg.samples.audio||[]).filter(function(a){return a.module==='tachypnea';}).forEach(function(a){
-      var b=document.createElement('button'); b.type='button';
-      b.style.cssText='padding:.5rem 1rem;border-radius:9px;border:1px solid #243350;background:#131c2e;color:#e6edf7;font-weight:600;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;';
+      var b=document.createElement('button'); b.type='button'; b.className='tg-sample';
       b.innerHTML='<i class="fas fa-wind"></i> '+a.name;
       b.onclick=function(){ runSampleAudio(a); };
       breathSamples.appendChild(b);
     });
   }
 
-  // animated pulsing "heart" preview at the sample's heart rate
-  function startBeatPreview(canvas, bpm){
-    if(!canvas||!canvas.getContext) return;
-    var ctx=canvas.getContext('2d');
-    var period=60000/(bpm||60); // ms per beat
-    var t0=performance.now();
-    var alive=true;
-    (function frame(now){
-      if(!alive||!canvas.isConnected) return;
-      var phase=((now-t0)%period)/period; // 0..1
-      var scale=0.55+0.45*(phase<0.3? (phase/0.3) : (1-(phase-0.3)/0.7));
-      ctx.clearRect(0,0,22,22);
-      ctx.beginPath();
-      ctx.arc(11,11,10*scale,0,Math.PI*2);
-      ctx.fillStyle='rgba(244,63,94,'+(0.35+0.55*scale)+')';
-      ctx.fill();
-      requestAnimationFrame(frame);
-    })(t0);
-  }
-  // ---- run sample: select the right zone + module, then analyze by id ----
   function runSampleVideo(v){
-    // switch zone to forehead, set status
-    zoneSel.value='forehead'; lastZone='forehead';
-    var url='/api/triage/rppg';
-    camStatus.textContent='Analyzing rPPG sample “'+v.name+'” (expected ~'+v.bpm+' bpm)…';
-    fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sample:v.id})})
+    if(zoneSel) zoneSel.value='forehead'; lastZone='forehead';
+    toast(tg('analyzing'));
+    fetch('/api/triage/rppg',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sample:v.id})})
       .then(function(r){return r.json();})
-      .then(function(res){
-        showResult(res);
-        var expect=v.bpm;
-        camStatus.textContent='rPPG sample “'+v.name+'” done — detected '+(res.metric_value||'?')+' (expected ~'+expect+' bpm).';
-      })
-      .catch(function(e){ camStatus.textContent='Sample failed: '+e.message; });
+      .then(function(res){ showResult(res); toast(tg('done')); })
+      .catch(function(e){ toast(tg('failed',{e:e.message})); });
   }
   function runSampleAudio(a){
-    var url = a.module==='cough' ? '/api/triage/cough' : '/api/triage/tachypnea';
-    camStatus.textContent='Analyzing “'+a.name+'”…';
+    var url=a.module==='cough' ? '/api/triage/cough' : '/api/triage/tachypnea';
+    toast(tg('analyzing'));
     fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sample:a.id})})
       .then(function(r){return r.json();})
-      .then(function(res){ showResult(res); camStatus.textContent='“'+a.name+'” done.'; })
-      .catch(function(e){ camStatus.textContent='Sample failed: '+e.message; });
+      .then(function(res){ showResult(res); toast(tg('done')); })
+      .catch(function(e){ toast(tg('failed',{e:e.message})); });
   }
 
-  // ---- live camera ----
+  /* ---------- live camera ---------- */
   camBtn.addEventListener('click', function(){
     if(cameraStream){ stopCamera(); return; }
     navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false}).then(function(s){
       cameraStream=s; camVideo.srcObject=s; camVideo.play();
-      camBtn.innerHTML='<i class="fas fa-stop"></i> Stop Camera';
-      captureBtn.style.display='inline-block'; pulseBtn.style.display='inline-block';
-      camStatus.textContent='Camera live. Capture (pallor) or Record Pulse (rPPG).';
-    }).catch(function(e){ camStatus.textContent='Camera denied: '+e.message; });
+      camBtn.innerHTML='<i class="fas fa-stop"></i> '+tg('stopCam');
+      if(captureBtn) captureBtn.style.display='inline-flex';
+      if(pulseBtn) pulseBtn.style.display='inline-flex';
+      if(audioBtn) audioBtn.style.display='none';
+      toast(tg('camLive'));
+      if(captureCard) captureCard.style.display='block';
+    }).catch(function(e){ toast(tg('camDenied',{e:(e&&e.message)||e})); });
   });
   function stopCamera(){
     if(cameraStream){ cameraStream.getTracks().forEach(function(t){t.stop();}); cameraStream=null; }
-    camVideo.srcObject=null; camBtn.innerHTML='<i class="fas fa-camera"></i> Start Camera';
-    captureBtn.style.display='none'; pulseBtn.style.display='none';
+    camVideo.srcObject=null;
+    if(camBtn) camBtn.innerHTML='<i class="fas fa-camera"></i> '+tg('startCam');
+    if(captureBtn) captureBtn.style.display='none';
+    if(pulseBtn) pulseBtn.style.display='none';
   }
   function snap(){
     var c=document.createElement('canvas'); c.width=camVideo.videoWidth||640; c.height=camVideo.videoHeight||480;
     c.getContext('2d').drawImage(camVideo,0,0,c.width,c.height);
     return c.toDataURL('image/jpeg',0.85);
   }
-  captureBtn.addEventListener('click', function(){
-    camStatus.textContent='Analyzing pallor…';
+  if(captureBtn) captureBtn.addEventListener('click', function(){
+    toast(tg('analyzing'));
     fetch('/api/triage/pallor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:snap(),zone:lastZone})})
       .then(function(r){return r.json();})
-      .then(function(res){ showResult(res); camStatus.textContent='Pallor analysis done.'; })
-      .catch(function(e){ camStatus.textContent='Pallor failed: '+e.message; });
+      .then(function(res){ showResult(res); toast(tg('done')); })
+      .catch(function(e){ toast(tg('failed',{e:e.message})); });
   });
-  pulseBtn.addEventListener('click', function(){
+
+  /* ---------- pulse recording + waveform ---------- */
+  if(pulseBtn) pulseBtn.addEventListener('click', function(){
     if(pulseActive){ return; }
     pulseActive=true; pulseFrames=[]; pulseTime=[];
     var start=Date.now();
     pulseBtn.disabled=true;
-    camStatus.textContent='Recording 15s of pulse frames…';
     var panel=$('triagePulsePanel'); if(panel) panel.style.display='block';
-    wave.clear(); wave.on=false;
+    waveData=[];
+    toast(tg('runs',{n:15}));
     pulseTimer=setInterval(function(){
       var now=Date.now();
       var frame=snap();
       pulseFrames.push(frame);
       pulseTime.push(now-start);
-      // live waveform + rolling BPM from the central green region
       var g=estimateGreen(frame);
-      wave.push(g);
-      wave.times.push(pulseTime.length);
+      waveData.push(g);
       drawWave();
-      var live=rollingBpm(g, pulseTime);
+      var live=rollingBpm(waveData);
       var lb=$('triageLiveBpm'); if(lb) lb.textContent=(live?live.toFixed(0):'--');
-      var timerEl=$('triagePulseTimer'); if(timerEl) timerEl.textContent=((now-start)/1000).toFixed(1)+'s';
+      var te=$('triagePulseTimer'); if(te) te.textContent=((now-start)/1000).toFixed(1)+'s';
       if(now-start>=15000){ clearInterval(pulseTimer); finishPulse(); }
     },250);
   });
   function finishPulse(){
-    camStatus.textContent='Analyzing rPPG pulse…';
+    toast(tg('analyzing'));
     fetch('/api/triage/rppg',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({frames:pulseFrames,fps:4})})
       .then(function(r){return r.json();})
-      .then(function(res){ showResult(res); camStatus.textContent='Pulse analysis done.'; })
-      .catch(function(e){ camStatus.textContent='rPPG failed: '+e.message; })
+      .then(function(res){ showResult(res); toast(tg('done')); })
+      .catch(function(e){ toast(tg('failed',{e:e.message})); })
       .finally(function(){
         pulseActive=false; pulseBtn.disabled=false;
         var panel=$('triagePulsePanel'); if(panel) panel.style.display='none';
         var lb=$('triageLiveBpm'); if(lb) lb.textContent='--';
       });
   }
-  // --- live waveform helpers ---
+  var waveData=[];
   function estimateGreen(dataUrl){
-    var img=new Image();
-    // synchronous-ish: use an offscreen canvas read
-    var c=document.createElement('canvas'); var img2=new Image();
-    img2.src=dataUrl;
-    // decode synchronously is not possible; capture via video instead
     var v=camVideo;
+    if(!v) return 0;
     var cc=document.createElement('canvas'); cc.width=v.videoWidth||64; cc.height=v.videoHeight||64;
     var ctx=cc.getContext('2d'); ctx.drawImage(v,0,0,cc.width,cc.height);
     var d=ctx.getImageData(0,0,cc.width,cc.height).data;
-    // central 40% green mean
-    var w=cc.width, h=cc.height; var x0=Math.floor(w*0.3),x1=Math.floor(w*0.7),y0=Math.floor(h*0.1),y1=Math.floor(h*0.8);
+    var w=cc.width,h=cc.height,x0=Math.floor(w*0.3),x1=Math.floor(w*0.7),y0=Math.floor(h*0.1),y1=Math.floor(h*0.8);
     var sum=0,n=0;
     for(var y=Math.max(0,y0);y<y1;y++){ for(var x=Math.max(0,x0);x<x1;x++){ var i=(y*w+x)*4; sum+=d[i+1]; n++; } }
     return n? sum/n : 0;
   }
-  var wave={data:[],times:[],clear:function(){this.data=[];this.times=[];},push:function(v){this.data.push(v);},on:false};
   function drawWave(){
     var cv=$('triagePulseWave'); if(!cv||!cv.getContext) return;
-    var ctx=cv.getContext('2d');
-    var W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
+    var ctx=cv.getContext('2d'); var W=cv.width,H=cv.height;
+    ctx.clearRect(0,0,W,H);
     ctx.strokeStyle='rgba(34,211,238,0.12)'; ctx.lineWidth=1;
     for(var y=20;y<H;y+=20){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
-    var data=wave.data, n=data.length; if(n<2) return;
-    var min=Math.min.apply(null,data),max=Math.max.apply(null,data);
-    var range=(max-min)||1;
+    var data=waveData,n=data.length; if(n<2) return;
+    var min=Math.min.apply(null,data),max=Math.max.apply(null,data); var range=(max-min)||1;
     ctx.strokeStyle='#22d3ee'; ctx.lineWidth=2; ctx.beginPath();
     for(var i=0;i<n;i++){ var x=(i/(n-1))*(W-10)+5; var y=H-8-((data[i]-min)/range)*(H-20); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y); }
     ctx.stroke();
   }
-  function rollingBpm(g, times){
-    // naive zero-crossing rate on the accumulated green buffer -> rough BPM
-    var data=wave.data; if(data.length<8) return null;
+  function rollingBpm(data){
+    if(data.length<8) return null;
     var crossings=0;
-    for(var i=1;i<data.length;i++){ if((data[i-1]-data[i-2]<=0)!==(data[i]-data[i-1]<=0)) crossings++; }
-    var dur=(data.length*0.25); // seconds captured (250ms each)
+    for(var i=2;i<data.length;i++){ if((data[i-2]-data[i-3]<=0)!==(data[i]-data[i-1]<=0)) crossings++; }
+    var dur=(data.length*0.25);
     var rate=(crossings/2)/(dur/60.0);
     return rate>30&&rate<220? rate : null;
   }
 
-  // ---- result card ----
+  /* ---------- audio record (cough / breathing) ---------- */
+  if(audioBtn) audioBtn.addEventListener('click', function(){
+    var mode=currentMode; // cough | breath
+    var seconds = (mode==='cough') ? 6 : 30;
+    if(audioRec && audioRec.state==='recording'){ stopAudioRecord(mode); return; }
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      mediaStream=stream;
+      audioChunks=[];
+      audioRec=new MediaRecorder(stream);
+      audioRec.ondataavailable=function(ev){ if(ev.data && ev.data.size>0) audioChunks.push(ev.data); };
+      audioRec.onstop=function(){ sendAudio(mode); };
+      audioRec.start();
+      audioBtn.innerHTML='<i class="fas fa-stop"></i> '+tg('stopCam');
+      var secs=seconds;
+      toast(tg('runs',{n:secs}));
+      audioTimer=setInterval(function(){
+        secs-=1;
+        if(secs<=0){ clearInterval(audioTimer); stopAudioRecord(mode); }
+        else toast(tg('runs',{n:secs}));
+      },1000);
+      // auto-stop after N seconds
+      audioBtn.setAttribute('data-end', Date.now()+seconds*1000);
+      setTimeout(function(){ if(audioRec && audioRec.state==='recording' && audioTimer) stopAudioRecord(mode); }, seconds*1000);
+    }).catch(function(e){ toast(tg('failed',{e:(e&&e.message)||e})); });
+  });
+  function stopAudioRecord(mode){
+    if(audioTimer){ clearInterval(audioTimer); audioTimer=null; }
+    if(audioRec && audioRec.state!=='inactive'){ try{ audioRec.stop(); }catch(e){} }
+    if(mediaStream){ mediaStream.getTracks().forEach(function(t){t.stop();}); mediaStream=null; }
+    if(audioBtn) audioBtn.innerHTML='<i class="fas fa-microphone"></i> '+tg('audioBtnT');
+  }
+  function stopAudio(){
+    if(audioTimer){ clearInterval(audioTimer); audioTimer=null; }
+    if(audioRec && audioRec.state!=='inactive'){ try{ audioRec.stop(); }catch(e){} }
+    if(mediaStream){ mediaStream.getTracks().forEach(function(t){t.stop();}); mediaStream=null; }
+    if(audioBtn) audioBtn.innerHTML='<i class="fas fa-microphone"></i> '+tg('audioBtnT');
+  }
+  function sendAudio(mode){
+    if(!audioChunks.length){ toast(tg('failed',{e:'No audio'})); return; }
+    var blob=new Blob(audioChunks,{type:'audio/webm'});
+    toast(tg('analyzing'));
+    var body=new FormData();
+    body.append('audio', blob, 'capture'+(mode==='cough'?'_cough.webm':'_breath.webm'));
+    var url = mode==='cough' ? '/api/triage/cough' : '/api/triage/tachypnea';
+    if(currentMode==='breath' && lastResult && lastResult._blank){} // noop
+    fetch(url,{method:'POST',body:body})
+      .then(function(r){return r.json();})
+      .then(function(res){ showResult(res); toast(tg('done')); })
+      .catch(function(e){ toast(tg('failed',{e:e.message})); });
+  }
+
+  /* ---------- result card ---------- */
+  function chipHTML(label, value){
+    return '<span class="tg-chip">'+label+': <b>'+value+'</b></span>';
+  }
+  function reRenderResult(){
+    if(lastResult) renderResultInto(lastResult);
+  }
+  function renderResultInto(res){
+    var risk=res.risk||'normal';
+    var rc=(triageCfg&&triageCfg.risk_levels[risk])||{label:risk,colour:'#0e7490'};
+    var chips='';
+    if(res.signal_quality) chips+=chipHTML(tg('signal'), res.signal_quality);
+    if(res.wet_index!=null) chips+=chipHTML(tg('wetIndex'), res.wet_index.toFixed(2));
+    if(res.spectral_centroid) chips+=chipHTML(tg('centroid'), Math.round(res.spectral_centroid)+' Hz');
+    if(res.age_note) chips+=chipHTML(tg('ageRule'), res.age_note);
+    if(res.rgb_means && res.rgb_means.R!=null) chips+=chipHTML('RGB','R'+res.rgb_means.R+' G'+res.rgb_means.G+' B'+res.rgb_means.B);
+    var tiles=
+      '<div class="tg-tile"><span>'+tg('metric')+'</span><b>'+(res.metric_value||'—')+'</b></div>'
+      +'<div class="tg-tile"><span>'+tg('confidence')+'</span><b>'+Math.round((res.confidence||0)*100)+'%</b></div>'
+      +'<div class="tg-tile"><span>'+tg('detail')+'</span><b>'+(res.metric_extra||'—')+'</b></div>'
+      +'<div class="tg-tile"><span>'+tg('action')+'</span><b>'+(res.action||'—')+'</b></div>';
+    resultBody.innerHTML=
+      '<div class="tg-result-head">'
+      +'<span class="tg-pill" style="'+riskPillStyle(rc.colour)+'">'+rc.label+'</span>'
+      +'<span class="tg-metric-val">'+(res.metric_value||'—')+'</span>'
+      +'<span class="tg-metric-name">'+res.metric_name+'</span>'
+      +'</div>'
+      +(chips?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">'+chips+'</div>':'')
+      +'<div class="tg-tiles">'+tiles+'</div>'
+      +'<div class="tg-advice"><b>'+tg('advCap')+':</b> '+(res.band_advice||'')+'</div>'
+      +(res.sample_id?'<div class="tg-status" style="margin-top:8px;">'+tg('sample')+': '+res.sample_id+' · '+tg('zone')+': '+res.zone+' · '+tg('module')+': '+res.module+'</div>':'')
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">'
+      +'<button id="triageSaveBtn" type="button" class="tg-btn" style="background:var(--accent,#0e7490);"><i class="fas fa-floppy-disk"></i> '+tg('saveReport')+'</button>'
+      +'<button id="triageXlsBtn" type="button" class="tg-btn ghost"><i class="fas fa-file-excel"></i> '+tg('excel')+'</button>'
+      +'</div>';
+    resultCard.style.display='block';
+    var sb=$('triageSaveBtn'); if(sb) sb.onclick=function(){ saveReport(); };
+    var xb=$('triageXlsBtn'); if(xb) xb.onclick=function(){ exportResultXls(); };
+  }
   function showResult(res){
     if(!res || res.status!=='ok'){ alert('Diagnostic failed: '+(res&&res.error||'unknown')); return; }
     lastResult=res;
-    var risk=res.risk||'normal';
-    var rc=triageCfg.risk_levels[risk]||{label:risk};
-    var rclass=riskClass(risk);
-    var chips='';
-    if(res.signal_quality){ chips+=chip('Signal', res.signal_quality); }
-    if(res.wet_index!=null){ chips+=chip('Wet-index', res.wet_index.toFixed(2)); }
-    if(res.spectral_centroid){ chips+=chip('Centroid', Math.round(res.spectral_centroid)+' Hz'); }
-    if(res.age_note){ chips+=chip('Age-rule', res.age_note); }
-    if(res.rgb_means&&res.rgb_means.R!=null){ chips+=chip('RGB', 'R'+res.rgb_means.R+' G'+res.rgb_means.G+' B'+res.rgb_means.B); }
-    var detailTiles=
-      '<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Metric</span><span style="font-size:.9rem;font-weight:600;color:#263e50;">'+(res.metric_value||'—')+'</span></div>'
-      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Confidence</span><span style="font-size:.9rem;font-weight:600;color:#263e50;">'+Math.round((res.confidence||0)*100)+'%</span></div>'
-      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Detail</span><span style="font-size:.82rem;font-weight:600;color:#263e50;">'+(res.metric_extra||'')+'</span></div>'
-      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Triage Action</span><span style="font-size:.82rem;font-weight:600;color:#263e50;">'+(res.action||'')+'</span></div>';
-    if(chips) detailTiles='<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.4rem;">'+chips+'</div>'+detailTiles;
-    resultBody.innerHTML=
-      '<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem;">'
-      +'<span style="padding:.4rem 1rem;border-radius:999px;font-size:.85rem;font-weight:700;color:#fff;background:'+(rc.colour||'#0e7490')+';" class="'+rclass+'">'+rc.label+'</span>'
-      +'<span style="font-size:1rem;font-weight:700;color:#263e50;">'+(res.metric_value||'—')+'</span>'
-      +'<span style="font-size:.78rem;color:#6b7f8d;">'+res.metric_name+'</span>'
-      +'</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:.6rem 0;">'
-      +detailTiles
-      +'</div>'
-      +'<div style="margin:.5rem 0;"><div style="font-size:.72rem;color:#6b7f8d;">Confidence</div>'
-      +'<div style="height:8px;background:#e8eef3;border-radius:6px;max-width:360px;"><div style="width:'+Math.round((res.confidence||0)*100)+'%;height:100%;background:'+(rc.colour||'#0e7490')+';border-radius:6px;"></div></div></div>'
-      +(res.band_advice?'<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;line-height:1.6;"><b>Advice:</b> '+res.band_advice+'</p>':'')
-      +(res.sample_id?'<p style="margin:.3rem 0;font-size:.72rem;color:#6b7f8d;">Sample: '+res.sample_id+' · Zone: '+res.zone+'</p>':'')
-      +'<p style="margin:.2rem 0;font-size:.72rem;color:#6b7f8d;"><b>Module:</b> '+res.metric_name+' ('+res.module+')</p>'
-      +'<div style="margin-top:.6rem;display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;">'
-      +'<label style="font-size:.78rem;color:#3d5a6e;">Voice lang <select id="triageVoiceSel"></select></label>'
-      +'<button id="triageSaveBtn" type="button" style="padding:.4rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#0e7490;color:#fff;font-weight:600;cursor:pointer;font-size:.78rem;"><i class="fas fa-floppy-disk"></i> Save Report</button>'
-      +'<button id="triageXlsBtn" type="button" style="padding:.4rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;cursor:pointer;font-size:.78rem;"><i class="fas fa-file-excel"></i> Excel</button>'
-      +'</div>';
-    populateVoiceSelect();
-    resultCard.style.display='block';
-    var saveBtn=$('triageSaveBtn');
-    if(saveBtn) saveBtn.addEventListener('click', function(){ saveReport(); });
-    var xlsBtn=$('triageXlsBtn');
-    if(xlsBtn) xlsBtn.addEventListener('click', function(){ exportResultXls(); });
+    renderResultInto(res);
   }
   function exportResultXls(){
-    if(!lastResult){ alert('Nothing to export.'); return; }
-    var pid=prompt('Patient ID (optional):')||'';
-    var age=prompt('Age (optional):')||'';
-    var rr={
-      id:'TR-'+Date.now(), ts:new Date().toISOString(),
-      patient:{id:pid,age:age}, zone:lastZone,
-      module:lastResult.module, metric_name:lastResult.metric_name,
-      metric_value:lastResult.metric_value, metric_extra:lastResult.metric_extra,
-      confidence:lastResult.confidence, risk:lastResult.risk,
-      signal_quality:lastResult.signal_quality||'', sample_id:lastResult.sample_id||''
-    };
+    if(!lastResult){ alert(tg('nothingExport')); return; }
+    var pid=prompt(tg('pids'))||'';
+    var age=prompt(tg('age'))||'';
+    var rr={ id:'TR-'+Date.now(), ts:new Date().toISOString(), patient:{id:pid,age:age}, zone:lastZone,
+      module:lastResult.module, metric_name:lastResult.metric_name, metric_value:lastResult.metric_value,
+      metric_extra:lastResult.metric_extra, confidence:lastResult.confidence, risk:lastResult.risk,
+      signal_quality:lastResult.signal_quality||'', sample_id:lastResult.sample_id||'' };
     exportXls(rr);
   }
-  function chip(label, value){
-    return '<span style="padding:.25rem .6rem;border-radius:999px;background:#e8eef3;color:#263e50;font-size:.72rem;font-weight:600;">'+label+': <b>'+value+'</b></span>';
-  }
   function saveReport(){
-    if(!lastResult){ alert('Nothing to save.'); return; }
-    var pid=prompt('Patient ID (optional):')||'';
-    var age=prompt('Age (optional):')||'';
+    if(!lastResult){ alert(tg('nothingExport')); return; }
+    var pid=prompt(tg('pids'))||'';
+    var age=prompt(tg('age'))||'';
     fetch('/api/triage/report/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({report:lastResult,patient:{id:pid,age:age},zone:lastZone})})
       .then(function(r){return r.json();})
-      .then(function(d){ if(d.status==='ok'){ alert('Report saved: '+d.report.id); loadHistory(); } else { alert('Save failed: '+(d.error||'')); } })
-      .catch(function(e){ alert('Save failed: '+e.message); });
+      .then(function(d){ if(d.status==='ok'){ alert(tg('saved',{id:d.report.id})); loadHistory(); } else { alert(tg('saveFailed',{e:d.error||''})); } })
+      .catch(function(e){ alert(tg('saveFailed',{e:e.message})); });
   }
-  function populateVoiceSelect(){
-    var vs=$('triageVoiceSel');
-    if(!vs||!triageCfg) return;
-    vs.innerHTML='';
-    Object.keys(triageCfg.languages).forEach(function(k){
-      var o=document.createElement('option'); o.value=k; o.textContent=triageCfg.languages[k]; vs.appendChild(o);
-    });
-    vs.value=uiLangSel.value;
-  }
-  exportBtn.addEventListener('click', function(){
-    if(!lastResult){ alert('No result to export.'); return; }
-    var pid=prompt('Patient ID (optional):')||'';
-    var age=prompt('Age (optional):')||'';
-    fetch('/api/triage/export',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({result:lastResult,patient:{id:pid,age:age},zone:lastZone,ui_lang:uiLangSel.value,voice_lang:($('triageVoiceSel')||{value:'en'}).value})})
+  if(exportBtn) exportBtn.addEventListener('click', function(){
+    if(!lastResult){ alert(tg('nothingExport')); return; }
+    var pid=prompt(tg('pids'))||'';
+    var age=prompt(tg('age'))||'';
+    fetch('/api/triage/export',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({result:lastResult,patient:{id:pid,age:age},zone:lastZone,ui_lang:curLang(),voice_lang:curLang()})})
       .then(function(r){return r.blob();})
-      .then(function(blob){
-        var url=URL.createObjectURL(blob); var a=document.createElement('a');
-        a.href=url; a.download='nova_triage_'+Date.now()+'.csv'; document.body.appendChild(a); a.click(); a.remove();
-      })
-      .catch(function(e){ alert('Export failed: '+e.message); });
+      .then(function(blob){ var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='nova_triage_'+Date.now()+'.csv'; document.body.appendChild(a); a.click(); a.remove(); })
+      .catch(function(e){ alert(tg('failed',{e:e.message})); });
   });
-  speakBtn.addEventListener('click', function(){
-    if(!lastResult){ alert('No result to speak.'); return; }
-    var vs=$('triageVoiceSel'); var lang=vs?vs.value:'en';
-    var text='Triage result. '+lastResult.metric_name+': '+lastResult.metric_value+'. '+(lastResult.band_advice||'')+' '+(lastResult.action||'');
+
+  /* ---------- speech ---------- */
+  var langToBCP47={en:'en-US',hi:'hi-IN',ta:'ta-IN',te:'te-IN',kn:'kn-IN',ml:'ml-IN',mr:'mr-IN',bn:'bn-IN',gu:'gu-IN',pa:'pa-IN'};
+  if(speakBtn) speakBtn.addEventListener('click', function(){
+    if(!lastResult){ alert(tg('nothingExport')); return; }
+    var lang=curLang();
+    var text=tg('resultTitle')+'. '+lastResult.metric_name+': '+lastResult.metric_value+'. '+(lastResult.band_advice||'')+' '+(lastResult.action||'');
     var box=$('triageSpeechBox'); if(!box){ box=document.createElement('div'); box.id='triageSpeechBox'; resultBody.appendChild(box); }
-    // Prefer the browser's built-in speechSynthesis (works offline, no server gTTS).
     if(window.speechSynthesis){
       try{
         speechSynthesis.cancel();
         var u=new SpeechSynthesisUtterance(text);
-        u.lang=langToBCP47(lang);
-        u.rate=0.98;
-        var vsList=speechSynthesis.getVoices();
-        var want=u.lang.split('-')[0];
+        u.lang=langToBCP47[lang]||'en-US'; u.rate=0.96;
+        var vsList=speechSynthesis.getVoices(); var want=u.lang.split('-')[0];
         for(var v=0;v<vsList.length;v++){ if((vsList[v].lang||'').toLowerCase().indexOf(want)===0){ u.voice=vsList[v]; break; } }
-        box.innerHTML='<span style="font-size:.75rem;color:#6b7f8d;display:block;margin-bottom:.3rem;">🔊 Speaking (browser voice)…</span>';
+        box.innerHTML='<span style="font-size:.75rem;color:var(--tg-muted,#64748b);display:block;margin:.3rem 0;">🔊 '+tg('speakBox')+'</span>';
         speechSynthesis.speak(u);
         u.onend=function(){ box.innerHTML=''; };
         return;
-      }catch(e){ /* fall through to server gTTS */ }
+      }catch(e){ /* fall to gTTS */ }
     }
     fetch('/api/triage/speech',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text,lang:lang})})
-      .then(function(r){ if(!r.ok) throw new Error('gTTS unavailable on server'); return r.blob(); })
-      .then(function(blob){
-        var url=URL.createObjectURL(blob);
-        box.innerHTML='<audio src="'+url+'" controls autoplay style="width:100%;margin-top:.5rem;"></audio>';
-      })
-      .catch(function(e){ box.innerHTML='<span style="font-size:.75rem;color:#b45309;">⚠️ Spoken report unavailable ('+e.message+'). Try installing gTTS.</span>'; });
+      .then(function(r){ if(!r.ok) throw new Error('gTTS'); return r.blob(); })
+      .then(function(blob){ var url=URL.createObjectURL(blob); box.innerHTML='<audio src="'+url+'" controls autoplay style="width:100%;margin-top:.4rem;"></audio>'; })
+      .catch(function(e){ box.innerHTML='<span style="font-size:.75rem;color:#b45309;">⚠️ '+tg('speechUnavail')+(localStorage.getItem('nova_lang')!=='en'?'':'')+'</span>'; });
   });
-  function langToBCP47(lang){
-    var map={en:'en-US',hi:'hi-IN',ta:'ta-IN',te:'te-IN',kn:'kn-IN',ml:'ml-IN',mr:'mr-IN',bn:'bn-IN',gu:'gu-IN',pa:'pa-IN'};
-    return map[lang]||'en-US';
-  }
 
-  // ---- report history ----
+  /* ---------- history ---------- */
   function loadHistory(){
     var list=$('triageHistoryList'); if(!list) return;
+    if(!triageCfg) return; // wait until config (for risk levels)
     fetch('/api/triage/report/history').then(function(r){return r.json();}).then(function(d){
       var reports=d.reports||[];
-      if(!reports.length){ list.innerHTML='<span style="color:#6b7f8d;">No saved reports yet. Run a diagnostic and click “Save Report”.</span>'; return; }
-      var rows=reports.map(function(rr,i){
+      if(!reports.length){ list.innerHTML='<span style="color:var(--tg-muted,#64748b);">'+tg('historyEmpty').replace(/\n/g,' ')+'</span>'; return; }
+      var rows=reports.map(function(rr){
         var risk=rr.risk||'normal';
-        var rc=triageCfg.risk_levels[risk]||{label:risk};
-        return '<div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;padding:.5rem 0;border-bottom:1px solid #e8eef3;">'
-          +'<span style="padding:.2rem .6rem;border-radius:999px;font-size:.68rem;font-weight:700;color:#fff;background:'+(rc.colour||'#0e7490')+';">'+rc.label+'</span>'
-          +'<span style="font-weight:600;color:#263e50;min-width:120px;">'+(rr.metric_name||'')+'</span>'
-          +'<span style="color:#263e50;">'+(rr.metric_value||'')+'</span>'
-          +'<span style="color:#6b7f8d;font-size:.72rem;">'+(rr.patient&&rr.patient.id?'ID '+(rr.patient.id)+' · ':'')+(rr.ts||'')+'</span>'
-          +'<span style="margin-left:auto;display:flex;gap:.4rem;">'
-          +'<button data-xls="'+i+'" type="button" style="padding:.3rem .7rem;border-radius:7px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;font-size:.72rem;cursor:pointer;"><i class="fas fa-file-excel"></i> Excel</button>'
-          +'</span>'
-          +'<span class="hidden-xls-index" style="display:none;">'+encodeURIComponent(JSON.stringify(rr))+'</span>'
+        var rc=(triageCfg&&triageCfg.risk_levels[risk])||{label:risk,colour:'#0e7490'};
+        var rclass=riskClass(risk);
+        return '<div class="tg-history-row">'
+          +'<span class="tg-pill '+rclass+'" style="'+riskPillStyle(rc.colour)+'">'+rc.label+'</span>'
+          +'<span style="font-weight:600;color:var(--text,#0f172a);min-width:120px;">'+(rr.metric_name||'')+'</span>'
+          +'<span style="color:var(--text,#0f172a);">'+(rr.metric_value||'')+'</span>'
+          +'<span style="color:var(--tg-muted,#64748b);font-size:.72rem;">'+(rr.patient&&rr.patient.id?'ID '+(rr.patient.id)+' · ':'')+(rr.ts||'')+'</span>'
+          +'<span style="margin-left:auto;display:flex;gap:6px;"><button data-xls="'+encodeURIComponent(JSON.stringify(rr))+'" type="button" class="tg-btn ghost" style="padding:.3rem .7rem;font-size:.72rem;"><i class="fas fa-file-excel"></i> '+tg('excel')+'</button></span>'
           +'</div>';
       }).join('');
       list.innerHTML=rows;
       list.querySelectorAll('button[data-xls]').forEach(function(b){
         b.addEventListener('click', function(){
-          var k=parseInt(b.getAttribute('data-xls'),10);
-          var hidden=list.querySelectorAll('.hidden-xls-index')[k];
-          var rr=JSON.parse(decodeURIComponent(hidden.textContent));
+          var rr=JSON.parse(decodeURIComponent(b.getAttribute('data-xls')));
           exportXls(rr);
         });
       });
-    }).catch(function(e){ list.innerHTML='History failed: '+e.message; });
+    }).catch(function(e){ list.innerHTML=tg('failed',{e:e.message}); });
   }
   function exportXls(rr){
     fetch('/api/triage/report/export',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({report:rr})})
       .then(function(r){ return r.blob(); })
-      .then(function(blob){
-        var url=URL.createObjectURL(blob); var a=document.createElement('a');
-        a.href=url; a.download='nova_triage_'+(rr.id||'report')+'.xlsx'; document.body.appendChild(a); a.click(); a.remove();
-      })
-      .catch(function(e){ alert('Excel export failed: '+e.message); });
+      .then(function(blob){ var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='nova_triage_'+(rr.id||'report')+'.xlsx'; document.body.appendChild(a); a.click(); a.remove(); })
+      .catch(function(e){ alert(tg('failed',{e:e.message})); });
   }
   function exportAllCsv(){
     fetch('/api/triage/report/history').then(function(r){return r.json();}).then(function(d){
       var reports=d.reports||[];
-      if(!reports.length){ alert('No saved reports to export.'); return; }
+      if(!reports.length){ alert(tg('nothingExport')); return; }
       var lines=['Timestamp,Patient ID,Age,Zone,Module,Metric,Value,Risk,Confidence'];
-      reports.forEach(function(rr){
-        var p=rr.patient||{};
-        lines.push([rr.ts||'', p.id||'', p.age||'', rr.zone||'', rr.module||'', rr.metric_name||'', (rr.metric_value||'').replace(/,/g,''), rr.risk||'', rr.confidence||''].join(','));
-      });
+      reports.forEach(function(rr){ var p=rr.patient||{}; lines.push([rr.ts||'',p.id||'',p.age||'',rr.zone||'',rr.module||'',rr.metric_name||'',(rr.metric_value||'').replace(/,/g,''),rr.risk||'',rr.confidence||''].join(',')); });
       var blob=new Blob([lines.join('\n')],{type:'text/csv'});
-      var url=URL.createObjectURL(blob); var a=document.createElement('a');
-      a.href=url; a.download='nova_triage_all_'+Date.now()+'.csv'; document.body.appendChild(a); a.click(); a.remove();
-    }).catch(function(e){ alert('Export failed: '+e.message); });
+      var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='nova_triage_all_'+Date.now()+'.csv'; document.body.appendChild(a); a.click(); a.remove();
+    }).catch(function(e){ alert(tg('failed',{e:e.message})); });
   }
-  var histRefresh=$('triageHistoryRefresh'); if(histRefresh) histRefresh.addEventListener('click', loadHistory);
-  var histCsv=$('triageHistoryCsv'); if(histCsv) histCsv.addEventListener('click', exportAllCsv);
+  var hr=$('triageHistoryRefresh'); if(hr) hr.addEventListener('click', loadHistory);
+  var hc=$('triageHistoryCsv'); if(hc) hc.addEventListener('click', exportAllCsv);
 
-  // ---- hands-free voice control (Web Speech API) ----
+  /* ---------- hands-free voice ---------- */
   var SRec=window.SpeechRecognition||window.webkitSpeechRecognition;
   var hfToggle=$('triageHandsFree');
   if(hfToggle) hfToggle.addEventListener('change', function(){
-    if(!hfToggle.checked){ $('triageVoiceStatus').textContent=''; return; }
-    if(!SRec){ $('triageVoiceStatus').textContent='Speech recognition not supported in this browser.'; return; }
+    var vs=$('triageVoiceStatus');
+    if(!hfToggle.checked){ if(vs) vs.textContent=''; return; }
+    if(!SRec){ if(vs) vs.textContent=tg('speechUnsup'); return; }
     var run=function(){
       var sr=new SRec(); sr.lang='en-US'; sr.interimResults=false; sr.maxAlternatives=1;
       try{ sr.start(); }catch(e){}
-      $('triageVoiceStatus').textContent='🎙️ Listening… say “record”, “capture”, “go”, “reset”';
+      if(vs) vs.textContent='🎙️ '+tg('listening');
       sr.onresult=function(ev){
         var word=(ev.results[0][0].transcript||'').toLowerCase();
-        $('triageVoiceStatus').textContent='Heard: “'+word+'”';
-        if(word.indexOf('record')>-1){ camBtn.click(); }
-        else if(word.indexOf('capture')>-1){ captureBtn.click(); }
-        else if(word.indexOf('pulse')>-1){ pulseBtn.click(); }
+        if(vs) vs.textContent=tg('heard',{w:word});
+        if(word.indexOf('record')>-1){ if(pulseBtn) pulseBtn.click(); else if(audioBtn) audioBtn.click(); }
+        else if(word.indexOf('capture')>-1){ if(captureBtn) captureBtn.click(); }
+        else if(word.indexOf('pulse')>-1){ if(pulseBtn) pulseBtn.click(); }
         else if(word.indexOf('go')>-1||word.indexOf('analyz')>-1){ runPulseAnalysis(); }
-        else if(word.indexOf('reset')>-1){ /* clear result */ resultCard.style.display='none'; lastResult=null; }
-        else if(word.indexOf('export')>-1){ exportBtn.click(); }
+        else if(word.indexOf('reset')>-1){ resultCard.style.display='none'; lastResult=null; }
+        else if(word.indexOf('export')>-1){ if(exportBtn) exportBtn.click(); }
       };
       sr.onend=function(){ if(hfToggle.checked){ setTimeout(run,700); } };
       sr.onerror=function(){ if(hfToggle.checked){ setTimeout(run,1500); } };
     };
     run();
   });
-  // simple assist: analyze last recorded pulse/audio on "go"
   function runPulseAnalysis(){
     if(pulseFrames&&pulseFrames.length){
-      camStatus.textContent='Analyzing rPPG pulse…';
+      toast(tg('analyzing'));
       fetch('/api/triage/rppg',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({frames:pulseFrames,fps:4})})
-        .then(function(r){return r.json();}).then(function(res){ showResult(res); camStatus.textContent='Pulse analysis done.'; })
-        .catch(function(e){ camStatus.textContent='rPPG failed: '+e.message; });
-    } else {
-      alert('No frames recorded yet. Say “pulse” to record first.');
-    }
+        .then(function(r){return r.json();}).then(function(res){ showResult(res); toast(tg('done')); })
+        .catch(function(e){ toast(tg('failed',{e:e.message})); });
+    } else { alert(tg('noFrames')); }
   }
 
-  // auto-load history once config is ready
-  setTimeout(loadHistory, 300);
+  // initial static + history once config ready
+  applyStatic();
+  setTimeout(function(){ if(triageCfg) loadHistory(); }, 400);
+  var _liCheck=setInterval(function(){ if(triageCfg){ loadHistory(); clearInterval(_liCheck);} },300);
 })();
 
 /* (openBotFromView removed — AI Health Guide is a sidebar page) */
@@ -8769,15 +9295,8 @@ setMode('doctor');
       if (t['NOVA SMART TRIAGE'] != null) tgBanner.innerHTML = t['NOVA SMART TRIAGE'];
       else tgBanner.innerHTML = tgBanner.getAttribute('data-orig');
     }
-    var tgHeading = el('triageInputHeading');
-    if (tgHeading) {
-      if (!tgHeading.getAttribute('data-orig')) tgHeading.setAttribute('data-orig', tgHeading.innerHTML);
-      var tgOrig = tgHeading.getAttribute('data-orig');
-      var tgIcon = tgHeading.querySelector('i');
-      var tgIconHtml = tgIcon ? tgIcon.outerHTML + ' ' : '';
-      if (t['Smart Triage — Camera & Acoustic Diagnostics'] != null) tgHeading.innerHTML = tgIconHtml + t['Smart Triage — Camera & Acoustic Diagnostics'];
-      else tgHeading.innerHTML = tgOrig;
-    }
+    // Re-render the Smart Triage view in the new language (full-page i18n)
+    if (window.__novaTriageLangChanged) { try { window.__novaTriageLangChanged(lang); } catch(e){} }
 
     localStorage.setItem('nova_lang', lang);
   }
