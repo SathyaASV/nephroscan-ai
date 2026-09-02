@@ -1475,6 +1475,9 @@ def _register_routes(application: Flask) -> None:
                 "/api/triage/speech",
                 "/api/triage/export",
                 "/api/triage/sample/<id>",
+                "/api/triage/report/save",
+                "/api/triage/report/history",
+                "/api/triage/report/export",
             ],
         })
 
@@ -2249,6 +2252,39 @@ def _register_routes(application: Flask) -> None:
         "ml": "ml", "mr": "mr", "bn": "bn", "gu": "gu", "pa": "pa",
     }
 
+    def _triage_tachypnea_risk(rpm, age=None):
+        """Age-aware tachypnea risk band for a breaths-per-minute reading.
+
+        Uses WHO normal respiratory-rate ranges by age. Returns a risk band
+        and the threshold ceiling used.
+        """
+        if not age:
+            # Fall back to adult-ish thresholds.
+            hi, mod = 30, 24
+            low = 20
+        elif age < 1:
+            hi, mod, low = 60, 50, 40   # infants breathe much faster
+        elif age < 3:
+            hi, mod, low = 50, 40, 30
+        elif age < 6:
+            hi, mod, low = 40, 30, 24
+        elif age < 12:
+            hi, mod, low = 30, 25, 20
+        elif age < 18:
+            hi, mod, low = 26, 22, 18
+        else:
+            hi, mod, low = 30, 24, 20
+
+        if rpm >= hi:
+            band = "high"
+        elif rpm >= mod:
+            band = "moderate"
+        elif rpm >= low:
+            band = "low"
+        else:
+            band = "normal"
+        return band, hi
+
     def _triage_sample_manifest():
         """List of built-in test samples (rPPG videos + acoustic clips)."""
         rppg_bpm = [60, 65, 72, 78, 85, 92, 100, 110, 65, 78]
@@ -2443,6 +2479,7 @@ def _register_routes(application: Flask) -> None:
                 "status": "ok", "module": "rppg", "zone": "forehead",
                 "metric_name": "Pulse (BPM)", "metric_value": f"{bpm} bpm",
                 "metric_extra": f"Stress: {res.get('stress', 'Normal')}",
+                "signal_quality": res.get("signal_quality", "fair"),
                 "confidence": res.get("confidence", 0.0), "risk": band,
                 "band_advice": triage_cfg.CLINICAL_ADVICE["rppg"]["bands"].get(band, ""),
                 "action": triage_cfg.CLINICAL_ADVICE["rppg"]["action"],
@@ -2457,13 +2494,15 @@ def _register_routes(application: Flask) -> None:
             body = request.get_json(force=True, silent=True) or {}
             zone = body.get("zone", "conjunctiva")
             img = _frame_to_nparray(_triage_decode_image(body.get("image", "")))
-            res = analyze_pallor(img)
+            res = analyze_pallor(img, zone=zone)
             if res["status"] != "ok":
                 return jsonify(res), 200
+            rgb = res.get("rgb_means", {})
             return jsonify({
                 "status": "ok", "module": "pallor", "zone": zone,
                 "metric_name": "Erythema Index", "metric_value": f"{res['erythema_index']}",
                 "metric_extra": f"Redness {res['redness_norm']}, LAB-A {res['lab_a']}",
+                "rgb_means": rgb,
                 "confidence": res.get("confidence", 0.0), "risk": res["risk"],
                 "band_advice": triage_cfg.CLINICAL_ADVICE["pallor"]["bands"].get(res["risk"], ""),
                 "action": triage_cfg.CLINICAL_ADVICE["pallor"]["action"],
@@ -2498,6 +2537,8 @@ def _register_routes(application: Flask) -> None:
                 "status": "ok", "module": "cough", "metric_name": "Cough Type",
                 "metric_value": res["cough_type"],
                 "metric_extra": (f"Wet-index {res['wet_index']}, centroid {res['spectral_centroid']} Hz"),
+                "wet_index": res.get("wet_index"),
+                "spectral_centroid": res.get("spectral_centroid"),
                 "confidence": float(max(0.2, min(1.0, res.get("wet_index") or 0.5))),
                 "risk": res["risk"],
                 "band_advice": triage_cfg.CLINICAL_ADVICE["cough"]["bands"].get(res["risk"], ""),
@@ -2531,12 +2572,26 @@ def _register_routes(application: Flask) -> None:
             res = count_breaths(data, window_seconds=triage_cfg.BREATH_WINDOW_SECONDS)
             if res["status"] != "ok":
                 return jsonify(res), 200
+            # Age-aware risk (WHO ranges); fall back to the module's adult band.
+            patient_age = body.get("age")
+            try:
+                age_val = int(patient_age) if patient_age not in (None, "") else None
+            except (TypeError, ValueError):
+                age_val = None
+            rpm = res.get("breaths_per_min")
+            if rpm is not None:
+                band, hi_thresh = _triage_tachypnea_risk(rpm, age_val)
+                age_note = (f"WHO age-{age_val} threshold: {hi_thresh}/min upper normal")
+            else:
+                band = res["risk"]
+                age_note = ""
             return jsonify({
                 "status": "ok", "module": "tachypnea", "metric_name": "Breathing Rate",
                 "metric_value": f"{res['breaths_per_min']} /min",
                 "metric_extra": f"{res['breath_count']} breaths in {res['duration']}s",
-                "confidence": 0.8, "risk": res["risk"],
-                "band_advice": triage_cfg.CLINICAL_ADVICE["tachypnea"]["bands"].get(res["risk"], ""),
+                "confidence": 0.8, "risk": band,
+                "age_note": age_note,
+                "band_advice": triage_cfg.CLINICAL_ADVICE["tachypnea"]["bands"].get(band, ""),
                 "action": triage_cfg.CLINICAL_ADVICE["tachypnea"]["action"],
                 "sample_id": sample_id,
             })
@@ -2618,6 +2673,108 @@ def _register_routes(application: Flask) -> None:
             return send_file(io.BytesIO(data), mimetype="text/csv", as_attachment=True, download_name=fname)
         except Exception as exc:
             return jsonify({"error": str(exc)}), 500
+
+    _TRIAGE_STORE = Path(__file__).resolve().parent / "data" / "triage_reports.json"
+
+    def _triage_load_reports():
+        try:
+            if _TRIAGE_STORE.exists():
+                with open(_TRIAGE_STORE, "r", encoding="utf-8") as fh:
+                    data = json.load(fh)
+                    if isinstance(data, list):
+                        return data
+        except Exception:
+            pass
+        return []
+
+    def _triage_save_reports(reports):
+        try:
+            _TRIAGE_STORE.parent.mkdir(parents=True, exist_ok=True)
+            with open(_TRIAGE_STORE, "w", encoding="utf-8") as fh:
+                json.dump(reports, fh, ensure_ascii=False, indent=2)
+            return True
+        except Exception:
+            return False
+
+    @application.route("/api/triage/report/save", methods=["POST"])
+    def api_triage_report_save():
+        """Persist a completed triage report to the local store."""
+        try:
+            body = request.get_json(force=True, silent=True) or {}
+            report = body.get("report", {})
+            if not report or "metric_value" not in report:
+                return jsonify({"error": "No report data provided."}), 400
+            rec = {
+                "id": report.get("id") or f"TR-{int(time.time()*1000)}",
+                "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                "patient": body.get("patient", {}),
+                "zone": body.get("zone", ""),
+                "module": report.get("module", ""),
+                "metric_name": report.get("metric_name", ""),
+                "metric_value": report.get("metric_value", ""),
+                "metric_extra": report.get("metric_extra", ""),
+                "confidence": report.get("confidence", 0.0),
+                "risk": report.get("risk", "normal"),
+                "signal_quality": report.get("signal_quality", ""),
+                "sample_id": report.get("sample_id", ""),
+            }
+            reports = _triage_load_reports()
+            reports.insert(0, rec)
+            reports = reports[:500]
+            _triage_save_reports(reports)
+            return jsonify({"status": "ok", "report": rec})
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
+
+    @application.route("/api/triage/report/history", methods=["GET"])
+    def api_triage_report_history():
+        return jsonify({"status": "ok", "reports": _triage_load_reports()})
+
+    @application.route("/api/triage/report/export", methods=["POST"])
+    def api_triage_report_export():
+        """Export one saved triage report as Excel (.xlsx)."""
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, PatternFill, Alignment
+        except ImportError:
+            return jsonify({"error": "openpyxl not installed"}), 503
+        body = request.get_json(force=True, silent=True) or {}
+        report = body.get("report", {})
+        if not report:
+            return jsonify({"error": "No report data provided."}), 400
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Nova Triage Report"
+        header_fill = PatternFill(start_color="0E7490", end_color="0E7490", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        ws.merge_cells("A1:C1")
+        ws["A1"] = "Nova AI — Smart Triage Report"
+        ws["A1"].font = Font(bold=True, size=14, color="0E7490")
+        patient = report.get("patient", {}) or {}
+        rows = [
+            ("Report ID", report.get("id", "N/A")),
+            ("Patient ID", patient.get("id", "")),
+            ("Age", patient.get("age", "")),
+            ("Timestamp", report.get("ts", "")),
+            ("Zone", report.get("zone", "")),
+            ("Module", report.get("module", "")),
+            ("Metric", report.get("metric_name", "")),
+            ("Value", report.get("metric_value", "")),
+            ("Detail", report.get("metric_extra", "")),
+            ("Confidence", f"{round(float(report.get('confidence', 0))*100)}%"),
+            ("Signal Quality", report.get("signal_quality", "")),
+            ("Risk", report.get("risk", "")),
+        ]
+        for ridx, (k, v) in enumerate(rows, start=2):
+            ws.cell(row=ridx, column=1, value=k).font = Font(bold=True)
+            ws.cell(row=ridx, column=2, value=v)
+        ws.column_dimensions["A"].width = 22
+        ws.column_dimensions["B"].width = 40
+        buf = io.BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+        return send_file(buf, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                         as_attachment=True, download_name=f"nova_triage_{report.get('id','report')}.xlsx")
 
     # ---- Frontend serving ----
 

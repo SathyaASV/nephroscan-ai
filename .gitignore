@@ -69,3 +69,7 @@ __pycache__/
 
 # Cloudflare tunnel binary
 cloudflared/
+
+# Runtime triage report store (generated data)
+data/triage_reports.json
+

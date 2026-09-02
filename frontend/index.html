@@ -3630,7 +3630,15 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
               <option value="tachypnea">Tachypnea (Breath Count, 30s)</option>
             </select>
           </div>
+          <div class="field-group" style="display:flex;flex-direction:column;">
+            <label>🎙️ Hands-Free Voice</label>
+            <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer;">
+              <input type="checkbox" id="triageHandsFree" style="width:18px;height:18px;">
+              Say <b>“record”</b>, <b>“capture”</b>, <b>“go”</b>, <b>“reset”</b>
+            </label>
+          </div>
         </div>
+        <div id="triageVoiceStatus" style="font-size:.78rem;color:#0e7490;margin-top:.3rem;"></div>
       </div>
 
       <div class="card">
@@ -3655,6 +3663,15 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
             <div class="section-heading"><i class="fas fa-map-location-dot"></i> Placement Guide</div>
             <p style="font-size:.8rem;color:#3d5a6e;line-height:1.6;">Select a scan zone above to see placement guidance.</p>
           </div>
+        </div>
+        <div id="triagePulsePanel" style="margin-top:1rem;background:#0b1220;border-radius:10px;padding:.6rem .8rem;display:none;">
+          <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin-bottom:.3rem;">
+            <span style="font-size:.78rem;color:#93a4c0;">💓 Live pulse signal</span>
+            <span id="triageLiveBpm" style="font-size:1.1rem;font-weight:700;color:#22d3ee;">--</span>
+            <span style="font-size:.75rem;color:#93a4c0;">bpm (rolling)</span>
+            <span id="triagePulseTimer" style="font-size:.78rem;color:#34d399;font-weight:600;"></span>
+          </div>
+          <canvas id="triagePulseWave" width="640" height="90" style="width:100%;height:90px;background:#0b1220;border-radius:8px;"></canvas>
         </div>
       </div>
 
@@ -3684,6 +3701,19 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
           </div>
         </div>
         <div id="triageResultBody"></div>
+      </div>
+
+      <div class="card" id="triageHistoryCard">
+        <div class="section-heading" id="triageHistoryHeading"><i class="fas fa-clock-rotate-left"></i> Triage Report History</div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem;">
+          <button id="triageHistoryRefresh" type="button" style="padding:.45rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;cursor:pointer;font-size:.78rem;">
+            <i class="fas fa-rotate"></i> Refresh
+          </button>
+          <button id="triageHistoryCsv" type="button" style="padding:.45rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;cursor:pointer;font-size:.78rem;">
+            <i class="fas fa-download"></i> Export All (CSV)
+          </button>
+        </div>
+        <div id="triageHistoryList" style="font-size:.78rem;color:#5a6b7a;">Loading saved reports…</div>
       </div>
 
     </section>
@@ -6079,11 +6109,17 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
   function renderSamples(){
     videoSamples.innerHTML='';
     (triageCfg.samples.videos||[]).forEach(function(v){
+      var wrap=document.createElement('div');
+      wrap.style.cssText='display:flex;align-items:center;gap:.4rem;';
+      var beat=document.createElement('canvas'); beat.width=22; beat.height=22;
+      beat.style.cssText='width:22px;height:22px;border-radius:50%;display:block;';
       var b=document.createElement('button'); b.type='button';
       b.style.cssText='padding:.5rem 1rem;border-radius:9px;border:1px solid #243350;background:#131c2e;color:#e6edf7;font-weight:600;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;';
       b.innerHTML='<i class="fas fa-play"></i> '+v.name+' ('+v.bpm+' bpm)';
       b.onclick=function(){ runSampleVideo(v); };
-      videoSamples.appendChild(b);
+      startBeatPreview(beat, v.bpm);
+      wrap.appendChild(beat); wrap.appendChild(b);
+      videoSamples.appendChild(wrap);
     });
     coughSamples.innerHTML='';
     (triageCfg.samples.audio||[]).filter(function(a){return a.module==='cough';}).forEach(function(a){
@@ -6103,6 +6139,25 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
     });
   }
 
+  // animated pulsing "heart" preview at the sample's heart rate
+  function startBeatPreview(canvas, bpm){
+    if(!canvas||!canvas.getContext) return;
+    var ctx=canvas.getContext('2d');
+    var period=60000/(bpm||60); // ms per beat
+    var t0=performance.now();
+    var alive=true;
+    (function frame(now){
+      if(!alive||!canvas.isConnected) return;
+      var phase=((now-t0)%period)/period; // 0..1
+      var scale=0.55+0.45*(phase<0.3? (phase/0.3) : (1-(phase-0.3)/0.7));
+      ctx.clearRect(0,0,22,22);
+      ctx.beginPath();
+      ctx.arc(11,11,10*scale,0,Math.PI*2);
+      ctx.fillStyle='rgba(244,63,94,'+(0.35+0.55*scale)+')';
+      ctx.fill();
+      requestAnimationFrame(frame);
+    })(t0);
+  }
   // ---- run sample: select the right zone + module, then analyze by id ----
   function runSampleVideo(v){
     // switch zone to forehead, set status
@@ -6156,11 +6211,26 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
   });
   pulseBtn.addEventListener('click', function(){
     if(pulseActive){ return; }
-    pulseActive=true; pulseFrames=[]; pulseBtn.disabled=true;
-    var start=Date.now(); camStatus.textContent='Recording 15s of pulse frames…';
+    pulseActive=true; pulseFrames=[]; pulseTime=[];
+    var start=Date.now();
+    pulseBtn.disabled=true;
+    camStatus.textContent='Recording 15s of pulse frames…';
+    var panel=$('triagePulsePanel'); if(panel) panel.style.display='block';
+    wave.clear(); wave.on=false;
     pulseTimer=setInterval(function(){
-      pulseFrames.push(snap());
-      if(Date.now()-start>=15000){ clearInterval(pulseTimer); finishPulse(); }
+      var now=Date.now();
+      var frame=snap();
+      pulseFrames.push(frame);
+      pulseTime.push(now-start);
+      // live waveform + rolling BPM from the central green region
+      var g=estimateGreen(frame);
+      wave.push(g);
+      wave.times.push(pulseTime.length);
+      drawWave();
+      var live=rollingBpm(g, pulseTime);
+      var lb=$('triageLiveBpm'); if(lb) lb.textContent=(live?live.toFixed(0):'--');
+      var timerEl=$('triagePulseTimer'); if(timerEl) timerEl.textContent=((now-start)/1000).toFixed(1)+'s';
+      if(now-start>=15000){ clearInterval(pulseTimer); finishPulse(); }
     },250);
   });
   function finishPulse(){
@@ -6169,7 +6239,51 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
       .then(function(r){return r.json();})
       .then(function(res){ showResult(res); camStatus.textContent='Pulse analysis done.'; })
       .catch(function(e){ camStatus.textContent='rPPG failed: '+e.message; })
-      .finally(function(){ pulseActive=false; pulseBtn.disabled=false; });
+      .finally(function(){
+        pulseActive=false; pulseBtn.disabled=false;
+        var panel=$('triagePulsePanel'); if(panel) panel.style.display='none';
+        var lb=$('triageLiveBpm'); if(lb) lb.textContent='--';
+      });
+  }
+  // --- live waveform helpers ---
+  function estimateGreen(dataUrl){
+    var img=new Image();
+    // synchronous-ish: use an offscreen canvas read
+    var c=document.createElement('canvas'); var img2=new Image();
+    img2.src=dataUrl;
+    // decode synchronously is not possible; capture via video instead
+    var v=camVideo;
+    var cc=document.createElement('canvas'); cc.width=v.videoWidth||64; cc.height=v.videoHeight||64;
+    var ctx=cc.getContext('2d'); ctx.drawImage(v,0,0,cc.width,cc.height);
+    var d=ctx.getImageData(0,0,cc.width,cc.height).data;
+    // central 40% green mean
+    var w=cc.width, h=cc.height; var x0=Math.floor(w*0.3),x1=Math.floor(w*0.7),y0=Math.floor(h*0.1),y1=Math.floor(h*0.8);
+    var sum=0,n=0;
+    for(var y=Math.max(0,y0);y<y1;y++){ for(var x=Math.max(0,x0);x<x1;x++){ var i=(y*w+x)*4; sum+=d[i+1]; n++; } }
+    return n? sum/n : 0;
+  }
+  var wave={data:[],times:[],clear:function(){this.data=[];this.times=[];},push:function(v){this.data.push(v);},on:false};
+  function drawWave(){
+    var cv=$('triagePulseWave'); if(!cv||!cv.getContext) return;
+    var ctx=cv.getContext('2d');
+    var W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='rgba(34,211,238,0.12)'; ctx.lineWidth=1;
+    for(var y=20;y<H;y+=20){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+    var data=wave.data, n=data.length; if(n<2) return;
+    var min=Math.min.apply(null,data),max=Math.max.apply(null,data);
+    var range=(max-min)||1;
+    ctx.strokeStyle='#22d3ee'; ctx.lineWidth=2; ctx.beginPath();
+    for(var i=0;i<n;i++){ var x=(i/(n-1))*(W-10)+5; var y=H-8-((data[i]-min)/range)*(H-20); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y); }
+    ctx.stroke();
+  }
+  function rollingBpm(g, times){
+    // naive zero-crossing rate on the accumulated green buffer -> rough BPM
+    var data=wave.data; if(data.length<8) return null;
+    var crossings=0;
+    for(var i=1;i<data.length;i++){ if((data[i-1]-data[i-2]<=0)!==(data[i]-data[i-1]<=0)) crossings++; }
+    var dur=(data.length*0.25); // seconds captured (250ms each)
+    var rate=(crossings/2)/(dur/60.0);
+    return rate>30&&rate<220? rate : null;
   }
 
   // ---- result card ----
@@ -6179,25 +6293,69 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
     var risk=res.risk||'normal';
     var rc=triageCfg.risk_levels[risk]||{label:risk};
     var rclass=riskClass(risk);
+    var chips='';
+    if(res.signal_quality){ chips+=chip('Signal', res.signal_quality); }
+    if(res.wet_index!=null){ chips+=chip('Wet-index', res.wet_index.toFixed(2)); }
+    if(res.spectral_centroid){ chips+=chip('Centroid', Math.round(res.spectral_centroid)+' Hz'); }
+    if(res.age_note){ chips+=chip('Age-rule', res.age_note); }
+    if(res.rgb_means&&res.rgb_means.R!=null){ chips+=chip('RGB', 'R'+res.rgb_means.R+' G'+res.rgb_means.G+' B'+res.rgb_means.B); }
+    var detailTiles=
+      '<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Metric</span><span style="font-size:.9rem;font-weight:600;color:#263e50;">'+(res.metric_value||'—')+'</span></div>'
+      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Confidence</span><span style="font-size:.9rem;font-weight:600;color:#263e50;">'+Math.round((res.confidence||0)*100)+'%</span></div>'
+      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Detail</span><span style="font-size:.82rem;font-weight:600;color:#263e50;">'+(res.metric_extra||'')+'</span></div>'
+      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Triage Action</span><span style="font-size:.82rem;font-weight:600;color:#263e50;">'+(res.action||'')+'</span></div>';
+    if(chips) detailTiles='<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.4rem;">'+chips+'</div>'+detailTiles;
     resultBody.innerHTML=
       '<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem;">'
       +'<span style="padding:.4rem 1rem;border-radius:999px;font-size:.85rem;font-weight:700;color:#fff;background:'+(rc.colour||'#0e7490')+';" class="'+rclass+'">'+rc.label+'</span>'
-      +'<span style="font-size:.9rem;color:#263e50;"><b>'+(res.metric_value||'—')+'</b></span>'
+      +'<span style="font-size:1rem;font-weight:700;color:#263e50;">'+(res.metric_value||'—')+'</span>'
       +'<span style="font-size:.78rem;color:#6b7f8d;">'+res.metric_name+'</span>'
       +'</div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:.6rem 0;">'
-      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Metric</span><span style="font-size:.9rem;font-weight:600;color:#263e50;">'+(res.metric_value||'—')+'</span></div>'
-      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Confidence</span><span style="font-size:.9rem;font-weight:600;color:#263e50;">'+Math.round((res.confidence||0)*100)+'%</span></div>'
-      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Detail</span><span style="font-size:.82rem;font-weight:600;color:#263e50;">'+(res.metric_extra||'')+'</span></div>'
-      +'<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Triage Action</span><span style="font-size:.82rem;font-weight:600;color:#263e50;">'+(res.action||'')+'</span></div>'
+      +detailTiles
       +'</div>'
+      +'<div style="margin:.5rem 0;"><div style="font-size:.72rem;color:#6b7f8d;">Confidence</div>'
+      +'<div style="height:8px;background:#e8eef3;border-radius:6px;max-width:360px;"><div style="width:'+Math.round((res.confidence||0)*100)+'%;height:100%;background:'+(rc.colour||'#0e7490')+';border-radius:6px;"></div></div></div>'
       +(res.band_advice?'<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;line-height:1.6;"><b>Advice:</b> '+res.band_advice+'</p>':'')
       +(res.sample_id?'<p style="margin:.3rem 0;font-size:.72rem;color:#6b7f8d;">Sample: '+res.sample_id+' · Zone: '+res.zone+'</p>':'')
+      +'<p style="margin:.2rem 0;font-size:.72rem;color:#6b7f8d;"><b>Module:</b> '+res.metric_name+' ('+res.module+')</p>'
       +'<div style="margin-top:.6rem;display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;">'
       +'<label style="font-size:.78rem;color:#3d5a6e;">Voice lang <select id="triageVoiceSel"></select></label>'
+      +'<button id="triageSaveBtn" type="button" style="padding:.4rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#0e7490;color:#fff;font-weight:600;cursor:pointer;font-size:.78rem;"><i class="fas fa-floppy-disk"></i> Save Report</button>'
+      +'<button id="triageXlsBtn" type="button" style="padding:.4rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;cursor:pointer;font-size:.78rem;"><i class="fas fa-file-excel"></i> Excel</button>'
       +'</div>';
     populateVoiceSelect();
     resultCard.style.display='block';
+    var saveBtn=$('triageSaveBtn');
+    if(saveBtn) saveBtn.addEventListener('click', function(){ saveReport(); });
+    var xlsBtn=$('triageXlsBtn');
+    if(xlsBtn) xlsBtn.addEventListener('click', function(){ exportResultXls(); });
+  }
+  function exportResultXls(){
+    if(!lastResult){ alert('Nothing to export.'); return; }
+    var pid=prompt('Patient ID (optional):')||'';
+    var age=prompt('Age (optional):')||'';
+    var rr={
+      id:'TR-'+Date.now(), ts:new Date().toISOString(),
+      patient:{id:pid,age:age}, zone:lastZone,
+      module:lastResult.module, metric_name:lastResult.metric_name,
+      metric_value:lastResult.metric_value, metric_extra:lastResult.metric_extra,
+      confidence:lastResult.confidence, risk:lastResult.risk,
+      signal_quality:lastResult.signal_quality||'', sample_id:lastResult.sample_id||''
+    };
+    exportXls(rr);
+  }
+  function chip(label, value){
+    return '<span style="padding:.25rem .6rem;border-radius:999px;background:#e8eef3;color:#263e50;font-size:.72rem;font-weight:600;">'+label+': <b>'+value+'</b></span>';
+  }
+  function saveReport(){
+    if(!lastResult){ alert('Nothing to save.'); return; }
+    var pid=prompt('Patient ID (optional):')||'';
+    var age=prompt('Age (optional):')||'';
+    fetch('/api/triage/report/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({report:lastResult,patient:{id:pid,age:age},zone:lastZone})})
+      .then(function(r){return r.json();})
+      .then(function(d){ if(d.status==='ok'){ alert('Report saved: '+d.report.id); loadHistory(); } else { alert('Save failed: '+(d.error||'')); } })
+      .catch(function(e){ alert('Save failed: '+e.message); });
   }
   function populateVoiceSelect(){
     var vs=$('triageVoiceSel');
@@ -6223,16 +6381,133 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
   speakBtn.addEventListener('click', function(){
     if(!lastResult){ alert('No result to speak.'); return; }
     var vs=$('triageVoiceSel'); var lang=vs?vs.value:'en';
-    var text='Pulse and triage result. '+lastResult.metric_name+': '+lastResult.metric_value+'. '+(lastResult.band_advice||'')+' '+(lastResult.action||'');
+    var text='Triage result. '+lastResult.metric_name+': '+lastResult.metric_value+'. '+(lastResult.band_advice||'')+' '+(lastResult.action||'');
+    var box=$('triageSpeechBox'); if(!box){ box=document.createElement('div'); box.id='triageSpeechBox'; resultBody.appendChild(box); }
+    // Prefer the browser's built-in speechSynthesis (works offline, no server gTTS).
+    if(window.speechSynthesis){
+      try{
+        speechSynthesis.cancel();
+        var u=new SpeechSynthesisUtterance(text);
+        u.lang=langToBCP47(lang);
+        u.rate=0.98;
+        var vsList=speechSynthesis.getVoices();
+        var want=u.lang.split('-')[0];
+        for(var v=0;v<vsList.length;v++){ if((vsList[v].lang||'').toLowerCase().indexOf(want)===0){ u.voice=vsList[v]; break; } }
+        box.innerHTML='<span style="font-size:.75rem;color:#6b7f8d;display:block;margin-bottom:.3rem;">🔊 Speaking (browser voice)…</span>';
+        speechSynthesis.speak(u);
+        u.onend=function(){ box.innerHTML=''; };
+        return;
+      }catch(e){ /* fall through to server gTTS */ }
+    }
     fetch('/api/triage/speech',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text,lang:lang})})
-      .then(function(r){return r.blob();})
+      .then(function(r){ if(!r.ok) throw new Error('gTTS unavailable on server'); return r.blob(); })
       .then(function(blob){
         var url=URL.createObjectURL(blob);
-        var box=$('triageSpeechBox'); if(!box){ box=document.createElement('div'); box.id='triageSpeechBox'; resultBody.appendChild(box); }
         box.innerHTML='<audio src="'+url+'" controls autoplay style="width:100%;margin-top:.5rem;"></audio>';
       })
-      .catch(function(e){ alert('Speech failed: '+e.message); });
+      .catch(function(e){ box.innerHTML='<span style="font-size:.75rem;color:#b45309;">⚠️ Spoken report unavailable ('+e.message+'). Try installing gTTS.</span>'; });
   });
+  function langToBCP47(lang){
+    var map={en:'en-US',hi:'hi-IN',ta:'ta-IN',te:'te-IN',kn:'kn-IN',ml:'ml-IN',mr:'mr-IN',bn:'bn-IN',gu:'gu-IN',pa:'pa-IN'};
+    return map[lang]||'en-US';
+  }
+
+  // ---- report history ----
+  function loadHistory(){
+    var list=$('triageHistoryList'); if(!list) return;
+    fetch('/api/triage/report/history').then(function(r){return r.json();}).then(function(d){
+      var reports=d.reports||[];
+      if(!reports.length){ list.innerHTML='<span style="color:#6b7f8d;">No saved reports yet. Run a diagnostic and click “Save Report”.</span>'; return; }
+      var rows=reports.map(function(rr,i){
+        var risk=rr.risk||'normal';
+        var rc=triageCfg.risk_levels[risk]||{label:risk};
+        return '<div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;padding:.5rem 0;border-bottom:1px solid #e8eef3;">'
+          +'<span style="padding:.2rem .6rem;border-radius:999px;font-size:.68rem;font-weight:700;color:#fff;background:'+(rc.colour||'#0e7490')+';">'+rc.label+'</span>'
+          +'<span style="font-weight:600;color:#263e50;min-width:120px;">'+(rr.metric_name||'')+'</span>'
+          +'<span style="color:#263e50;">'+(rr.metric_value||'')+'</span>'
+          +'<span style="color:#6b7f8d;font-size:.72rem;">'+(rr.patient&&rr.patient.id?'ID '+(rr.patient.id)+' · ':'')+(rr.ts||'')+'</span>'
+          +'<span style="margin-left:auto;display:flex;gap:.4rem;">'
+          +'<button data-xls="'+i+'" type="button" style="padding:.3rem .7rem;border-radius:7px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;font-size:.72rem;cursor:pointer;"><i class="fas fa-file-excel"></i> Excel</button>'
+          +'</span>'
+          +'<span class="hidden-xls-index" style="display:none;">'+encodeURIComponent(JSON.stringify(rr))+'</span>'
+          +'</div>';
+      }).join('');
+      list.innerHTML=rows;
+      list.querySelectorAll('button[data-xls]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var k=parseInt(b.getAttribute('data-xls'),10);
+          var hidden=list.querySelectorAll('.hidden-xls-index')[k];
+          var rr=JSON.parse(decodeURIComponent(hidden.textContent));
+          exportXls(rr);
+        });
+      });
+    }).catch(function(e){ list.innerHTML='History failed: '+e.message; });
+  }
+  function exportXls(rr){
+    fetch('/api/triage/report/export',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({report:rr})})
+      .then(function(r){ return r.blob(); })
+      .then(function(blob){
+        var url=URL.createObjectURL(blob); var a=document.createElement('a');
+        a.href=url; a.download='nova_triage_'+(rr.id||'report')+'.xlsx'; document.body.appendChild(a); a.click(); a.remove();
+      })
+      .catch(function(e){ alert('Excel export failed: '+e.message); });
+  }
+  function exportAllCsv(){
+    fetch('/api/triage/report/history').then(function(r){return r.json();}).then(function(d){
+      var reports=d.reports||[];
+      if(!reports.length){ alert('No saved reports to export.'); return; }
+      var lines=['Timestamp,Patient ID,Age,Zone,Module,Metric,Value,Risk,Confidence'];
+      reports.forEach(function(rr){
+        var p=rr.patient||{};
+        lines.push([rr.ts||'', p.id||'', p.age||'', rr.zone||'', rr.module||'', rr.metric_name||'', (rr.metric_value||'').replace(/,/g,''), rr.risk||'', rr.confidence||''].join(','));
+      });
+      var blob=new Blob([lines.join('\n')],{type:'text/csv'});
+      var url=URL.createObjectURL(blob); var a=document.createElement('a');
+      a.href=url; a.download='nova_triage_all_'+Date.now()+'.csv'; document.body.appendChild(a); a.click(); a.remove();
+    }).catch(function(e){ alert('Export failed: '+e.message); });
+  }
+  var histRefresh=$('triageHistoryRefresh'); if(histRefresh) histRefresh.addEventListener('click', loadHistory);
+  var histCsv=$('triageHistoryCsv'); if(histCsv) histCsv.addEventListener('click', exportAllCsv);
+
+  // ---- hands-free voice control (Web Speech API) ----
+  var SRec=window.SpeechRecognition||window.webkitSpeechRecognition;
+  var hfToggle=$('triageHandsFree');
+  if(hfToggle) hfToggle.addEventListener('change', function(){
+    if(!hfToggle.checked){ $('triageVoiceStatus').textContent=''; return; }
+    if(!SRec){ $('triageVoiceStatus').textContent='Speech recognition not supported in this browser.'; return; }
+    var run=function(){
+      var sr=new SRec(); sr.lang='en-US'; sr.interimResults=false; sr.maxAlternatives=1;
+      try{ sr.start(); }catch(e){}
+      $('triageVoiceStatus').textContent='🎙️ Listening… say “record”, “capture”, “go”, “reset”';
+      sr.onresult=function(ev){
+        var word=(ev.results[0][0].transcript||'').toLowerCase();
+        $('triageVoiceStatus').textContent='Heard: “'+word+'”';
+        if(word.indexOf('record')>-1){ camBtn.click(); }
+        else if(word.indexOf('capture')>-1){ captureBtn.click(); }
+        else if(word.indexOf('pulse')>-1){ pulseBtn.click(); }
+        else if(word.indexOf('go')>-1||word.indexOf('analyz')>-1){ runPulseAnalysis(); }
+        else if(word.indexOf('reset')>-1){ /* clear result */ resultCard.style.display='none'; lastResult=null; }
+        else if(word.indexOf('export')>-1){ exportBtn.click(); }
+      };
+      sr.onend=function(){ if(hfToggle.checked){ setTimeout(run,700); } };
+      sr.onerror=function(){ if(hfToggle.checked){ setTimeout(run,1500); } };
+    };
+    run();
+  });
+  // simple assist: analyze last recorded pulse/audio on "go"
+  function runPulseAnalysis(){
+    if(pulseFrames&&pulseFrames.length){
+      camStatus.textContent='Analyzing rPPG pulse…';
+      fetch('/api/triage/rppg',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({frames:pulseFrames,fps:4})})
+        .then(function(r){return r.json();}).then(function(res){ showResult(res); camStatus.textContent='Pulse analysis done.'; })
+        .catch(function(e){ camStatus.textContent='rPPG failed: '+e.message; });
+    } else {
+      alert('No frames recorded yet. Say “pulse” to record first.');
+    }
+  }
+
+  // auto-load history once config is ready
+  setTimeout(loadHistory, 300);
 })();
 
 /* (openBotFromView removed — AI Health Guide is a sidebar page) */

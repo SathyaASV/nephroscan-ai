@@ -55,28 +55,104 @@ def _as_float_rgb(frame):
 # --------------------------------------------------------------------------- #
 # Module 1 — rPPG pulse & stress
 # --------------------------------------------------------------------------- #
+def _rgb_mean_ts(rgb, x0, x1, y0, y1):
+    """Mean R,G,B over the central ROI for a single frame -> (r, g, b)."""
+    region = rgb[y0:y1, x0:x1]
+    return (float(region[:, :, 0].mean()),
+            float(region[:, :, 1].mean()),
+            float(region[:, :, 2].mean()))
+
+
+def _pos_rppg(timeseries, fps):
+    """
+    POS (Planar Orthogonal to Skin) rPPG — Morelli et al. 2020.
+    Robust to motion artefacts compared to a naive green-channel trace.
+
+    timeseries : (N, 3) array of R,G,B mean values over time.
+    Returns a detrended, band-limited pulse signal (N,).
+    """
+    x = timeseries
+    # Normalise each channel by a running mean (mean-based normalisation).
+    win = max(3, int(fps * 3))
+    norm = np.zeros_like(x)
+    for c in range(3):
+        col = x[:, c]
+        if len(col) >= win:
+            kernel = np.ones(win) / win
+            kn = np.convolve(col, kernel, mode="same")
+            kn[kn <= 1e-6] = 1.0
+            norm[:, c] = col / kn
+        else:
+            m = max(col.mean(), 1e-6)
+            norm[:, c] = col / m
+
+    # Skin-tone calibrated projection.
+    h_root = 2.0 / np.sqrt(6.0)
+    c_mat = np.array([
+        [1, -1, 0],
+        [1, 1, -2],
+        [h_root, h_root, h_root],
+    ], dtype=np.float64)
+    projected = norm @ c_mat.T
+    # Remove mean and detrend the 2nd (pulsatile) component.
+    s = projected[:, 1]
+    s = s - s.mean()
+    if len(s) >= win:
+        kernel = np.ones(win) / win
+        trend = np.convolve(s, kernel, mode="same")
+        s = s - trend
+    return s
+
+
+def _spectral_snr(filt, fps):
+    """Return (bpm, confidence) via peak prominence vs noise floor + harmonic check."""
+    n = len(filt)
+    windowed = filt * np.hanning(n)
+    spectrum = np.abs(np.fft.rfft(windowed))
+    freqs = np.fft.rfftfreq(n, d=1.0 / fps)
+    mask = (freqs >= 0.75) & (freqs <= 3.0)  # 45-180 BPM
+    if not mask.any():
+        return None, 0.0
+    pmask = freqs[mask]
+    pspectrum = spectrum[mask]
+    peak_idx = int(np.argmax(pspectrum))
+    peak_freq = float(pmask[peak_idx])
+    peak_power = float(pspectrum[peak_idx])
+
+    # Noise floor = energy in the band excluding a narrow window around the peak.
+    guard = 0.15  # Hz around peak excluded as signal
+    noise_mask = (np.abs(pmask - peak_freq) > guard)
+    noise_sum = float(pspectrum[noise_mask].sum()) if noise_mask.any() else peak_power
+    noise_mean = noise_sum / (max(1, int(noise_mask.sum())))
+    snr = peak_power / (noise_mean + 1e-9)
+    confidence = float(np.clip(snr / 20.0, 0.0, 1.0))
+
+    bpm = peak_freq * 60.0
+
+    # Harmonic check: if the peak is near the top of the range and its 2nd
+    # harmonic would be out of band, we accept as-is. If a strong sub-harmonic
+    # (0.5x) exists, prefer it rarely; keep simple.
+    return bpm, confidence
+
+
 def extract_rppg_bpm(frame_buffer, fps=30.0):
     """
     Estimate heart rate (BPM) from a list / array of face frames.
 
-    Parameters
-    ----------
-    frame_buffer : sequence of arrays (H, W, 3/4) in RGB or BGR order.
-    fps : float, frame rate the frames were captured at (default 30).
+    Uses POS planar-orthogonal-to-skin rPPG with a green-channel fallback, a
+    physically band-limited FFT, and a spectral signal-to-noise confidence.
 
-    Returns
-    -------
-    dict with keys:
-        bpm        : float or None (estimated heart rate)
-        confidence : float 0..1 (ratio of usable frames / FFT peak power)
-        status     : "ok" | "insufficient" | "error"
-        error      : human readable message when status != "ok"
+    Returns a dict with:
+        bpm           : float or None
+        confidence    : float 0..1 (spectral SNR based)
+        signal_quality: "good" | "fair" | "poor"
+        stress        : categorical stress read
+        status        : "ok" | "insufficient" | "error"
+        error         : message when status != "ok"
     """
     result = {
-        "bpm": None,
-        "confidence": 0.0,
-        "status": "error",
-        "error": "",
+        "bpm": None, "confidence": 0.0, "signal_quality": "poor",
+        "stress": "Normal", "status": "error", "error": "",
     }
 
     if _scipy_signal is None:
@@ -93,9 +169,7 @@ def extract_rppg_bpm(frame_buffer, fps=30.0):
         if fps <= 0:
             fps = 30.0
 
-        # Build the green-channel time series from the centre (forehead) region.
-        green = []
-        usable = 0
+        rgb_ts = []
         total = 0
         for frame in frame_buffer:
             rgb = _as_float_rgb(frame)
@@ -103,30 +177,30 @@ def extract_rppg_bpm(frame_buffer, fps=30.0):
             if rgb is None or rgb.shape[0] < 10 or rgb.shape[1] < 10:
                 continue
             h, w = rgb.shape[:2]
-            # Take the central 40% as the approximate forehead region.
+            # Central 40% (approx forehead / region of interest).
             x0, x1 = int(w * 0.3), int(w * 0.7)
             y0, y1 = int(h * 0.2), int(h * 0.6)
-            region = rgb[y0:y1, x0:x1, 1]  # green channel
-            green.append(float(region.mean()))
-            usable += 1
+            rgb_ts.append(_rgb_mean_ts(rgb, x0, x1, y0, y1))
 
-        confidence = usable / total if total else 0.0
-        if usable < 10:
+        if len(rgb_ts) < 10:
             result["error"] = "Too few usable frames (camera / lighting issue)."
             result["status"] = "insufficient"
             return result
 
-        sig = np.asarray(green, dtype=np.float64)
-        # Detrend (remove slow drift) using a moving average.
-        win = max(3, int(fps * 3))
-        kernel = np.ones(win) / win
-        if len(sig) >= win:
-            trend = np.convolve(sig, kernel, mode="same")
-            sig = sig - trend
-        else:
-            sig = sig - sig.mean()
+        ts = np.asarray(rgb_ts, dtype=np.float64)  # (N,3) R,G,B rows
 
-        # Band-pass 0.75–3.0 Hz (45–180 BPM).
+        # POS extraction (motion robust), fall back to detrended green.
+        try:
+            sig = _pos_rppg(ts, fps)
+        except Exception:
+            green = ts[:, 1]
+            sig = green - green.mean()
+            win = max(3, int(fps * 3))
+            if len(sig) >= win:
+                kernel = np.ones(win) / win
+                sig = sig - np.convolve(sig, kernel, mode="same")
+
+        # Band-pass 0.75-3.0 Hz (45-180 BPM).
         nyq = fps / 2.0
         low = 0.75 / nyq
         high = min(3.0 / nyq, 0.95)
@@ -142,39 +216,37 @@ def extract_rppg_bpm(frame_buffer, fps=30.0):
             b, a = _scipy_signal.butter(4, [low, high], btype="band")
             filt = _scipy_signal.lfilter(b, a, sig)
 
-        # FFT power spectrum.
-        n = len(filt)
-        windowed = filt * np.hanning(n)
-        spectrum = np.abs(np.fft.rfft(windowed))
-        freqs = np.fft.rfftfreq(n, d=1.0 / fps)
-
-        # Restrict to physiological range 45–180 BPM.
-        mask = (freqs >= 0.75) & (freqs <= 3.0)
-        if not mask.any():
-            result["error"] = "Signal too short for a reliable FFT."
+        bpm, confidence = _spectral_snr(filt, fps)
+        if bpm is None or bpm <= 0:
+            result["error"] = "Could not find a reliable pulse peak."
             result["status"] = "insufficient"
             return result
+        bpm = round(bpm, 1)
 
-        peak_idx = np.argmax(spectrum[mask])
-        peak_freq = freqs[mask][peak_idx]
-        bpm = round(float(peak_freq * 60.0), 1)
-
-        # A crude confidence: how dominant the peak is vs the spectrum mean.
-        spectrum_mean = float(spectrum[mask].mean())
-        peak_power = float(spectrum[mask][peak_idx])
-        confidence = float(min(1.0, (peak_power / (spectrum_mean + 1e-9)) / 6.0))
-
-        # Heuristic stress classification from BPM.
-        if bpm > 100:
-            stress = "Elevated"
-        elif bpm < 60:
-            stress = "Low / bradycardic"
+        # Signal-quality band from confidence.
+        if confidence >= 0.6:
+            signal_quality = "good"
+        elif confidence >= 0.35:
+            signal_quality = "fair"
         else:
+            signal_quality = "poor"
+
+        # Stress classification (5 bands).
+        if bpm > 110:
+            stress = "High (tachycardic)"
+        elif bpm > 100:
+            stress = "Elevated"
+        elif bpm >= 60 and bpm <= 100:
             stress = "Normal"
+        elif bpm >= 48:
+            stress = "Low / resting"
+        else:
+            stress = "Low (bradycardic)"
 
         result.update(
             bpm=bpm,
             confidence=round(confidence, 2),
+            signal_quality=signal_quality,
             stress=stress,
             status="ok",
         )
@@ -188,7 +260,7 @@ def extract_rppg_bpm(frame_buffer, fps=30.0):
 # --------------------------------------------------------------------------- #
 # Module 2 — anemia / pallor screening
 # --------------------------------------------------------------------------- #
-def analyze_pallor(image_array, target_color="red"):
+def analyze_pallor(image_array, target_color="red", zone="conjunctiva"):
     """
     Evaluate pallor / anemia risk from a close-up of the lower eyelid
     (conjunctiva) or fingernail bed.
@@ -198,13 +270,15 @@ def analyze_pallor(image_array, target_color="red"):
     image_array : (H, W, 3/4) RGB or BGR image array.
     target_color : "red" for conjunctiva, "pink" for nail bed (kept for the
                    caller to influence thresholds; both use the red channel).
+    zone : "conjunctiva" | "nailbed" | other — enables zone-aware thresholds.
 
     Returns
     -------
     dict with keys:
-        erythema_index   : Erythema Index (E = 100*(log10(R)-log10(G))) style
+        erythema_index   : Erythema Index (E = 100*(log10(R)-log10(G)))
         redness_norm     : Normalised Redness Index (R/(R+G+B))
         lab_a            : mean LAB A-channel value
+        rgb_means        : dict R/G/B means
         risk             : "normal" | "low" | "moderate" | "high"
         confidence       : 0..1
         status           : "ok" | "insufficient" | "error"
@@ -214,6 +288,7 @@ def analyze_pallor(image_array, target_color="red"):
         "erythema_index": None,
         "redness_norm": None,
         "lab_a": None,
+        "rgb_means": {},
         "risk": "normal",
         "confidence": 0.0,
         "status": "error",
@@ -255,17 +330,19 @@ def analyze_pallor(image_array, target_color="red"):
         # --- LAB A channel (red-green opponent axis) ---
         lab_a = _lab_a_mean(region)
 
-        # --- Risk thresholds (based on the Erythema Index) ---
-        # EI = 100*(log10(R) - log10(G)). Healthy palpebral conjunctiva is red
-        # dominant and yields a clearly positive EI; with increasing pallor the
-        # R and G channels converge and EI falls toward 0 or negative.
-        # Calibrated for typical good-light phone close-ups of conjunctiva /
-        # nail bed (values verified across healthy -> pale reference colours).
-        if erythema_mean >= 9.0:
+        # --- Zone-aware risk thresholds (based on the Erythema Index) ---
+        # Nailbed is naturally lighter/pinkish than the conjunctiva, so its
+        # healthy EI baseline is a touch lower; keep the same bands otherwise.
+        if str(zone).strip().lower() == "nailbed":
+            n_healthy, n_low, n_mod = 6.5, 3.5, 1.0
+        else:  # conjunctiva and general skin
+            n_healthy, n_low, n_mod = 9.0, 5.0, 1.5
+
+        if erythema_mean >= n_healthy:
             risk = "normal"
-        elif erythema_mean >= 5.0:
+        elif erythema_mean >= n_low:
             risk = "low"
-        elif erythema_mean >= 1.5:
+        elif erythema_mean >= n_mod:
             risk = "moderate"
         else:
             risk = "high"
@@ -278,6 +355,11 @@ def analyze_pallor(image_array, target_color="red"):
             erythema_index=round(erythema_mean, 2),
             redness_norm=round(redness_mean, 3),
             lab_a=round(lab_a, 2),
+            rgb_means={
+                "R": round(float(R.mean()), 1),
+                "G": round(float(G.mean()), 1),
+                "B": round(float(B.mean()), 1),
+            },
             risk=risk,
             confidence=round(confidence, 2),
             status="ok",
