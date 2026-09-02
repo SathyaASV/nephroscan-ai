@@ -5738,14 +5738,81 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
     });
   }
 
+  /* -- convert any audio blob to a WAV blob the backend can decode --
+     MediaRecorder produces WebM/Opus which librosa/soundfile can't read,
+     so we decode in-browser with AudioContext and re-encode as PCM WAV. */
+  function blobToWav(blob) {
+    return new Promise(function(resolve, reject) {
+      var URL = window.URL || window.webkitURL;
+      var fileReader = new FileReader();
+      fileReader.onerror = function() { reject(new Error('Could not read audio file')); };
+      fileReader.onload = function() {
+        var arrayBuffer = fileReader.result;
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        ctx.decodeAudioData(arrayBuffer, function(audioBuffer) {
+          try {
+            var outCh = Math.min(2, audioBuffer.numberOfChannels);
+            var sr = audioBuffer.sampleRate || 16000;
+            var len = audioBuffer.length;
+            // interleave channels
+            var interleaved = new Float32Array(len * outCh);
+            for (var c = 0; c < outCh; c++) {
+              var ch = audioBuffer.getChannelData(c);
+              for (var i = 0; i < len; i++) interleaved[i * outCh + c] = ch[i];
+            }
+            // 16-bit PCM
+            var buffer = new ArrayBuffer(44 + interleaved.length * 2);
+            var view = new DataView(buffer);
+            function writeStr(offset, str) {
+              for (var j = 0; j < str.length; j++) view.setUint8(offset + j, str.charCodeAt(j));
+            }
+            writeStr(0, 'RIFF');
+            view.setUint32(4, 36 + interleaved.length * 2, true);
+            writeStr(8, 'WAVE');
+            writeStr(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);              // PCM
+            view.setUint16(22, outCh, true);
+            view.setUint32(24, sr, true);
+            view.setUint32(28, sr * outCh * 2, true);
+            view.setUint16(32, outCh * 2, true);
+            view.setUint16(34, 16, true);
+            writeStr(36, 'data');
+            view.setUint32(40, interleaved.length * 2, true);
+            var offset = 44;
+            for (var i = 0; i < interleaved.length; i++, offset += 2) {
+              var s = Math.max(-1, Math.min(1, interleaved[i]));
+              view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            }
+            resolve(new Blob([buffer], { type: 'audio/wav' }));
+            if (ctx.close) ctx.close();
+          } catch (err) {
+            reject(err);
+          }
+        }, function(err) { reject(new Error('Audio decode failed: ' + err)); });
+      };
+      fileReader.readAsArrayBuffer(blob);
+    });
+  }
+
   /* -- analyze function (shared by record & upload) -- */
   async function runAnalysis(blob) {
     statusEl.textContent = 'Analyzing breath sound… this may take a few seconds.';
     statusEl.style.color = '#3d5a6e';
     resultCard.style.display = 'none';
 
+    // Normalize whatever we have (WebM recording / uploaded file) to WAV.
+    var wavBlob = null;
+    try {
+      wavBlob = await blobToWav(blob);
+    } catch (e) {
+      statusEl.textContent = 'Could not decode audio: ' + e.message;
+      statusEl.style.color = '#c2410c';
+      return;
+    }
+
     var fd = new FormData();
-    fd.append('audio', blob, 'recording.webm');
+    fd.append('audio', wavBlob, 'recording.wav');
     if (patientEl && patientEl.value.trim()) fd.append('patient_name', patientEl.value.trim());
 
     var controller = new AbortController();

@@ -36,6 +36,20 @@ os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 try:
     import pytesseract
     OCR_AVAILABLE = True
+    # Tesseract binary is often installed but not on PATH on Windows.
+    # Probe common install locations and set it explicitly so pytesseract works.
+    import shutil
+    if not shutil.which("tesseract"):
+        for _candidate in (
+            r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+            r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+            r"/usr/bin/tesseract",
+            r"/usr/local/bin/tesseract",
+            r"/opt/tesseract/bin/tesseract",
+        ):
+            if os.path.exists(_candidate):
+                pytesseract.pytesseract.tesseract_cmd = _candidate
+                break
 except ImportError:
     pytesseract = None
     OCR_AVAILABLE = False

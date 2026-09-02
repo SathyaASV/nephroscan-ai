@@ -168,9 +168,23 @@ class RespiratoryEngine:
     def _preprocess(self, wav_bytes):
         """Full audio pipeline -> (1,3,224,224) normalized RGB tensor."""
         import librosa
+        import soundfile as sf
         from scipy import signal as scipy_signal
 
-        waveform, sr = librosa.load(io.BytesIO(wav_bytes), sr=SAMPLE_RATE, mono=True)
+        # Decode audio with soundfile first (fast, WAV-native). If that fails,
+        # fall back to librosa (handles MP3/OGG etc.).
+        try:
+            waveform, sr = sf.read(io.BytesIO(wav_bytes), dtype="float32", always_2d=False)
+            if waveform.ndim > 1:
+                waveform = waveform.mean(axis=1)
+            waveform = waveform.astype(np.float32)
+        except Exception:
+            waveform, sr = librosa.load(io.BytesIO(wav_bytes), sr=None, mono=True)
+            waveform = waveform.astype(np.float32)
+
+        # Resample to target sample rate if needed
+        if sr != SAMPLE_RATE:
+            waveform = librosa.resample(waveform, orig_sr=int(sr), target_sr=SAMPLE_RATE)
         waveform = waveform.astype(np.float32)
 
         # trim / zero-pad to exactly 5 s worth of samples
