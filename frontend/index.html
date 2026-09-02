@@ -2951,7 +2951,6 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
     <nav class="nav-group" aria-label="Nova Clinical">
       <div class="nav-label">Nova Clinical</div>
       <button class="nav-item" data-view="respiratory"><i class="fas fa-lungs"></i> Respiratory Triage</button>
-      <button class="nav-item" data-view="vitals"><i class="fas fa-heart-pulse"></i> Vital Signs</button>
     </nav>
     <nav class="nav-group" aria-label="Diagnostics">
       <div class="nav-label">Diagnostics</div>
@@ -3056,7 +3055,7 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
 
     <span class="chip">
       <i class="fas fa-brain"></i>
-      <span class="strong">NephroScan AI</span>
+      <span class="strong">Nova AI</span>
     </span>
 
     <span class="divider"></span>
@@ -3468,7 +3467,7 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
         <span>AI Report</span>
 
         <span class="badge-ai">
-          NephroScan AI
+          Nova AI
         </span>
 
       </div>
@@ -3524,7 +3523,7 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
         <span
           style="font-size:.72rem;opacity:.4;"
         >
-          NephroScan AI analysis workspace
+          Nova AI analysis workspace
         </span>
 
       </div>
@@ -3547,7 +3546,7 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
       </div>
 
       <div class="card">
-        <div class="section-heading"><i class="fas fa-user-doctor"></i> Patient Information</div>
+        <div class="section-heading" id="respPatientInfoHeading"><i class="fas fa-user-doctor"></i> Patient Information</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;">
           <div class="field-group"><label>Patient Name</label><input type="text" id="respPatientName" placeholder="e.g. Patient 01" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
           <div class="field-group"><label>Age</label><input type="number" id="respPatientAge" min="0" max="120" placeholder="e.g. 45" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
@@ -3556,7 +3555,7 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
       </div>
 
       <div class="card">
-        <div class="section-heading"><i class="fas fa-file-audio"></i> Breath-Sound Input</div>
+        <div class="section-heading" id="respInputHeading"><i class="fas fa-file-audio"></i> Breath-Sound Input</div>
         <p style="font-size:.82rem;color:#3d5a6e;line-height:1.7;margin-bottom:1rem;">
           Either <b>record directly</b> using your device microphone or <b>upload a .wav file</b> (about 5 seconds).
         </p>
@@ -3588,54 +3587,12 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
 
       <div class="card" id="respResultCard" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem;">
-          <div class="section-heading" style="margin:0;"><i class="fas fa-clipboard-check"></i> Nova Respiratory Report</div>
+          <div class="section-heading" id="respReportHeading" style="margin:0;"><i class="fas fa-clipboard-check"></i> Nova Respiratory Report</div>
           <button id="respExportBtn" type="button" style="padding:.4rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;cursor:pointer;font-size:.78rem;">
             <i class="fas fa-download"></i> Download Excel
           </button>
         </div>
         <div id="respResultBody"></div>
-      </div>
-
-    </section>
-
-    <!-- ===================== VITAL SIGNS VIEW ===================== -->
-    <section class="view" id="view-vitals">
-
-      <div class="ai-banner">
-        <span class="tag"><i class="fas fa-heart-pulse"></i> NOVA VITAL SIGNS</span>
-        <span class="divider"></span>
-        <span class="chip"><i class="fas fa-stethoscope"></i> WHO-based risk assessment</span>
-      </div>
-
-      <div class="card">
-        <div class="section-heading"><i class="fas fa-heart"></i> Blood Pressure & Heart Rate</div>
-        <p style="font-size:.82rem;color:#3d5a6e;line-height:1.7;margin-bottom:1rem;">
-          Enter the patient's vital signs for a WHO-based cardiovascular risk assessment. Useful for quick triage in rural health settings.
-        </p>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;">
-          <div class="field-group"><label>Systolic BP (mmHg)</label><input type="number" id="vitalSysBp" placeholder="e.g. 120" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
-          <div class="field-group"><label>Diastolic BP (mmHg)</label><input type="number" id="vitalDiaBp" placeholder="e.g. 80" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
-          <div class="field-group"><label>Heart Rate (bpm)</label><input type="number" id="vitalHr" placeholder="e.g. 72" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;margin-top:.7rem;">
-          <div class="field-group"><label>Age</label><input type="number" id="vitalAge" min="0" max="120" placeholder="e.g. 55" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
-          <div class="field-group"><label>Gender</label><select id="vitalGender" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option></select></div>
-          <div class="field-group"><label>History</label><div style="display:flex;gap:.8rem;padding-top:.4rem;"><label style="font-size:.78rem;display:flex;align-items:center;gap:.3rem;"><input type="checkbox" id="vitalSmoker" /> Smoker</label><label style="font-size:.78rem;display:flex;align-items:center;gap:.3rem;"><input type="checkbox" id="vitalDiabetic" /> Diabetic</label></div></div>
-        </div>
-
-        <div style="margin-top:1rem;">
-          <button id="vitalAnalyzeBtn" type="button" style="padding:.6rem 1.4rem;border-radius:10px;border:none;background:#0e7490;color:#fff;font-weight:600;cursor:pointer;">
-            <i class="fas fa-chart-line"></i> Assess Risk
-          </button>
-        </div>
-
-        <div id="vitalStatus" style="margin-top:.8rem;font-size:.82rem;color:#5a6b7a;"></div>
-      </div>
-
-      <div class="card" id="vitalResultCard" style="display:none;">
-        <div class="section-heading"><i class="fas fa-clipboard-check"></i> Vital Signs Assessment</div>
-        <div id="vitalResultBody"></div>
       </div>
 
     </section>
@@ -3723,6 +3680,9 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
             <option value="name">Patient Name</option>
             <option value="disease">Disease</option>
           </select>
+          <button type="button" id="historyExportBtn" class="btn btn-secondary" style="font-size:.72rem;margin-left:auto;">
+            <i class="fas fa-file-excel"></i> Export Excel
+          </button>
         </div>
         <div id="historyTableWrap"></div>
       </div>
@@ -3799,8 +3759,8 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
     <!-- ===================== ABOUT VIEW ===================== -->
     <section class="view" id="view-about">
       <div class="card">
-        <div class="section-heading"><i class="fas fa-circle-info"></i> Why NephroScan AI?</div>
-        <p style="font-size:.82rem;color:#3d5a6e;line-height:1.7;">Reviewing medical images is time-consuming and specialist-dependent. NephroScan AI explores how an explainable, transparent decision-support layer could sit alongside a radiologist's workflow — surfacing quality checks, candidate findings, model confidence, and structured reporting, while always deferring the actual diagnosis to a qualified clinician.</p>
+        <div class="section-heading"><i class="fas fa-circle-info"></i> Why Nova?</div>
+        <p style="font-size:.82rem;color:#3d5a6e;line-height:1.7;">Reviewing medical images is time-consuming and specialist-dependent. Nova explores how an explainable, transparent decision-support layer could sit alongside a radiologist's workflow — surfacing quality checks, candidate findings, model confidence, and structured reporting, while always deferring the actual diagnosis to a qualified clinician.</p>
         <div class="about-flow">
           <div class="node">Medical Image</div><span class="arrow">→</span>
           <div class="node">Quality Control</div><span class="arrow">→</span>
@@ -3819,7 +3779,7 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
       </div>
       <div class="card">
         <div class="section-heading"><i class="fas fa-shield-heart"></i> Responsible AI Disclaimer</div>
-        <div class="disclaimer-box" style="font-size:.78rem;">NephroScan AI is an educational AI-assisted medical imaging prototype. Its predictions are not a medical diagnosis and should not replace evaluation by a qualified healthcare professional. Model performance depends on training data, image quality, imaging modality, and clinical context. This system has not been established as a clinically validated diagnostic device. Review generated findings with qualified clinical judgment.</div>
+        <div class="disclaimer-box" style="font-size:.78rem;">Nova is an educational AI-assisted medical imaging prototype. Its predictions are not a medical diagnosis and should not replace evaluation by a qualified healthcare professional. Model performance depends on training data, image quality, imaging modality, and clinical context. This system has not been established as a clinically validated diagnostic device. Review generated findings with qualified clinical judgment.</div>
       </div>
     </section>
 
@@ -4739,7 +4699,7 @@ body:has(.sidebar-scrim.show) .health-guide-fab {
 
       <div class="ns-setting-info">
         <strong>Interface Sounds</strong>
-        <span>Enable NephroScan interaction sounds</span>
+        <span>Enable Nova interaction sounds</span>
       </div>
 
       <button
@@ -5644,12 +5604,12 @@ function toast(msg, type){
 /* ===================== NAVIGATION ===================== */
 const viewTitles = {
   dashboard:['fa-gauge-high','Dashboard'], analysis:['fa-circle-notch','New Analysis'],
-  respiratory:['fa-lungs','Respiratory Triage'], vitals:['fa-heart-pulse','Vital Signs'],
+  respiratory:['fa-lungs','Respiratory Triage'],
   lab:['fa-vials','Lab Test Analysis'],
   history:['fa-clock-rotate-left','Report History'], patients:['fa-user-injured','Patients'],
   compare:['fa-code-compare','Compare Scans'], performance:['fa-chart-line','Model Performance'],
   assistant:['fa-comment-medical','AI Assistant'], 'health-guide':['fa-comment-medical','AI Assistant'],
-  about:['fa-circle-info','Why NephroScan?'],
+  about:['fa-circle-info','Why Nova?'],
   settings:['fa-gear','Settings']
 };
 function showView(name){
@@ -5734,7 +5694,7 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
         mediaRecorder.stop();
         recordBtn.style.background = '#dc2626';
         recordBtn.style.borderColor = '#dc2626';
-        recordLabel.textContent = 'Start Recording';
+        recordLabel.textContent = (window.__novaT ? window.__novaT('Start Recording') : 'Start Recording');
         recordStatus.textContent = 'Recording saved — ready to analyze.';
         recordStatus.style.color = '#059669';
         clearInterval(timerInterval);
@@ -5762,7 +5722,7 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
 
         recordBtn.style.background = '#991b1b';
         recordBtn.style.borderColor = '#991b1b';
-        recordLabel.textContent = 'Stop Recording';
+        recordLabel.textContent = (window.__novaT ? window.__novaT('Stop Recording') : 'Stop Recording');
         recordStatus.textContent = '🔴 Recording…';
         recordStatus.style.color = '#dc2626';
         waveformCanvas.style.display = 'block';
@@ -5904,74 +5864,12 @@ document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analy
         alert('Export failed: ' + e.message);
       } finally {
         exportBtn.disabled = false;
-        exportBtn.innerHTML = '<i class="fas fa-download"></i> Download Excel';
+        exportBtn.innerHTML = '<i class="fas fa-download"></i> ' + (window.__novaT ? window.__novaT('Download Excel') : 'Download Excel');
       }
     });
   }
 })();
 
-/* ---- Vital Signs handler ---- */
-(function(){
-  var analyzeBtn = document.getElementById('vitalAnalyzeBtn');
-  var resultCard = document.getElementById('vitalResultCard');
-  var resultBody = document.getElementById('vitalResultBody');
-  var statusEl = document.getElementById('vitalStatus');
-  if (!analyzeBtn) return;
-
-  analyzeBtn.addEventListener('click', async function() {
-    var sysBp = document.getElementById('vitalSysBp').value;
-    var diaBp = document.getElementById('vitalDiaBp').value;
-    var hr = document.getElementById('vitalHr').value;
-    var age = document.getElementById('vitalAge').value;
-    var gender = document.getElementById('vitalGender').value;
-    var smoker = document.getElementById('vitalSmoker').checked;
-    var diabetic = document.getElementById('vitalDiabetic').checked;
-
-    if (!sysBp || !diaBp) {
-      statusEl.textContent = 'Please enter systolic and diastolic blood pressure.';
-      statusEl.style.color = '#c2410c';
-      return;
-    }
-
-    statusEl.textContent = 'Assessing risk…';
-    statusEl.style.color = '#3d5a6e';
-    resultCard.style.display = 'none';
-
-    try {
-      var resp = await fetch('/api/vitals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sys_bp: sysBp, dia_bp: diaBp, heart_rate: hr || undefined, age: age || undefined, gender: gender, smoker: smoker, diabetic: diabetic })
-      });
-      var data = await resp.json();
-      if (!resp.ok) { statusEl.textContent = data.error || 'Server error'; statusEl.style.color = '#c2410c'; return; }
-
-      var bp = data.blood_pressure || {};
-      var hrData = data.heart_rate || {};
-      var color = bp.color || '#2563eb';
-
-      resultBody.innerHTML =
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem;">'
-        +   '<div style="background:#f0f7fb;border-radius:8px;padding:.6rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Blood Pressure</span><span style="font-size:1.1rem;font-weight:700;color:' + color + ';">' + bp.systolic + '/' + bp.diastolic + ' mmHg</span></div>'
-        +   '<div style="background:#f0f7fb;border-radius:8px;padding:.6rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Overall Risk Score</span><span style="font-size:1.1rem;font-weight:700;color:#263e50;">' + data.risk_score + ' / 100</span></div>'
-        + '</div>'
-        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem;">'
-        +   '<div style="background:#f0f7fb;border-radius:8px;padding:.6rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">BP Category</span><span style="font-size:.88rem;font-weight:600;color:' + color + ';">' + bp.category + '</span></div>'
-        +   '<div style="background:#f0f7fb;border-radius:8px;padding:.6rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Overall Risk</span><span style="font-size:.88rem;font-weight:600;color:' + color + ';">' + data.overall_risk + '</span></div>'
-        + '</div>'
-        + '<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;line-height:1.6;"><b>BP Advice:</b> ' + (bp.advice || '') + '</p>'
-        + (hrData.category ? '<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;"><b>Heart Rate:</b> ' + hrData.value + ' bpm — <b>' + hrData.category + '</b>. ' + (hrData.advice || '') + '</p>' : '')
-        + (data.risk_factors && data.risk_factors.length ? '<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;"><b>Risk Factors:</b> ' + data.risk_factors.join(', ') + '</p>' : '')
-        + '<p style="margin-top:.5rem;font-size:.7rem;color:#999;">' + (data.disclaimer || '') + '</p>';
-
-      resultCard.style.display = 'block';
-      statusEl.textContent = '';
-    } catch (err) {
-      statusEl.textContent = 'Error: ' + err.message;
-      statusEl.style.color = '#c2410c';
-    }
-  });
-})();
 /* (openBotFromView removed — AI Health Guide is a sidebar page) */
 
 /* mobile sidebar */
@@ -6500,7 +6398,7 @@ function finalizeReport(scanType, indication, modelPrediction, modelConfidence, 
     ${emergencyBlock}
     ${attentionBlock}
     ${nutritionBlock}
-    <div class="disclaimer-box">NephroScan AI provides educational AI-assisted imaging support. This is not a medical diagnosis and should not replace evaluation by a qualified healthcare professional.</div>
+    <div class="disclaimer-box">Nova provides educational AI-assisted imaging support. This is not a medical diagnosis and should not replace evaluation by a qualified healthcare professional.</div>
     <div class="ai-meta"><span><i class="fas fa-hashtag"></i> ${reportId}</span><span><i class="fas fa-cube"></i> AI-assisted analysis · Report Engine 3.0</span><span><i class="fas fa-clock"></i> ${nowStr}</span><span><i class="fas fa-file"></i> ${uploadedFiles.length} scan(s)</span></div>`;
 
   reportBody.innerHTML = reportHTML;
@@ -6546,7 +6444,7 @@ printBtn.addEventListener('click', ()=>{
   if(!content || content.includes('Upload scans')){ toast('No report to print yet.','warn'); return; }
   const win = window.open('','_blank','width=900,height=700');
   if(win){
-    win.document.write(`<html><head><title>NephroScan AI Report</title><style>
+    win.document.write(`<html><head><title>Nova AI Report</title><style>
       body{font-family:Inter,sans-serif;padding:2.2rem;max-width:900px;margin:auto;line-height:1.8;background:#0b0f1a;color:#e8edf5;}
       .report-section{margin-bottom:1.2rem;} .section-title{font-weight:700;color:#fff;margin-bottom:.2rem;}
       .content{padding-left:1.2rem;border-left:3px solid #1a5cff;color:#c9d6e0;}
@@ -6586,7 +6484,7 @@ function _smsEnable(scanType, prediction, confidence, uncertain, nowStr, nextAct
   var mods = { ct_kub:'Kidney scan', chest_xray:'Chest X-ray', mri_brain:'Brain MRI', heart:'Heart X-ray' };
   var mod = mods[scanType] || scanType;
   _smsNextAction = nextAction || '';
-  _smsSummaryText = 'NephroScan AI Report | Modality: ' + mod + ' | Result: ' + prediction + ' | Confidence: ' + confidence + '% | Review: ' + (uncertain ? 'REQUIRES REVIEW' : 'Completed') + ' | Time: ' + nowStr + (nextAction ? ' | Next action: ' + nextAction : '') + ' | AI research prototype; not a medical diagnosis. Confirm with a qualified clinician.';
+  _smsSummaryText = 'Nova AI Report | Modality: ' + mod + ' | Result: ' + prediction + ' | Confidence: ' + confidence + '% | Review: ' + (uncertain ? 'REQUIRES REVIEW' : 'Completed') + ' | Time: ' + nowStr + (nextAction ? ' | Next action: ' + nextAction : '') + ' | AI research prototype; not a medical diagnosis. Confirm with a qualified clinician.';
   _smsReady = true;
   _smsUpdate();
 }
@@ -6615,7 +6513,7 @@ if(whatsappBtn) whatsappBtn.addEventListener('click', function(){
 if(emailBtn) emailBtn.addEventListener('click', function(){
   if(!_smsReady){ toast('Run an analysis first.','warn'); return; }
   var to = emailEl && emailEl.value ? emailEl.value : '';
-  var subject = 'NephroScan AI Report';
+  var subject = 'Nova AI Report';
   window.location.href = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(_smsSummaryText);
   _showPrepared();
   toast('Email message prepared — press Send.','info');
@@ -6623,7 +6521,7 @@ if(emailBtn) emailBtn.addEventListener('click', function(){
 /* ===================== SPEECH (LISTEN) ===================== */
 function _speechText(){
   var parts = _smsSummaryText.split('|').map(function(s){ return s.trim(); }).filter(Boolean);
-  var want = ['NephroScan AI Report','Modality','Result','Confidence','Review','Next action'];
+  var want = ['Nova AI Report','Modality','Result','Confidence','Review','Next action'];
   var out = [];
   parts.forEach(function(p){
     if(want.some(function(w){ return p.indexOf(w)===0; })) out.push(p);
@@ -6733,6 +6631,7 @@ function renderHistory(){
       <td class="row-actions">
         <button title="View" onclick="window.__ns_viewReport('${r.id}')"><i class="fas fa-eye"></i></button>
         <button title="Print" onclick="window.__ns_printReport('${r.id}')"><i class="fas fa-print"></i></button>
+        <button title="Export Excel" onclick="window.__ns_exportReport('${r.id}')"><i class="fas fa-file-excel"></i></button>
         <button title="Delete" onclick="window.__ns_deleteReport('${r.id}')"><i class="fas fa-trash"></i></button>
       </td></tr>`).join('')}
   </tbody></table>`;
@@ -6778,6 +6677,51 @@ window.__ns_deleteReport = function(id){
   renderHistory(); refreshDashboard();
   toast('Report removed from this session.','info');
 };
+
+/* ---- Report History Excel export ---- */
+function _downloadExcelBlob(blob, filename){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a);
+  a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+}
+
+window.__ns_exportReport = function(id){
+  var r = sessionReports.find(function(x){ return x.id === id; });
+  if(!r) return;
+  window.__ns_exportReports([r], 'Nova_Report_' + id + '.xlsx');
+};
+
+window.__ns_exportAll = function(){
+  if(sessionReports.length === 0){ toast('No reports to export yet.', 'info'); return; }
+  window.__ns_exportReports(sessionReports, 'Nova_Report_History.xlsx');
+};
+
+window.__ns_exportReports = async function(reports, filename){
+  try {
+    var resp = await fetch('/api/reports/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reports: reports })
+    });
+    if(!resp.ok){
+      var err = await resp.json().catch(function(){ return {}; });
+      toast(err.error || 'Export failed', 'error');
+      return;
+    }
+    var blob = await resp.blob();
+    _downloadExcelBlob(blob, filename);
+    toast('Excel exported.', 'success');
+  } catch(err){
+    toast('Export error: ' + err.message, 'error');
+  }
+};
+
+(function(){
+  var exportBtn = document.getElementById('historyExportBtn');
+  if(exportBtn) exportBtn.addEventListener('click', function(){ window.__ns_exportAll(); });
+})();
 
 /* ===================== PATIENTS ===================== */
 function renderPatients(){
@@ -7970,85 +7914,231 @@ setMode('doctor');
 
 /* ===================== MULTILINGUAL SUPPORT ===================== */
 (function(){
-  const TRANSLATIONS = {
-    en: { /* default — no change needed */ },
+  var TRANSLATIONS = {
     hi: {
-      'Dashboard':'डैशबोर्ड','New Analysis':'नया विश्लेषण','Report History':'रिपोर्ट इतिहास','Patients':'मरीज़','Compare Scans':'स्कैन की तुलना करें','Lab Test Analysis':'लैब परीक्षण विश्लेषण','Respiratory Triage':'श्वसन ट्रायेज','Vital Signs':'महत्वपूर्ण संकेत','Model Performance':'मॉडल प्रदर्शन','AI Assistant':'AI सहायक','AI Health Guide':'AI स्वास्थ्य मार्गदर्शिका','Why Nova?':'नोवा क्यों?','Settings':'सेटिंग्स',
-      'Nova AI':'नोवा AI','From Image & Sound to Insight.':'"छवि और ध्वनि से अंतर्दृष्टि तक।"','Dashboard':'डैशबोर्ड'
+      'Dashboard':'डैशबोर्ड','New Analysis':'नया विश्लेषण','Report History':'रिपोर्ट इतिहास','Patients':'मरीज़','Compare Scans':'स्कैन की तुलना करें','Lab Test Analysis':'लैब परीक्षण विश्लेषण','Respiratory Triage':'श्वसन ट्रायेज','Model Performance':'मॉडल प्रदर्शन','AI Assistant':'AI सहायक','AI Health Guide':'AI स्वास्थ्य मार्गदर्शिका','Why Nova?':'नोवा क्यों?','Settings':'सेटिंग्स',
+      'Nova AI':'नोवा AI','From Image & Sound to Insight.':'"छवि और ध्वनि से अंतर्दृष्टि तक।"','Dashboard':'डैशबोर्ड',
+      'NOVA RESPIRATORY':'नोवा श्वसन ट्रायेज','Lung-sound triage':'फेफड़े-ध्वनि ट्रायेज','Normal · Crackles · Wheezes · Both':'सामान्य · कर्कश · घरघराहट · दोनों',
+      'Patient Information':'रोगी जानकारी','Patient Name':'रोगी का नाम','Age':'उम्र','Gender':'लिंग','Select':'चुनें','Male':'पुरुष','Female':'महिला','Other':'अन्य',
+      'Breath-Sound Input':'सांस-ध्वनि इनपुट','Start Recording':'रिकॉर्डिंग शुरू करें','Stop Recording':'रिकॉर्डिंग रोकें','Analyze Breath Sound':'सांस की ध्वनि का विश्लेषण करें','Nova Respiratory Report':'नोवा श्वसन रिपोर्ट','Download Excel':'एक्सेल डाउनलोड करें'
     },
     ta: {
-      'Dashboard':'டாஷ்போர்டு','New Analysis':'புதிய பகுப்பாய்வு','Report History':'அறிக்கை வரலாறு','Patients':'நோயாளிகள்','Compare Scans':'ஸ்கேன்களை ஒப்பிடு','Lab Test Analysis':'ஆய்வக சோதனை பகுப்பாய்வு','Respiratory Triage':'சுவாச மருத்துவம்','Vital Signs':'முக்கிய அறிகுறிகள்','Model Performance':'மாதிரி செயல்திறன்','AI Assistant':'AI உதவியாளர்','AI Health Guide':'AI சுகாதார வழிகாட்டி','Why Nova?':'நோவா ஏன்?','Settings':'அமைப்புகள்',
-      'Nova AI':'நோவா AI'
+      'Dashboard':'டாஷ்போர்டு','New Analysis':'புதிய பகுப்பாய்வு','Report History':'அறிக்கை வரலாறு','Patients':'நோயாளிகள்','Compare Scans':'ஸ்கேன்களை ஒப்பிடு','Lab Test Analysis':'ஆய்வக சோதனை பகுப்பாய்வு','Respiratory Triage':'சுவாச மருத்துவம்','Model Performance':'மாதிரி செயல்திறன்','AI Assistant':'AI உதவியாளர்','AI Health Guide':'AI சுகாதார வழிகாட்டி','Why Nova?':'நோவா ஏன்?','Settings':'அமைப்புகள்',
+      'Nova AI':'நோவா AI',
+      'NOVA RESPIRATORY':'நோவா சுவாச மருத்துவம்','Lung-sound triage':'நுரையீரல்-ஒலி மருத்துவம்','Normal · Crackles · Wheezes · Both':'சாதாரணம் · க்ராக்கிள்ஸ் · வீசிங் · இரண்டும்',
+      'Patient Information':'நோயாளி தகவல்','Patient Name':'நோயாளி பெயர்','Age':'வயது','Gender':'பாலினம்','Select':'தேர்வு','Male':'ஆண்','Female':'பெண்','Other':'மற்றவை',
+      'Breath-Sound Input':'சுவாச-ஒலி உள்ளீடு','Start Recording':'பதிவு தொடங்கு','Stop Recording':'பதிவு நிறுத்து','Analyze Breath Sound':'சுவாச ஒலியை பகுப்பாய்வு செய்','Nova Respiratory Report':'நோவா சுவாச அறிக்கை','Download Excel':'எக்செல் பதிவிறக்கு'
     },
     te: {
-      'Dashboard':'డాష్బోర్డ్','New Analysis':'కొత్త విశ్లేషణ','Report History':'నివేదిక చరిత్ర','Patients':'రోగులు','Compare Scans':'స్కాన్లను పోల్చండి','Lab Test Analysis':'ల్యాబ్ పరీక్ష విశ్లేషణ','Respiratory Triage':'శ్వాసకోశ ట్రయాజ్','Vital Signs':'ముఖ్యమైన సంకేతాలు','Model Performance':'మోడల్ పనితీరు','AI Assistant':'AI సహాయకుడు','AI Health Guide':'AI ఆరోగ్య గైడ్','Why Nova?':'నోవా ఎందుకు?','Settings':'సెట్టింగులు',
-      'Nova AI':'నోవా AI'
+      'Dashboard':'డాష్బోర్డ్','New Analysis':'కొత్త విశ్లేషణ','Report History':'నివేదిక చరిత్ర','Patients':'రోగులు','Compare Scans':'స్కాన్లను పోల్చండి','Lab Test Analysis':'ల్యాబ్ పరీక్ష విశ్లేషణ','Respiratory Triage':'శ్వాసకోశ ట్రయాజ్','Model Performance':'మోడల్ పనితీరు','AI Assistant':'AI సహాయకుడు','AI Health Guide':'AI ఆరోగ్య గైడ్','Why Nova?':'నోవా ఎందుకు?','Settings':'సెట్టింగులు',
+      'Nova AI':'నోవా AI',
+      'NOVA RESPIRATORY':'నోవా శ్వాసకోశ ట్రయాజ్','Lung-sound triage':'ఊపిరితిత్తుల-ధ్వని ట్రయాజ్','Normal · Crackles · Wheezes · Both':'సాధారణం · క్రాకిల్స్ · వీజెస్ · రెండూ',
+      'Patient Information':'రోగి సమాచారం','Patient Name':'రోగి పేరు','Age':'వయస్సు','Gender':'లింగం','Select':'ఎంచుకోండి','Male':'పురుషుడు','Female':'స్త్రీ','Other':'ఇతర',
+      'Breath-Sound Input':'శ్వాస-ధ్వని ఇన్పుట్','Start Recording':'రికార్డింగ్ ప్రారంభించండి','Stop Recording':'రికార్డింగ్ ఆపు','Analyze Breath Sound':'శ్వాస ధ్వనిని విశ్లేషించండి','Nova Respiratory Report':'నోవా శ్వాసకోశ నివేదిక','Download Excel':'ఎక్సెల్ డౌన్లోడ్'
     },
     kn: {
-      'Dashboard':'ಡ್ಯಾಶ್ಬೋರ್ಡ್','New Analysis':'ಹೊಸ ವಿಶ್ಲೇಷಣೆ','Report History':'ವರದಿ ಇತಿಹಾಸ','Patients':'ರೋಗಿಗಳು','Compare Scans':'ಸ್ಕ್ಯಾನ್ ಹೋಲಿಸಿ','Lab Test Analysis':'ಲ್ಯಾಬ್ ಪರೀಕ್ಷಾ ವಿಶ್ಲೇಷಣೆ','Respiratory Triage':'ಉಸಿರಾಟದ ಟ್ರಯಾಜ್','Vital Signs':'ಪ್ರಮುಖ ಚಿಹ್ನೆಗಳು','Model Performance':'ಮಾದರಿ ಕಾರ್ಯಕ್ಷಮತೆ','AI Assistant':'AI ಸಹಾಯಕ','AI Health Guide':'AI ಆರೋಗ್ಯ ಮಾರ್ಗದರ್ಶಿ','Why Nova?':'ನೋವಾ ಏಕೆ?','Settings':'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
-      'Nova AI':'ನೋವಾ AI'
+      'Dashboard':'ಡ್ಯಾಶ್ಬೋರ್ಡ್','New Analysis':'ಹೊಸ ವಿಶ್ಲೇಷಣೆ','Report History':'ವರದಿ ಇತಿಹಾಸ','Patients':'ರೋಗಿಗಳು','Compare Scans':'ಸ್ಕ್ಯಾನ್ ಹೋಲಿಸಿ','Lab Test Analysis':'ಲ್ಯಾಬ್ ಪರೀಕ್ಷಾ ವಿಶ್ಲೇಷಣೆ','Respiratory Triage':'ಉಸಿರಾಟದ ಟ್ರಯಾಜ್','Model Performance':'ಮಾದರಿ ಕಾರ್ಯಕ್ಷಮತೆ','AI Assistant':'AI ಸಹಾಯಕ','AI Health Guide':'AI ಆರೋಗ್ಯ ಮಾರ್ಗದರ್ಶಿ','Why Nova?':'ನೋವಾ ಏಕೆ?','Settings':'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
+      'Nova AI':'ನೋವಾ AI',
+      'NOVA RESPIRATORY':'ನೋವಾ ಉಸಿರಾಟದ ಟ್ರಯಾಜ್','Lung-sound triage':'ಶ್ವಾಸಕೋಶ-ಧ್ವನಿ ಟ್ರಯಾಜ್','Normal · Crackles · Wheezes · Both':'ಸಾಮಾನ್ಯ · ಕ್ರ್ಯಾಕಲ್ಸ್ · ವೀಜಸ್ · ಎರಡೂ',
+      'Patient Information':'ರೋಗಿಯ ಮಾಹಿತಿ','Patient Name':'ರೋಗಿಯ ಹೆಸರು','Age':'ವಯಸ್ಸು','Gender':'ಲಿಂಗ','Select':'ಆಯ್ಕೆ','Male':'ಪುರುಷ','Female':'ಮಹಿಳೆ','Other':'ಇತರೆ',
+      'Breath-Sound Input':'ಉಸಿರು-ಧ್ವನಿ ಇನ್‌ಪುಟ್','Start Recording':'ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಿ','Stop Recording':'ರೆಕಾರ್ಡಿಂಗ್ ನಿಲ್ಲಿಸಿ','Analyze Breath Sound':'ಉಸಿರಿನ ಧ್ವನಿಯನ್ನು ವಿಶ್ಲೇಷಿಸಿ','Nova Respiratory Report':'ನೋವಾ ಉಸಿರಾಟದ ವರದಿ','Download Excel':'ಎಕ್ಸೆಲ್ ಡೌನ್‌ಲೋಡ್'
     },
     ml: {
-      'Dashboard':'ഡാഷ്ബോർഡ്','New Analysis':'പുതിയ വിശക്‌ലേഷണം','Report History':'റിപ്പോർട്ട് ചരിത്രം','Patients':'രോഗികൾ','Compare Scans':'സ്കാൻ താരതമ്യം','Lab Test Analysis':'ലാബ് പരിശോധന വിശക്‌ലേഷണം','Respiratory Triage':'ശ്വസന ട്രയേജ്','Vital Signs':'സുപ്രധാന ലക്ഷണങ്ങൾ','Model Performance':'മോഡൽ പ്രകടനം','AI Assistant':'AI സഹായി','AI Health Guide':'AI ആരോഗ്യ ഗൈഡ്','Why Nova?':'എന്തുകൊണ്ട് നോവ?','Settings':'ക്രമീകരണങ്ങൾ',
-      'Nova AI':'നോവ AI'
+      'Dashboard':'ഡാഷ്ബോർഡ്','New Analysis':'പുതിയ വിശക്‌ലേഷണം','Report History':'റിപ്പോർട്ട് ചരിത്രം','Patients':'രോഗികൾ','Compare Scans':'സ്കാൻ താരതമ്യം','Lab Test Analysis':'ലാബ് പരിശോധന വിശക്‌ലേഷണം','Respiratory Triage':'ശ്വസന ട്രയേജ്','Model Performance':'മോഡൽ പ്രകടനം','AI Assistant':'AI സഹായി','AI Health Guide':'AI ആരോഗ്യ ഗൈഡ്','Why Nova?':'എന്തുകൊണ്ട് നോവ?','Settings':'ക്രമീകരണങ്ങൾ',
+      'Nova AI':'നോവ AI',
+      'NOVA RESPIRATORY':'നോവ ശ്വസന ട്രയേജ്','Lung-sound triage':'ശ്വാസകോശ-ശബ്ദ ട്രയേജ്','Normal · Crackles · Wheezes · Both':'സാധാരണ · ക്രാക്കിൾസ് · വീസസ് · രണ്ടും',
+      'Patient Information':'രോഗിയുടെ വിവരങ്ങൾ','Patient Name':'രോഗിയുടെ പേര്','Age':'പ്രായം','Gender':'ലിംഗം','Select':'തിരഞ്ഞെടുക്കുക','Male':'പുരുഷൻ','Female':'സ്ത്രീ','Other':'മറ്റുള്ളവ',
+      'Breath-Sound Input':'ശ്വസന-ശബ്ദ ഇൻപുട്ട്','Start Recording':'റെക്കോർഡിംഗ് ആരംഭിക്കുക','Stop Recording':'റെക്കോർഡിംഗ് നിർത്തുക','Analyze Breath Sound':'ശ്വാസശബ്ദം വിശക്‌ലേഷണം ചെയ്യുക','Nova Respiratory Report':'നോവ ശ്വസന റിപ്പോർട്ട്','Download Excel':'എക്സൽ ഡൗൺലോഡ്'
     },
     mr: {
-      'Dashboard':'डॅशबोर्ड','New Analysis':'नवीन विश्लेषण','Report History':'अहवाल इतिहास','Patients':'रुग्ण','Compare Scans':'स्कॅनची तुलना','Lab Test Analysis':'प्रयोगशाळा चाचणी विश्लेषण','Respiratory Triage':'श्वसन ट्रायेज','Vital Signs':'महत्त्वाची चिन्हे','Model Performance':'मॉडेल कामगिरी','AI Assistant':'AI सहाय्यक','AI Health Guide':'AI आरोग्य मार्गदर्शक','Why Nova?':'नोवा का?','Settings':'सेटिंग्ज',
-      'Nova AI':'नोवा AI'
+      'Dashboard':'डॅशबोर्ड','New Analysis':'नवीन विश्लेषण','Report History':'अहवाल इतिहास','Patients':'रुग्ण','Compare Scans':'स्कॅनची तुलना','Lab Test Analysis':'प्रयोगशाळा चाचणी विश्लेषण','Respiratory Triage':'श्वसन ट्रायेज','Model Performance':'मॉडेल कामगिरी','AI Assistant':'AI सहाय्यक','AI Health Guide':'AI आरोग्य मार्गदर्शक','Why Nova?':'नोवा का?','Settings':'सेटिंग्ज',
+      'Nova AI':'नोवा AI',
+      'NOVA RESPIRATORY':'नोवा श्वसन ट्रायेज','Lung-sound triage':'फुफ्फुस-ध्वनी ट्रायेज','Normal · Crackles · Wheezes · Both':'सामान्य · क्रॅकल्स · घरघर · दोन्ही',
+      'Patient Information':'रुग्ण माहिती','Patient Name':'रुग्णाचे नाव','Age':'वय','Gender':'लिंग','Select':'निवडा','Male':'पुरुष','Female':'स्त्री','Other':'इतर',
+      'Breath-Sound Input':'श्वास-ध्वनी इनपुट','Start Recording':'रेकॉर्डिंग सुरू करा','Stop Recording':'रेकॉर्डिंग थांबवा','Analyze Breath Sound':'श्वासाच्या ध्वनीचे विश्लेषण करा','Nova Respiratory Report':'नोवा श्वसन अहवाल','Download Excel':'एक्सेल डाउनलोड करा'
     },
     bn: {
-      'Dashboard':'ড্যাশবোর্ড','New Analysis':'নতুন বিশ্লেষণ','Report History':'রিপোর্ট ইতিহাস','Patients':'রোগী','Compare Scans':'স্ক্যান তুলনা','Lab Test Analysis':'ল্যাব পরীক্ষা বিশ্লেষণ','Respiratory Triage':'শ্বাসযন্ত্র ট্রায়েজ','Vital Signs':'গুরুত্বপূর্ণ লক্ষণ','Model Performance':'মডেল কর্মক্ষমতা','AI Assistant':'AI সহকারী','AI Health Guide':'AI স্বাস্থ্য গাইড','Why Nova?':'কেন নোভা?','Settings':'সেটিংস',
-      'Nova AI':'নোভা AI'
+      'Dashboard':'ড্যাশবোর্ড','New Analysis':'নতুন বিশ্লেষণ','Report History':'রিপোর্ট ইতিহাস','Patients':'রোগী','Compare Scans':'স্ক্যান তুলনা','Lab Test Analysis':'ল্যাব পরীক্ষা বিশ্লেষণ','Respiratory Triage':'শ্বাসযন্ত্র ট্রায়েজ','Model Performance':'মডেল কর্মক্ষমতা','AI Assistant':'AI সহকারী','AI Health Guide':'AI স্বাস্থ্য গাইড','Why Nova?':'কেন নোভা?','Settings':'সেটিংস',
+      'Nova AI':'নোভা AI',
+      'NOVA RESPIRATORY':'নোভা শ্বসন ট্রায়েজ','Lung-sound triage':'ফুসফুস-শব্দ ট্রায়েজ','Normal · Crackles · Wheezes · Both':'স্বাভাবিক · ক্র্যাকলস · হুইজেস · উভয়',
+      'Patient Information':'রোগীর তথ্য','Patient Name':'রোগীর নাম','Age':'বয়স','Gender':'লিঙ্গ','Select':'নির্বাচন','Male':'পুরুষ','Female':'মহিলা','Other':'অন্যান্য',
+      'Breath-Sound Input':'শ্বাস-শব্দ ইনপুট','Start Recording':'রেকর্ডিং শুরু করুন','Stop Recording':'রেকর্ডিং বন্ধ করুন','Analyze Breath Sound':'শ্বাসের শব্দ বিশ্লেষণ করুন','Nova Respiratory Report':'নোভা শ্বসন রিপোর্ট','Download Excel':'এক্সেল ডাউনলোড'
     },
     gu: {
-      'Dashboard':'ડેશબોર્ડ','New Analysis':'નવું વિશ્લેષણ','Report History':'રિપોર્ટ ઇતિહાસ','Patients':'દર્દીઓ','Compare Scans':'સ્કેન સરખામણી','Lab Test Analysis':'લેબ પરીક્ષણ વિશ્લેષણ','Respiratory Triage':'શ્વસન ટ્રાયેજ','Vital Signs':'મહત્વપૂર્ણ સંકેતો','Model Performance':'મોડેલ પ્રદર્શન','AI Assistant':'AI સહાયક','AI Health Guide':'AI આરોગ્ય માર્ગદર્શિકા','Why Nova?':'નોવા કેમ?','Settings':'સેટિંગ્સ',
-      'Nova AI':'નોવા AI'
+      'Dashboard':'ડેશબોર્ડ','New Analysis':'નવું વિશ્લેષણ','Report History':'રિપોર્ટ ઇતિહાસ','Patients':'દર્દીઓ','Compare Scans':'સ્કેન સરખામણી','Lab Test Analysis':'લેબ પરીક્ષણ વિશ્લેષણ','Respiratory Triage':'શ્વસન ટ્રાયેજ','Model Performance':'મોડેલ પ્રદર્શન','AI Assistant':'AI સહાયક','AI Health Guide':'AI આરોગ્ય માર્ગદર્શિકા','Why Nova?':'નોવા કેમ?','Settings':'સેટિંગ્સ',
+      'Nova AI':'નોવા AI',
+      'NOVA RESPIRATORY':'નોવા શ્વસન ટ્રાયેજ','Lung-sound triage':'ફેફસાં-ધ્વનિ ટ્રાયેજ','Normal · Crackles · Wheezes · Both':'સામાન્ય · ક્રેકલ્સ · વ્હિઝિસ · બંને',
+      'Patient Information':'દર્દીની માહિતી','Patient Name':'દર્દીનું નામ','Age':'ઉંમર','Gender':'લિંગ','Select':'પસંદ કરો','Male':'પુરુષ','Female':'સ્ત્રી','Other':'અન્ય',
+      'Breath-Sound Input':'શ્વાસ-ધ્વનિ ઇનપુટ','Start Recording':'રેકોર્ડિંગ શરૂ કરો','Stop Recording':'રેકોર્ડિંગ બંધ કરો','Analyze Breath Sound':'શ્વાસની ધ્વનિનું વિશ્લેષણ કરો','Nova Respiratory Report':'નોવા શ્વસન રિપોર્ટ','Download Excel':'એક્સેલ ડાઉનલોડ કરો'
     },
     pa: {
-      'Dashboard':'ਡੈਸ਼ਬੋਰਡ','New Analysis':'ਨਵਾਂ ਵਿਸ਼ਲੇਸ਼ਣ','Report History':'ਰਿਪੋਰਟ ਇਤਿਹਾਸ','Patients':'ਮਰੀਜ਼','Compare Scans':'ਸਕੈਨ ਤੁਲਨਾ','Lab Test Analysis':'ਲੈਬ ਟੈਸਟ ਵਿਸ਼ਲੇਸ਼ਣ','Respiratory Triage':'ਸਾਹ ਟ੍ਰਾਈਜ','Vital Signs':'ਮਹੱਤਵਪੂਰਨ ਸੰਕੇਤ','Model Performance':'ਮਾਡਲ ਪ੍ਰਦਰਸ਼ਨ','AI Assistant':'AI ਸਹਾਇਕ','AI Health Guide':'AI ਸਿਹਤ ਗਾਈਡ','Why Nova?':'ਨੋਵਾ ਕਿਉਂ?','Settings':'ਸੈਟਿੰਗਾਂ',
-      'Nova AI':'ਨੋਵਾ AI'
+      'Dashboard':'ਡੈਸ਼ਬੋਰਡ','New Analysis':'ਨਵਾਂ ਵਿਸ਼ਲੇਸ਼ਣ','Report History':'ਰਿਪੋਰਟ ਇਤਿਹਾਸ','Patients':'ਮਰੀਜ਼','Compare Scans':'ਸਕੈਨ ਤੁਲਨਾ','Lab Test Analysis':'ਲੈਬ ਟੈਸਟ ਵਿਸ਼ਲੇਸ਼ਣ','Respiratory Triage':'ਸਾਹ ਟ੍ਰਾਈਜ','Model Performance':'ਮਾਡਲ ਪ੍ਰਦਰਸ਼ਨ','AI Assistant':'AI ਸਹਾਇਕ','AI Health Guide':'AI ਸਿਹਤ ਗਾਈਡ','Why Nova?':'ਨੋਵਾ ਕਿਉਂ?','Settings':'ਸੈਟਿੰਗਾਂ',
+      'Nova AI':'ਨੋਵਾ AI',
+      'NOVA RESPIRATORY':'ਨੋਵਾ ਸਾਹ ਟ੍ਰਾਈਜ','Lung-sound triage':'ਫੇਫੜੇ-ਆਵਾਜ਼ ਟ੍ਰਾਈਜ','Normal · Crackles · Wheezes · Both':'ਆਮ · ਕ੍ਰੈਕਲਜ਼ · ਵ੍ਹੀਜ਼ · ਦੋਵੇਂ',
+      'Patient Information':'ਮਰੀਜ਼ ਜਾਣਕਾਰੀ','Patient Name':'ਮਰੀਜ਼ ਦਾ ਨਾਮ','Age':'ਉਮਰ','Gender':'ਲਿੰਗ','Select':'ਚੁਣੋ','Male':'ਮਰਦ','Female':'ਔਰਤ','Other':'ਹੋਰ',
+      'Breath-Sound Input':'ਸਾਹ-ਆਵਾਜ਼ ਇਨਪੁਟ','Start Recording':'ਰਿਕਾਰਡਿੰਗ ਸ਼ੁਰੂ ਕਰੋ','Stop Recording':'ਰਿਕਾਰਡਿੰਗ ਬੰਦ ਕਰੋ','Analyze Breath Sound':'ਸਾਹ ਦੀ ਆਵਾਜ਼ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੋ','Nova Respiratory Report':'ਨੋਵਾ ਸਾਹ ਰਿਪੋਰਟ','Download Excel':'ਐਕਸਲ ਡਾਊਨਲੋਡ'
     }
   };
 
-  function applyLanguage(lang) {
-    var t = TRANSLATIONS[lang] || {};
-    if (Object.keys(t).length === 0) return;
+  // English defaults — switching to English restores every element.
+  var EN_DEFAULTS = {
+    'Dashboard':'Dashboard','New Analysis':'New Analysis','Report History':'Report History',
+    'Patients':'Patients','Compare Scans':'Compare Scans','Lab Test Analysis':'Lab Test Analysis',
+    'Respiratory Triage':'Respiratory Triage','Model Performance':'Model Performance',
+    'AI Assistant':'AI Assistant','AI Health Guide':'AI Health Guide','Why Nova?':'Why Nova?',
+    'Settings':'Settings','Workspace':'Workspace','Nova Clinical':'Nova Clinical',
+    'Diagnostics':'Diagnostics','Intelligence':'Intelligence','System':'System',
+    'Nova AI':'Nova AI',
+    'NOVA RESPIRATORY':'NOVA RESPIRATORY','Lung-sound triage':'Lung-sound triage',
+    'Normal · Crackles · Wheezes · Both':'Normal · Crackles · Wheezes · Both',
+    'Patient Information':'Patient Information','Patient Name':'Patient Name','Age':'Age','Gender':'Gender',
+    'Select':'Select','Male':'Male','Female':'Female','Other':'Other',
+    'Breath-Sound Input':'Breath-Sound Input',
+    'Start Recording':'Start Recording','Stop Recording':'Stop Recording','Analyze Breath Sound':'Analyze Breath Sound',
+    'Nova Respiratory Report':'Nova Respiratory Report','Download Excel':'Download Excel'
+  };
 
-    // Nav items
+  function applyLanguage(lang) {
+    var t;
+    if (lang === 'en') {
+      t = EN_DEFAULTS;
+    } else {
+      t = TRANSLATIONS[lang] || EN_DEFAULTS;
+    }
+
+    // 1) Nav items — match by the element's stored original English label
     document.querySelectorAll('.nav-item').forEach(function(btn) {
-      var original = btn.textContent.replace(/^\s+|\s+$/g, '');
-      // Store original text if not already stored
-      if (!btn.getAttribute('data-orig')) btn.setAttribute('data-orig', original);
-      var key = btn.getAttribute('data-orig').trim();
-      if (t[key]) {
-        btn.innerHTML = btn.querySelector('i') ? '<i class="' + btn.querySelector('i').className + '"></i> ' + t[key] : t[key];
+      var orig = btn.getAttribute('data-orig');
+      if (!orig && btn.textContent) {
+        btn.setAttribute('data-orig', btn.textContent.replace(/^\s+|\s+$/g, ''));
+        orig = btn.getAttribute('data-orig');
       }
+      var iconHtml = '';
+      var icon = btn.querySelector('i');
+      if (icon) iconHtml = icon.outerHTML + ' ';
+      var target = t[orig] != null ? t[orig] : orig;
+      btn.innerHTML = iconHtml + target;
     });
 
-    // view title
+    // 2) View title
     var vt = document.getElementById('viewTitle');
     if (vt) {
-      var origTitle = vt.textContent.replace(/^\s+|\s+$/g, '');
-      if (!vt.getAttribute('data-orig')) vt.setAttribute('data-orig', origTitle);
-      if (t[vt.getAttribute('data-orig')]) {
-        var icon = vt.querySelector('i');
-        vt.innerHTML = icon ? '<i class="' + icon.className + '"></i> ' + t[vt.getAttribute('data-orig')] : t[vt.getAttribute('data-orig')];
+      var vtOrig = vt.getAttribute('data-orig');
+      if (!vtOrig && vt.textContent) { vt.setAttribute('data-orig', vt.textContent.replace(/^\s+|\s+$/g, '')); vtOrig = vt.getAttribute('data-orig'); }
+      var vIconHtml = '';
+      var vIcon = vt.querySelector('i');
+      if (vIcon) vIconHtml = vIcon.outerHTML + ' ';
+      vt.innerHTML = vIconHtml + (t[vtOrig] != null ? t[vtOrig] : vtOrig);
+    }
+
+    // 3) Nav group labels
+    document.querySelectorAll('.nav-label').forEach(function(lbl) {
+      var orig = lbl.getAttribute('data-orig');
+      if (!orig && lbl.textContent) { lbl.setAttribute('data-orig', lbl.textContent); orig = lbl.textContent; }
+      lbl.textContent = t[orig] != null ? t[orig] : orig;
+    });
+
+    // 4) Hero title
+    var h1 = document.querySelector('#view-dashboard h1');
+    if (h1) {
+      if (!h1.getAttribute('data-orig')) { h1.setAttribute('data-orig', 'Nova AI'); }
+      h1.textContent = t['Nova AI'] != null ? t['Nova AI'] : 'Nova AI';
+    }
+
+    // 5) Translate respiratory content (headings, labels, buttons, banner)
+    //    using data-i18n-capable IDs + targeted lookups by stored English.
+    var el = function(id){ return document.getElementById(id); };
+    function translateEl(id, key) {
+      var node = el(id);
+      if (node) {
+        if (!node.getAttribute('data-orig')) node.setAttribute('data-orig', node.innerHTML);
+        var orig = node.getAttribute('data-orig');
+        var iconHtml = '';
+        var ic = node.querySelector('i');
+        if (ic) iconHtml = ic.outerHTML + ' ';
+        if (t[key] != null) node.innerHTML = iconHtml + t[key];
+        else node.innerHTML = orig;
       }
     }
 
-    // Hero title
-    var h1 = document.querySelector('#view-dashboard h1');
-    if (h1) h1.textContent = t['Nova AI'] || h1.textContent;
+    // Headings
+    translateEl('respPatientInfoHeading', 'Patient Information');
+    translateEl('respInputHeading', 'Breath-Sound Input');
+    translateEl('respReportHeading', 'Nova Respiratory Report');
+
+    // Banner
+    var bannerTag = document.querySelector('#view-respiratory .ai-banner .tag');
+    if (bannerTag) {
+      if (!bannerTag.getAttribute('data-orig')) bannerTag.setAttribute('data-orig', bannerTag.innerHTML);
+      if (t['NOVA RESPIRATORY'] != null) bannerTag.innerHTML = t['NOVA RESPIRATORY'];
+      else bannerTag.innerHTML = bannerTag.getAttribute('data-orig');
+    }
+
+    // Record label
+    var recLabel = el('respRecordLabel');
+    if (recLabel) {
+      if (!recLabel.getAttribute('data-orig')) recLabel.setAttribute('data-orig', recLabel.textContent);
+      var rKey = recLabel.getAttribute('data-orig');
+      if (t[rKey] != null) recLabel.textContent = t[rKey];
+      else recLabel.textContent = recLabel.getAttribute('data-orig');
+    }
+
+    // Analyze button text
+    var analyzeBtn = el('respAnalyzeBtn');
+    if (analyzeBtn) {
+      if (!analyzeBtn.getAttribute('data-orig')) {
+        var abIcon = analyzeBtn.querySelector('i');
+        var abHtml = abIcon ? abIcon.outerHTML + ' Analyze Breath Sound' : 'Analyze Breath Sound';
+        analyzeBtn.setAttribute('data-orig', abHtml);
+        analyzeBtn.setAttribute('data-text-orig', 'Analyze Breath Sound');
+      }
+      if (t['Analyze Breath Sound'] != null) {
+        var abIcon2 = analyzeBtn.querySelector('i');
+        analyzeBtn.innerHTML = (abIcon2 ? abIcon2.outerHTML + ' ' : '') + t['Analyze Breath Sound'];
+      } else {
+        analyzeBtn.innerHTML = analyzeBtn.getAttribute('data-orig');
+      }
+    }
+
+    // Patient field labels inside the patient info card
+    var patientCard = el('respPatientInfoHeading') ? el('respPatientInfoHeading').parentNode : null;
+    if (patientCard) {
+      var labels = patientCard.querySelectorAll('label');
+      labels.forEach(function(lb) {
+        if (!lb.getAttribute('data-orig')) lb.setAttribute('data-orig', lb.textContent);
+        var lk = lb.getAttribute('data-orig');
+        if (t[lk] != null) lb.textContent = t[lk];
+        else lb.textContent = lk;
+      });
+      // gender select options
+      var gSel = el('respPatientGender');
+      if (gSel) {
+        Array.prototype.forEach.call(gSel.options, function(opt) {
+          if (!opt.getAttribute('data-orig')) opt.setAttribute('data-orig', opt.textContent);
+          var ok = opt.getAttribute('data-orig');
+          if (t[ok] != null) opt.textContent = t[ok];
+          else opt.textContent = ok;
+        });
+      }
+    }
 
     localStorage.setItem('nova_lang', lang);
   }
 
+  // Expose a helper so other modules can translate a single English key
+  // using the currently selected language.
+  window.__novaT = function(key) {
+    var cur = (localStorage.getItem('nova_lang') || 'en');
+    var src = cur === 'en' ? EN_DEFAULTS : (TRANSLATIONS[cur] || EN_DEFAULTS);
+    return (src[key] != null) ? src[key] : key;
+  };
+
   var langSel = document.getElementById('langSelector');
   if (langSel) {
     var saved = localStorage.getItem('nova_lang');
-    if (saved && TRANSLATIONS[saved]) langSel.value = saved;
+    if (saved && (TRANSLATIONS[saved] || saved === 'en')) langSel.value = saved;
     langSel.addEventListener('change', function() { applyLanguage(langSel.value); });
-    if (saved) applyLanguage(saved);
+    applyLanguage(saved && (TRANSLATIONS[saved] || saved === 'en') ? saved : 'en');
   }
 })();
 </script>

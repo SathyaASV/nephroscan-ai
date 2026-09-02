@@ -1361,6 +1361,7 @@ def _register_routes(application: Flask) -> None:
                 "/api/predict-heart",
                 "/api/respiratory",
                 "/api/respiratory/export",
+                "/api/reports/export",
                 "/api/vitals",
                 "/api/explain",
                 "/api/lab/health",
@@ -1604,6 +1605,98 @@ def _register_routes(application: Flask) -> None:
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             as_attachment=True,
             download_name=f"Nova_Respiratory_{report.get('report_id', 'report')}.xlsx",
+        )
+
+    # ---- Report History Excel export (all reports as a table) ----
+
+    @application.route("/api/reports/export", methods=["POST"])
+    def api_reports_export():
+        """Download all session reports as a tabular Excel (.xlsx)."""
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        except ImportError:
+            return jsonify({"error": "openpyxl not installed"}), 503
+
+        data = request.get_json(force=True, silent=True) or {}
+        reports = data.get("reports", []) or []
+        if not isinstance(reports, list):
+            return jsonify({"error": "reports must be a list"}), 400
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Nova Reports"
+
+        header_font = Font(name="Calibri", bold=True, size=11, color="FFFFFF")
+        header_fill = PatternFill(start_color="0E7490", end_color="0E7490", fill_type="solid")
+        normal_font = Font(name="Calibri", size=11)
+        border = Border(
+            left=Side(style="thin", color="D8E4EA"),
+            right=Side(style="thin", color="D8E4EA"),
+            top=Side(style="thin", color="D8E4EA"),
+            bottom=Side(style="thin", color="D8E4EA"),
+        )
+
+        # Title
+        ws.merge_cells("A1:J1")
+        ws["A1"] = "Nova AI — Report History Export"
+        ws["A1"].font = Font(name="Calibri", bold=True, size=14, color="0E7490")
+        ws["A1"].alignment = Alignment(horizontal="center")
+
+        headers = [
+            "Report ID", "Patient", "Patient ID", "Age", "Gender",
+            "Scan / Test", "Finding", "Confidence", "Risk Level", "Date / Time",
+        ]
+        for c, h in enumerate(headers, start=1):
+            cell = ws.cell(row=3, column=c, value=h)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+            cell.alignment = Alignment(horizontal="center")
+
+        def risk_repr(r):
+            if r.get("riskLevel"):
+                return str(r.get("riskLevel")).upper()
+            return ""
+
+        for i, r in enumerate(reports, start=4):
+            values = [
+                r.get("id", ""),
+                r.get("patientName", ""),
+                r.get("patientId", ""),
+                r.get("age", ""),
+                r.get("gender", ""),
+                r.get("scanType", ""),
+                r.get("prediction", ""),
+                r.get("confidence", ""),
+                risk_repr(r),
+                r.get("dateStr", ""),
+            ]
+            for c, v in enumerate(values, start=1):
+                cell = ws.cell(row=i, column=c, value=v)
+                cell.font = normal_font
+                cell.border = border
+
+        # Summary row
+        summary_row = len(reports) + 6
+        ws.cell(row=summary_row, column=1, value=f"Total reports: {len(reports)}").font = Font(name="Calibri", bold=True, size=11)
+        ws.cell(row=summary_row + 1, column=1,
+                value="DISCLAIMER: This is an educational prototype. Not a medical diagnostic device. Consult a qualified physician for clinical decisions.").font = Font(name="Calibri", size=9, italic=True, color="999999")
+
+        widths = [22, 18, 14, 8, 10, 16, 40, 12, 12, 22]
+        for c, w in enumerate(widths, start=1):
+            ws.column_dimensions[chr(64 + c)].width = w
+
+        buf = io.BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+
+        from flask import send_file
+        return send_file(
+            buf,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name="Nova_Report_History.xlsx",
         )
 
     # ---- Vital signs / WHO cardiovascular risk assessment ----
