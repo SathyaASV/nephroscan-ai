@@ -2098,6 +2098,7 @@ table.data-table tr:hover td {
     <nav class="nav-group">
       <div class="nav-label">Nova Clinical</div>
       <button class="nav-item" data-view="respiratory"><i class="fas fa-lungs"></i> Respiratory Triage</button>
+      <button class="nav-item" data-view="vitals"><i class="fas fa-heart-pulse"></i> Vital Signs</button>
     </nav>
     <nav class="nav-group">
       <div class="nav-label">Diagnostics</div>
@@ -2125,7 +2126,18 @@ table.data-table tr:hover td {
       <button class="hamburger" id="hamburgerBtn" aria-label="Open menu"><i class="fas fa-bars"></i></button>
       <div class="view-title" id="viewTitle"><i class="fas fa-gauge-high"></i> Dashboard</div>
       <div class="topbar-right">
-
+        <select id="langSelector" aria-label="Language" style="padding:.3rem .6rem;border:1px solid #d8e4ea;border-radius:8px;font-size:.78rem;background:#fbfdfe;color:#263e50;cursor:pointer;">
+          <option value="en">🇬🇧 English</option>
+          <option value="hi">🇮🇳 हिन्दी</option>
+          <option value="ta">🇮🇳 தமிழ்</option>
+          <option value="te">🇮🇳 తెలుగు</option>
+          <option value="kn">🇮🇳 ಕನ್ನಡ</option>
+          <option value="ml">🇮🇳 മലയാളം</option>
+          <option value="mr">🇮🇳 मराठी</option>
+          <option value="bn">🇮🇳 বাংলা</option>
+          <option value="gu">🇮🇳 ગુજરાતી</option>
+          <option value="pa">🇮🇳 ਪੰਜਾਬੀ</option>
+        </select>
       </div>
     </div>
 
@@ -2680,24 +2692,39 @@ table.data-table tr:hover td {
       </div>
 
       <div class="card">
-        <div class="section-heading">
-          <i class="fas fa-file-audio"></i>
-          Upload a 5-second breath-sound recording
+        <div class="section-heading"><i class="fas fa-user-doctor"></i> Patient Information</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;">
+          <div class="field-group"><label>Patient Name</label><input type="text" id="respPatientName" placeholder="e.g. Patient 01" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
+          <div class="field-group"><label>Age</label><input type="number" id="respPatientAge" min="0" max="120" placeholder="e.g. 45" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
+          <div class="field-group"><label>Gender</label><select id="respPatientGender" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
         </div>
-        <p style="font-size:.82rem;color:#3d5a6e;line-height:1.7;">
-          Upload a <b>.wav</b> recording of lung sounds (about 5&nbsp;seconds).
-          Nova analyses it and classifies the breath pattern.
+      </div>
+
+      <div class="card">
+        <div class="section-heading"><i class="fas fa-file-audio"></i> Breath-Sound Input</div>
+        <p style="font-size:.82rem;color:#3d5a6e;line-height:1.7;margin-bottom:1rem;">
+          Either <b>record directly</b> using your device microphone or <b>upload a .wav file</b> (about 5 seconds).
         </p>
 
-        <div class="field-group" style="margin-top:.8rem;">
-          <label><i class="fas fa-user"></i> Patient Name (optional)</label>
-          <input type="text" id="respPatientName" placeholder="e.g. Patient 01" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;" />
+        <!-- Recording section -->
+        <div style="background:#f0f7fb;border-radius:12px;padding:1rem;margin-bottom:1rem;">
+          <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;">
+            <button id="respRecordBtn" type="button" style="padding:.6rem 1.4rem;border-radius:10px;border:2px solid #dc2626;background:#dc2626;color:#fff;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.4rem;">
+              <i class="fas fa-microphone"></i> <span id="respRecordLabel">Start Recording</span>
+            </button>
+            <span id="respRecordTimer" style="font-size:.85rem;color:#263e50;font-weight:600;min-width:50px;">0:00</span>
+            <canvas id="respWaveform" width="300" height="40" style="border-radius:8px;background:#e8eef3;display:none;max-width:100%;"></canvas>
+            <span id="respRecordStatus" style="font-size:.78rem;color:#5a6b7a;"></span>
+          </div>
         </div>
 
-        <div style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;">
+        <div style="text-align:center;margin:.5rem 0;color:#6b7f8d;font-size:.78rem;">— or —</div>
+
+        <!-- Upload section -->
+        <div style="display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;">
           <input type="file" id="respFileInput" accept=".wav,.mp3,.ogg,.flac,.m4a" style="padding:.45rem;border:1px solid #d8e4ea;border-radius:10px;background:#fbfdfe;color:#263e50;font-size:.82rem;" />
-          <button class="primary-btn" id="respAnalyzeBtn" type="button" style="padding:.55rem 1.2rem;border-radius:10px;border:none;background:#0e7490;color:#fff;font-weight:600;cursor:pointer;">
-            <i class="fas fa-stethoscope"></i> Analyze breath sound
+          <button class="primary-btn" id="respAnalyzeBtn" type="button" style="padding:.6rem 1.4rem;border-radius:10px;border:none;background:#0e7490;color:#fff;font-weight:600;cursor:pointer;">
+            <i class="fas fa-stethoscope"></i> Analyze Breath Sound
           </button>
         </div>
 
@@ -2705,8 +2732,55 @@ table.data-table tr:hover td {
       </div>
 
       <div class="card" id="respResultCard" style="display:none;">
-        <div class="section-heading"><i class="fas fa-clipboard-check"></i> Respiratory Result</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem;">
+          <div class="section-heading" style="margin:0;"><i class="fas fa-clipboard-check"></i> Nova Respiratory Report</div>
+          <button id="respExportBtn" type="button" style="padding:.4rem 1rem;border-radius:8px;border:1px solid #0e7490;background:#fff;color:#0e7490;font-weight:600;cursor:pointer;font-size:.78rem;">
+            <i class="fas fa-download"></i> Download Excel
+          </button>
+        </div>
         <div id="respResultBody"></div>
+      </div>
+
+    </section>
+
+    <!-- ===================== VITAL SIGNS VIEW ===================== -->
+    <section class="view" id="view-vitals">
+
+      <div class="ai-banner">
+        <span class="tag"><i class="fas fa-heart-pulse"></i> NOVA VITAL SIGNS</span>
+        <span class="divider"></span>
+        <span class="chip"><i class="fas fa-stethoscope"></i> WHO-based risk assessment</span>
+      </div>
+
+      <div class="card">
+        <div class="section-heading"><i class="fas fa-heart"></i> Blood Pressure & Heart Rate</div>
+        <p style="font-size:.82rem;color:#3d5a6e;line-height:1.7;margin-bottom:1rem;">
+          Enter the patient's vital signs for a WHO-based cardiovascular risk assessment. Useful for quick triage in rural health settings.
+        </p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;">
+          <div class="field-group"><label>Systolic BP (mmHg)</label><input type="number" id="vitalSysBp" placeholder="e.g. 120" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
+          <div class="field-group"><label>Diastolic BP (mmHg)</label><input type="number" id="vitalDiaBp" placeholder="e.g. 80" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
+          <div class="field-group"><label>Heart Rate (bpm)</label><input type="number" id="vitalHr" placeholder="e.g. 72" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;margin-top:.7rem;">
+          <div class="field-group"><label>Age</label><input type="number" id="vitalAge" min="0" max="120" placeholder="e.g. 55" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;" /></div>
+          <div class="field-group"><label>Gender</label><select id="vitalGender" style="padding:.5rem .7rem;border:1px solid #d8e4ea;border-radius:10px;font-size:.82rem;background:#fbfdfe;color:#263e50;width:100%;box-sizing:border-box;"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option></select></div>
+          <div class="field-group"><label>History</label><div style="display:flex;gap:.8rem;padding-top:.4rem;"><label style="font-size:.78rem;display:flex;align-items:center;gap:.3rem;"><input type="checkbox" id="vitalSmoker" /> Smoker</label><label style="font-size:.78rem;display:flex;align-items:center;gap:.3rem;"><input type="checkbox" id="vitalDiabetic" /> Diabetic</label></div></div>
+        </div>
+
+        <div style="margin-top:1rem;">
+          <button id="vitalAnalyzeBtn" type="button" style="padding:.6rem 1.4rem;border-radius:10px;border:none;background:#0e7490;color:#fff;font-weight:600;cursor:pointer;">
+            <i class="fas fa-chart-line"></i> Assess Risk
+          </button>
+        </div>
+
+        <div id="vitalStatus" style="margin-top:.8rem;font-size:.82rem;color:#5a6b7a;"></div>
+      </div>
+
+      <div class="card" id="vitalResultCard" style="display:none;">
+        <div class="section-heading"><i class="fas fa-clipboard-check"></i> Vital Signs Assessment</div>
+        <div id="vitalResultBody"></div>
       </div>
 
     </section>
@@ -4963,7 +5037,7 @@ function toast(msg, type){
 /* ===================== NAVIGATION ===================== */
 const viewTitles = {
   dashboard:['fa-gauge-high','Dashboard'], analysis:['fa-circle-notch','New Analysis'],
-  respiratory:['fa-lungs','Respiratory Triage'],
+  respiratory:['fa-lungs','Respiratory Triage'], vitals:['fa-heart-pulse','Vital Signs'],
   lab:['fa-vials','Lab Test Analysis'],
   history:['fa-clock-rotate-left','Report History'], patients:['fa-user-injured','Patients'],
   compare:['fa-code-compare','Compare Scans'], performance:['fa-chart-line','Model Performance'],
@@ -4988,84 +5062,305 @@ document.querySelectorAll('[data-view-go]').forEach(el=>el.addEventListener('cli
 document.getElementById('heroStartBtn').addEventListener('click',()=>showView('analysis'));
 document.getElementById('qaDemo').addEventListener('click',()=>{ showView('analysis'); loadDemoCase(); });
 
-/* ---- Nova respiratory triage handler ---- */
+/* ---- Nova respiratory triage handler (record + upload + detailed report + export) ---- */
 (function(){
   const analyzeBtn = document.getElementById('respAnalyzeBtn');
   const fileInput = document.getElementById('respFileInput');
+  const recordBtn = document.getElementById('respRecordBtn');
+  const recordLabel = document.getElementById('respRecordLabel');
+  const recordTimer = document.getElementById('respRecordTimer');
+  const recordStatus = document.getElementById('respRecordStatus');
+  const waveformCanvas = document.getElementById('respWaveform');
   const statusEl = document.getElementById('respStatus');
   const resultCard = document.getElementById('respResultCard');
   const resultBody = document.getElementById('respResultBody');
   const patientEl = document.getElementById('respPatientName');
+  const patientAge = document.getElementById('respPatientAge');
+  const patientGender = document.getElementById('respPatientGender');
+  const exportBtn = document.getElementById('respExportBtn');
 
-  if(!analyzeBtn || !fileInput) return;
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let recordingStartTime = 0;
+  let timerInterval = null;
+  let audioContext = null;
+  let analyser = null;
+  let animFrame = null;
+  let lastRecordedBlob = null;
 
-  analyzeBtn.addEventListener('click', async function(){
-    if(!fileInput.files.length){
-      statusEl.textContent = 'Please choose a breath-sound audio file first.';
-      statusEl.style.color = '#c2410c';
-      return;
+  /* -- wave form drawing -- */
+  function drawWaveform() {
+    if (!analyser || !waveformCanvas) return;
+    const ctx = waveformCanvas.getContext('2d');
+    const bufLen = analyser.frequencyBinCount;
+    const dataArr = new Uint8Array(bufLen);
+    analyser.getByteTimeDomainData(dataArr);
+    ctx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+    ctx.strokeStyle = '#0e7490';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    var sliceWidth = waveformCanvas.width / bufLen;
+    var x = 0;
+    for (var i = 0; i < bufLen; i++) {
+      var v = dataArr[i] / 128.0;
+      var y = v * waveformCanvas.height / 2;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      x += sliceWidth;
     }
-    const audioFile = fileInput.files[0];
+    ctx.lineTo(waveformCanvas.width, waveformCanvas.height / 2);
+    ctx.stroke();
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      animFrame = requestAnimationFrame(drawWaveform);
+    }
+  }
+
+  /* -- format mm:ss -- */
+  function fmtTime(sec) {
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  if (recordBtn) {
+    recordBtn.addEventListener('click', async function() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        recordBtn.style.background = '#dc2626';
+        recordBtn.style.borderColor = '#dc2626';
+        recordLabel.textContent = 'Start Recording';
+        recordStatus.textContent = 'Recording saved — ready to analyze.';
+        recordStatus.style.color = '#059669';
+        clearInterval(timerInterval);
+        cancelAnimationFrame(animFrame);
+        if (audioContext) { audioContext.close(); audioContext = null; analyser = null; }
+        return;
+      }
+
+      try {
+        var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        var source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        mediaRecorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : undefined });
+        mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = function() {
+          stream.getTracks().forEach(function(t) { t.stop(); });
+          lastRecordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        };
+        mediaRecorder.start(250);
+
+        recordBtn.style.background = '#991b1b';
+        recordBtn.style.borderColor = '#991b1b';
+        recordLabel.textContent = 'Stop Recording';
+        recordStatus.textContent = '🔴 Recording…';
+        recordStatus.style.color = '#dc2626';
+        waveformCanvas.style.display = 'block';
+        recordingStartTime = Date.now();
+        timerInterval = setInterval(function() {
+          recordTimer.textContent = fmtTime(Math.floor((Date.now() - recordingStartTime) / 1000));
+        }, 500);
+        drawWaveform();
+      } catch (err) {
+        recordStatus.textContent = 'Mic access denied: ' + err.message;
+        recordStatus.style.color = '#c2410c';
+      }
+    });
+  }
+
+  /* -- analyze function (shared by record & upload) -- */
+  async function runAnalysis(blob) {
     statusEl.textContent = 'Analyzing breath sound… this may take a few seconds.';
     statusEl.style.color = '#3d5a6e';
     resultCard.style.display = 'none';
 
-    const fd = new FormData();
-    fd.append('audio', audioFile);
-    if(patientEl && patientEl.value.trim()) fd.append('patient_name', patientEl.value.trim());
+    var fd = new FormData();
+    fd.append('audio', blob, 'recording.webm');
+    if (patientEl && patientEl.value.trim()) fd.append('patient_name', patientEl.value.trim());
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(function(){ controller.abort(); }, 60000);
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 60000);
 
     try {
-      const resp = await fetch('/api/respiratory', {
-        method: 'POST', body: fd, signal: controller.signal
-      });
+      var resp = await fetch('/api/respiratory', { method: 'POST', body: fd, signal: controller.signal });
       clearTimeout(timeoutId);
-      const data = await resp.json();
-      if(!resp.ok){
+      var data = await resp.json();
+      if (!resp.ok) {
         statusEl.textContent = 'Server error ' + resp.status + ': ' + (data.error || resp.statusText);
         statusEl.style.color = '#c2410c';
         return;
       }
-      if(data.error){
+      if (data.error) {
         statusEl.textContent = data.error;
         statusEl.style.color = '#c2410c';
         return;
       }
+      renderRespiratoryResult(data);
+      statusEl.textContent = '';
+    } catch (err) {
+      clearTimeout(timeoutId);
+      statusEl.textContent = 'Error: ' + (err.name === 'AbortError' ? 'request timed out.' : err.message);
+      statusEl.style.color = '#c2410c';
+    }
+  }
 
-      const color = data.color || '#2563eb';
-      const riskMap = { LOW:'Low risk', MODERATE:'Moderate risk', HIGH:'High risk', CRITICAL:'Critical risk' };
-      const riskLabel = riskMap[data.risk_level] || data.risk_level || '';
+  /* -- render detailed respiratory result -- */
+  function renderRespiratoryResult(data) {
+    var color = data.color || '#2563eb';
+    var confs = data.all_confidences || {};
+    var bars = Object.entries(confs).map(function(c) {
+      var pct = Math.round(c[1]);
+      return '<div style="display:flex;align-items:center;margin:3px 0;gap:6px;">'
+        + '<span style="font-size:.78rem;color:#3d5a6e;min-width:90px;">' + c[0] + '</span>'
+        + '<div style="flex:1;height:10px;background:#e8eef3;border-radius:6px;min-width:80px;">'
+        + '<div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:6px;transition:width .3s;"></div></div>'
+        + '<span style="font-size:.78rem;color:#263e50;min-width:40px;text-align:right;">' + pct + '%</span></div>';
+    }).join('');
 
-      const confs = data.all_confidences || {};
-      const bars = Object.entries(confs)
-        .map(function(c){
-          return '<div style="margin:4px 0;"><span style="font-size:.78rem;color:#3d5a6e;width:110px;display:inline-block;">'+c[0]+'</span>'
-            + '<div style="display:inline-block;width:55%;height:10px;background:#e8eef3;border-radius:6px;vertical-align:middle;margin:0 6px;">'
-            + '<div style="width:'+Math.round(c[1])+'%;height:100%;background:'+color+';border-radius:6px;"></div></div>'
-            + '<span style="font-size:.78rem;color:#263e50;">'+Math.round(c[1])+'%</span></div>';
-        }).join('');
+    var diffs = (data.differentials || []).map(function(d) { return '<li style="margin:2px 0;">' + d + '</li>'; }).join('');
+
+    resultBody.innerHTML =
+      '<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem;">'
+      + '<div style="font-size:1.5rem;font-weight:700;color:' + color + ';">' + data.label + '</div>'
+      + '<span style="padding:.3rem .8rem;border-radius:999px;font-size:.75rem;font-weight:700;color:#fff;background:' + color + ';">' + (data.risk_level || '') + '</span>'
+      + '<span style="font-size:.9rem;color:#263e50;"><b>' + data.confidence_pct + '%</b> confidence</span>'
+      + (data.report_id ? '<span style="font-size:.72rem;color:#6b7f8d;">Report: ' + data.report_id + '</span>' : '')
+      + '</div>'
+
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:.6rem 0;">'
+      +   '<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Risk Level</span><span style="font-size:.88rem;font-weight:600;color:' + color + ';">' + (data.risk_label || '') + '</span></div>'
+      +   '<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Severity Score</span><span style="font-size:.88rem;font-weight:600;color:#263e50;">' + (data.severity_score || 0) + ' / 100</span></div>'
+      +   '<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Triage Urgency</span><span style="font-size:.88rem;font-weight:600;color:#263e50;">' + (data.triage_urgency || '') + '</span></div>'
+      +   '<div style="background:#f0f7fb;border-radius:8px;padding:.5rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Recommended Action</span><span style="font-size:.88rem;font-weight:600;color:#263e50;">' + (data.action || '') + '</span></div>'
+      + '</div>'
+
+      + '<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;line-height:1.6;"><b>Clinical Advice:</b> ' + (data.advice || '') + '</p>'
+      + (data.medication_notes ? '<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;line-height:1.6;"><b>Medication Notes:</b> ' + data.medication_notes + '</p>' : '')
+      + (data.followup_recommendation ? '<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;line-height:1.6;"><b>Follow-up:</b> ' + data.followup_recommendation + '</p>' : '')
+
+      + (diffs ? '<div style="margin-top:.5rem;border-top:1px solid #e8eef3;padding-top:.5rem;"><div class="section-heading" style="font-size:.78rem;"><i class="fas fa-magnifying-glass"></i> Differential Diagnoses</div><ul style="margin:.2rem 0;padding-left:1.2rem;font-size:.82rem;color:#3d5a6e;">' + diffs + '</ul></div>' : '')
+
+      + '<div style="margin-top:.5rem;border-top:1px solid #e8eef3;padding-top:.5rem;">'
+      +   '<div class="section-heading" style="font-size:.78rem;"><i class="fas fa-chart-simple"></i> Confidence Breakdown</div>'
+      +   bars
+      + '</div>'
+
+      + (data.patient_name ? '<p style="margin-top:.4rem;font-size:.75rem;color:#6b7f8d;">Patient: ' + data.patient_name + '</p>' : '')
+      + '<p style="margin-top:.2rem;font-size:.7rem;color:#999;">' + (data.timestamp || '') + ' · ' + (data.model_version || '') + '</p>'
+      + (data.using_fallback_weights ? '<p style="margin-top:.4rem;font-size:.75rem;color:#c2410c;">⚠ Using fallback model weights.</p>' : '');
+
+    resultCard.style.display = 'block';
+    window._lastRespiratoryReport = data;
+  }
+
+  /* -- upload analyze button -- */
+  if (analyzeBtn) {
+    analyzeBtn.addEventListener('click', function() {
+      if (lastRecordedBlob) {
+        runAnalysis(lastRecordedBlob);
+      } else if (fileInput && fileInput.files.length) {
+        runAnalysis(fileInput.files[0]);
+      } else {
+        statusEl.textContent = 'Please record or upload a breath-sound audio file first.';
+        statusEl.style.color = '#c2410c';
+      }
+    });
+  }
+
+  /* -- export to Excel -- */
+  if (exportBtn) {
+    exportBtn.addEventListener('click', async function() {
+      var report = window._lastRespiratoryReport;
+      if (!report) { alert('No report to export.'); return; }
+      try {
+        exportBtn.disabled = true;
+        exportBtn.textContent = 'Generating…';
+        var resp = await fetch('/api/respiratory/export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ report: report })
+        });
+        if (!resp.ok) throw new Error('Export failed');
+        var blob = await resp.blob();
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'Nova_Respiratory_' + (report.report_id || 'report') + '.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        alert('Export failed: ' + e.message);
+      } finally {
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = '<i class="fas fa-download"></i> Download Excel';
+      }
+    });
+  }
+})();
+
+/* ---- Vital Signs handler ---- */
+(function(){
+  var analyzeBtn = document.getElementById('vitalAnalyzeBtn');
+  var resultCard = document.getElementById('vitalResultCard');
+  var resultBody = document.getElementById('vitalResultBody');
+  var statusEl = document.getElementById('vitalStatus');
+  if (!analyzeBtn) return;
+
+  analyzeBtn.addEventListener('click', async function() {
+    var sysBp = document.getElementById('vitalSysBp').value;
+    var diaBp = document.getElementById('vitalDiaBp').value;
+    var hr = document.getElementById('vitalHr').value;
+    var age = document.getElementById('vitalAge').value;
+    var gender = document.getElementById('vitalGender').value;
+    var smoker = document.getElementById('vitalSmoker').checked;
+    var diabetic = document.getElementById('vitalDiabetic').checked;
+
+    if (!sysBp || !diaBp) {
+      statusEl.textContent = 'Please enter systolic and diastolic blood pressure.';
+      statusEl.style.color = '#c2410c';
+      return;
+    }
+
+    statusEl.textContent = 'Assessing risk…';
+    statusEl.style.color = '#3d5a6e';
+    resultCard.style.display = 'none';
+
+    try {
+      var resp = await fetch('/api/vitals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sys_bp: sysBp, dia_bp: diaBp, heart_rate: hr || undefined, age: age || undefined, gender: gender, smoker: smoker, diabetic: diabetic })
+      });
+      var data = await resp.json();
+      if (!resp.ok) { statusEl.textContent = data.error || 'Server error'; statusEl.style.color = '#c2410c'; return; }
+
+      var bp = data.blood_pressure || {};
+      var hrData = data.heart_rate || {};
+      var color = bp.color || '#2563eb';
 
       resultBody.innerHTML =
-        '<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.6rem;">'
-        +   '<div style="font-size:1.4rem;font-weight:700;color:'+color+';">'+data.label+'</div>'
-        +   (riskLabel ? '<span style="padding:.25rem .7rem;border-radius:999px;font-size:.72rem;font-weight:600;color:#fff;background:'+color+';">'+riskLabel+'</span>' : '')
-        +   '<span style="font-size:.9rem;color:#263e50;"><b>'+data.confidence_pct+'%</b> confidence</span>'
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem;">'
+        +   '<div style="background:#f0f7fb;border-radius:8px;padding:.6rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Blood Pressure</span><span style="font-size:1.1rem;font-weight:700;color:' + color + ';">' + bp.systolic + '/' + bp.diastolic + ' mmHg</span></div>'
+        +   '<div style="background:#f0f7fb;border-radius:8px;padding:.6rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Overall Risk Score</span><span style="font-size:1.1rem;font-weight:700;color:#263e50;">' + data.risk_score + ' / 100</span></div>'
         + '</div>'
-        + '<p style="margin:.2rem 0 .6rem;color:#5a6b7a;font-size:.82rem;"><b>Recommended action:</b> '+data.action+'</p>'
-        + '<p style="margin:.2rem 0 .8rem;color:#3d5a6e;font-size:.82rem;line-height:1.6;">'+data.advice+'</p>'
-        + '<div style="margin-top:.6rem;border-top:1px solid #e8eef3;padding-top:.6rem;">'
-        +   '<div class="section-heading" style="font-size:.78rem;"><i class="fas fa-chart-simple"></i> Class confidences</div>'
-        +   bars
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem;">'
+        +   '<div style="background:#f0f7fb;border-radius:8px;padding:.6rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">BP Category</span><span style="font-size:.88rem;font-weight:600;color:' + color + ';">' + bp.category + '</span></div>'
+        +   '<div style="background:#f0f7fb;border-radius:8px;padding:.6rem .7rem;"><span style="font-size:.7rem;color:#6b7f8d;display:block;">Overall Risk</span><span style="font-size:.88rem;font-weight:600;color:' + color + ';">' + data.overall_risk + '</span></div>'
         + '</div>'
-        + (data.using_fallback_weights ? '<p style="margin-top:.6rem;font-size:.75rem;color:#c2410c;">Note: using fallback model weights.</p>' : '');
+        + '<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;line-height:1.6;"><b>BP Advice:</b> ' + (bp.advice || '') + '</p>'
+        + (hrData.category ? '<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;"><b>Heart Rate:</b> ' + hrData.value + ' bpm — <b>' + hrData.category + '</b>. ' + (hrData.advice || '') + '</p>' : '')
+        + (data.risk_factors && data.risk_factors.length ? '<p style="margin:.4rem 0;color:#3d5a6e;font-size:.82rem;"><b>Risk Factors:</b> ' + data.risk_factors.join(', ') + '</p>' : '')
+        + '<p style="margin-top:.5rem;font-size:.7rem;color:#999;">' + (data.disclaimer || '') + '</p>';
 
       resultCard.style.display = 'block';
       statusEl.textContent = '';
-    } catch(err){
-      clearTimeout(timeoutId);
-      statusEl.textContent = 'Error: ' + (err.name === 'AbortError' ? 'request timed out.' : err.message);
+    } catch (err) {
+      statusEl.textContent = 'Error: ' + err.message;
       statusEl.style.color = '#c2410c';
     }
   });
@@ -7134,6 +7429,90 @@ renderPreviews();
 clinicalIndication.value = 'Haematuria for 2 weeks — investigate renal cause.';
 refreshDashboard();
 setMode('doctor');
+})();
+
+/* ===================== MULTILINGUAL SUPPORT ===================== */
+(function(){
+  const TRANSLATIONS = {
+    en: { /* default — no change needed */ },
+    hi: {
+      'Dashboard':'डैशबोर्ड','New Analysis':'नया विश्लेषण','Report History':'रिपोर्ट इतिहास','Patients':'मरीज़','Compare Scans':'स्कैन की तुलना करें','Lab Test Analysis':'लैब परीक्षण विश्लेषण','Respiratory Triage':'श्वसन ट्रायेज','Vital Signs':'महत्वपूर्ण संकेत','Model Performance':'मॉडल प्रदर्शन','AI Assistant':'AI सहायक','AI Health Guide':'AI स्वास्थ्य मार्गदर्शिका','Why Nova?':'नोवा क्यों?','Settings':'सेटिंग्स',
+      'Nova AI':'नोवा AI','From Image & Sound to Insight.':'"छवि और ध्वनि से अंतर्दृष्टि तक।"','Dashboard':'डैशबोर्ड'
+    },
+    ta: {
+      'Dashboard':'டாஷ்போர்டு','New Analysis':'புதிய பகுப்பாய்வு','Report History':'அறிக்கை வரலாறு','Patients':'நோயாளிகள்','Compare Scans':'ஸ்கேன்களை ஒப்பிடு','Lab Test Analysis':'ஆய்வக சோதனை பகுப்பாய்வு','Respiratory Triage':'சுவாச மருத்துவம்','Vital Signs':'முக்கிய அறிகுறிகள்','Model Performance':'மாதிரி செயல்திறன்','AI Assistant':'AI உதவியாளர்','AI Health Guide':'AI சுகாதார வழிகாட்டி','Why Nova?':'நோவா ஏன்?','Settings':'அமைப்புகள்',
+      'Nova AI':'நோவா AI'
+    },
+    te: {
+      'Dashboard':'డాష్బోర్డ్','New Analysis':'కొత్త విశ్లేషణ','Report History':'నివేదిక చరిత్ర','Patients':'రోగులు','Compare Scans':'స్కాన్లను పోల్చండి','Lab Test Analysis':'ల్యాబ్ పరీక్ష విశ్లేషణ','Respiratory Triage':'శ్వాసకోశ ట్రయాజ్','Vital Signs':'ముఖ్యమైన సంకేతాలు','Model Performance':'మోడల్ పనితీరు','AI Assistant':'AI సహాయకుడు','AI Health Guide':'AI ఆరోగ్య గైడ్','Why Nova?':'నోవా ఎందుకు?','Settings':'సెట్టింగులు',
+      'Nova AI':'నోవా AI'
+    },
+    kn: {
+      'Dashboard':'ಡ್ಯಾಶ್ಬೋರ್ಡ್','New Analysis':'ಹೊಸ ವಿಶ್ಲೇಷಣೆ','Report History':'ವರದಿ ಇತಿಹಾಸ','Patients':'ರೋಗಿಗಳು','Compare Scans':'ಸ್ಕ್ಯಾನ್ ಹೋಲಿಸಿ','Lab Test Analysis':'ಲ್ಯಾಬ್ ಪರೀಕ್ಷಾ ವಿಶ್ಲೇಷಣೆ','Respiratory Triage':'ಉಸಿರಾಟದ ಟ್ರಯಾಜ್','Vital Signs':'ಪ್ರಮುಖ ಚಿಹ್ನೆಗಳು','Model Performance':'ಮಾದರಿ ಕಾರ್ಯಕ್ಷಮತೆ','AI Assistant':'AI ಸಹಾಯಕ','AI Health Guide':'AI ಆರೋಗ್ಯ ಮಾರ್ಗದರ್ಶಿ','Why Nova?':'ನೋವಾ ಏಕೆ?','Settings':'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
+      'Nova AI':'ನೋವಾ AI'
+    },
+    ml: {
+      'Dashboard':'ഡാഷ്ബോർഡ്','New Analysis':'പുതിയ വിശക്‌ലേഷണം','Report History':'റിപ്പോർട്ട് ചരിത്രം','Patients':'രോഗികൾ','Compare Scans':'സ്കാൻ താരതമ്യം','Lab Test Analysis':'ലാബ് പരിശോധന വിശക്‌ലേഷണം','Respiratory Triage':'ശ്വസന ട്രയേജ്','Vital Signs':'സുപ്രധാന ലക്ഷണങ്ങൾ','Model Performance':'മോഡൽ പ്രകടനം','AI Assistant':'AI സഹായി','AI Health Guide':'AI ആരോഗ്യ ഗൈഡ്','Why Nova?':'എന്തുകൊണ്ട് നോവ?','Settings':'ക്രമീകരണങ്ങൾ',
+      'Nova AI':'നോവ AI'
+    },
+    mr: {
+      'Dashboard':'डॅशबोर्ड','New Analysis':'नवीन विश्लेषण','Report History':'अहवाल इतिहास','Patients':'रुग्ण','Compare Scans':'स्कॅनची तुलना','Lab Test Analysis':'प्रयोगशाळा चाचणी विश्लेषण','Respiratory Triage':'श्वसन ट्रायेज','Vital Signs':'महत्त्वाची चिन्हे','Model Performance':'मॉडेल कामगिरी','AI Assistant':'AI सहाय्यक','AI Health Guide':'AI आरोग्य मार्गदर्शक','Why Nova?':'नोवा का?','Settings':'सेटिंग्ज',
+      'Nova AI':'नोवा AI'
+    },
+    bn: {
+      'Dashboard':'ড্যাশবোর্ড','New Analysis':'নতুন বিশ্লেষণ','Report History':'রিপোর্ট ইতিহাস','Patients':'রোগী','Compare Scans':'স্ক্যান তুলনা','Lab Test Analysis':'ল্যাব পরীক্ষা বিশ্লেষণ','Respiratory Triage':'শ্বাসযন্ত্র ট্রায়েজ','Vital Signs':'গুরুত্বপূর্ণ লক্ষণ','Model Performance':'মডেল কর্মক্ষমতা','AI Assistant':'AI সহকারী','AI Health Guide':'AI স্বাস্থ্য গাইড','Why Nova?':'কেন নোভা?','Settings':'সেটিংস',
+      'Nova AI':'নোভা AI'
+    },
+    gu: {
+      'Dashboard':'ડેશબોર્ડ','New Analysis':'નવું વિશ્લેષણ','Report History':'રિપોર્ટ ઇતિહાસ','Patients':'દર્દીઓ','Compare Scans':'સ્કેન સરખામણી','Lab Test Analysis':'લેબ પરીક્ષણ વિશ્લેષણ','Respiratory Triage':'શ્વસન ટ્રાયેજ','Vital Signs':'મહત્વપૂર્ણ સંકેતો','Model Performance':'મોડેલ પ્રદર્શન','AI Assistant':'AI સહાયક','AI Health Guide':'AI આરોગ્ય માર્ગદર્શિકા','Why Nova?':'નોવા કેમ?','Settings':'સેટિંગ્સ',
+      'Nova AI':'નોવા AI'
+    },
+    pa: {
+      'Dashboard':'ਡੈਸ਼ਬੋਰਡ','New Analysis':'ਨਵਾਂ ਵਿਸ਼ਲੇਸ਼ਣ','Report History':'ਰਿਪੋਰਟ ਇਤਿਹਾਸ','Patients':'ਮਰੀਜ਼','Compare Scans':'ਸਕੈਨ ਤੁਲਨਾ','Lab Test Analysis':'ਲੈਬ ਟੈਸਟ ਵਿਸ਼ਲੇਸ਼ਣ','Respiratory Triage':'ਸਾਹ ਟ੍ਰਾਈਜ','Vital Signs':'ਮਹੱਤਵਪੂਰਨ ਸੰਕੇਤ','Model Performance':'ਮਾਡਲ ਪ੍ਰਦਰਸ਼ਨ','AI Assistant':'AI ਸਹਾਇਕ','AI Health Guide':'AI ਸਿਹਤ ਗਾਈਡ','Why Nova?':'ਨੋਵਾ ਕਿਉਂ?','Settings':'ਸੈਟਿੰਗਾਂ',
+      'Nova AI':'ਨੋਵਾ AI'
+    }
+  };
+
+  function applyLanguage(lang) {
+    var t = TRANSLATIONS[lang] || {};
+    if (Object.keys(t).length === 0) return;
+
+    // Nav items
+    document.querySelectorAll('.nav-item').forEach(function(btn) {
+      var original = btn.textContent.replace(/^\s+|\s+$/g, '');
+      // Store original text if not already stored
+      if (!btn.getAttribute('data-orig')) btn.setAttribute('data-orig', original);
+      var key = btn.getAttribute('data-orig').trim();
+      if (t[key]) {
+        btn.innerHTML = btn.querySelector('i') ? '<i class="' + btn.querySelector('i').className + '"></i> ' + t[key] : t[key];
+      }
+    });
+
+    // view title
+    var vt = document.getElementById('viewTitle');
+    if (vt) {
+      var origTitle = vt.textContent.replace(/^\s+|\s+$/g, '');
+      if (!vt.getAttribute('data-orig')) vt.setAttribute('data-orig', origTitle);
+      if (t[vt.getAttribute('data-orig')]) {
+        var icon = vt.querySelector('i');
+        vt.innerHTML = icon ? '<i class="' + icon.className + '"></i> ' + t[vt.getAttribute('data-orig')] : t[vt.getAttribute('data-orig')];
+      }
+    }
+
+    // Hero title
+    var h1 = document.querySelector('#view-dashboard h1');
+    if (h1) h1.textContent = t['Nova AI'] || h1.textContent;
+
+    localStorage.setItem('nova_lang', lang);
+  }
+
+  var langSel = document.getElementById('langSelector');
+  if (langSel) {
+    var saved = localStorage.getItem('nova_lang');
+    if (saved && TRANSLATIONS[saved]) langSel.value = saved;
+    langSel.addEventListener('change', function() { applyLanguage(langSel.value); });
+    if (saved) applyLanguage(saved);
+  }
 })();
 </script>
 </body>

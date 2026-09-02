@@ -910,6 +910,8 @@ def _register_routes(application: Flask) -> None:
                 "/api/predict-brain",
                 "/api/predict-heart",
                 "/api/respiratory",
+                "/api/respiratory/export",
+                "/api/vitals",
                 "/api/explain",
                 "/api/lab/health",
                 "/api/lab/analyze",
@@ -1046,12 +1048,240 @@ def _register_routes(application: Flask) -> None:
             wav_bytes = audio_file.read()
             if not wav_bytes or len(wav_bytes) < 1000:
                 return jsonify({"error": "Audio file too small or empty."}), 400
-            result = resp_engine.predict(wav_bytes)
+            patient_name = request.form.get("patient_name", "")
+            timestamp = request.form.get("timestamp", "")
+            result = resp_engine.predict(wav_bytes, patient_name=patient_name, timestamp=timestamp)
             return jsonify(result)
         except Exception as e:
             return jsonify({"error": f"Respiratory inference failed: {e}"}), 500
         finally:
             gc.collect()
+
+    # ---- Respiratory report Excel export ----
+
+    @application.route("/api/respiratory/export", methods=["POST"])
+    def api_respiratory_export():
+        """Download a respiratory triage report as Excel (.xlsx)."""
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        except ImportError:
+            return jsonify({"error": "openpyxl not installed"}), 503
+
+        data = request.get_json(force=True, silent=True) or {}
+        report = data.get("report", {})
+        if not report or not report.get("label"):
+            return jsonify({"error": "No report data provided"}), 400
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Nova Respiratory Report"
+
+        # Styles
+        header_font = Font(name="Calibri", bold=True, size=12, color="FFFFFF")
+        header_fill = PatternFill(start_color="0E7490", end_color="0E7490", fill_type="solid")
+        label_font = Font(name="Calibri", bold=True, size=11)
+        normal_font = Font(name="Calibri", size=11)
+        border = Border(
+            left=Side(style="thin", color="D8E4EA"),
+            right=Side(style="thin", color="D8E4EA"),
+            top=Side(style="thin", color="D8E4EA"),
+            bottom=Side(style="thin", color="D8E4EA"),
+        )
+
+        # Title
+        ws.merge_cells("A1:D1")
+        ws["A1"] = "Nova AI — Respiratory Triage Report"
+        ws["A1"].font = Font(name="Calibri", bold=True, size=14, color="0E7490")
+        ws["A1"].alignment = Alignment(horizontal="center")
+
+        # Report info
+        rows = [
+            ("Report ID", report.get("report_id", "N/A")),
+            ("Patient Name", report.get("patient_name", "Not specified")),
+            ("Date / Time", report.get("timestamp", "N/A")),
+            ("Model Version", report.get("model_version", "N/A")),
+            ("", ""),
+            ("CLASSIFICATION", ""),
+            ("Primary Finding", report.get("label", "N/A")),
+            ("Confidence", f"{report.get('confidence_pct', 0)}%"),
+            ("Risk Level", f"{report.get('risk_level', 'N/A')} — {report.get('risk_label', '')}"),
+            ("Severity Score", f"{report.get('severity_score', 0)} / 100"),
+            ("Triage Urgency", report.get("triage_urgency", "")),
+            ("Recommended Action", report.get("action", "")),
+            ("", ""),
+            ("CLINICAL DETAILS", ""),
+            ("Clinical Advice", report.get("advice", "")),
+            ("Medication Notes", report.get("medication_notes", "")),
+            ("Follow-up Recommendation", report.get("followup_recommendation", "")),
+            ("", ""),
+            ("DIFFERENTIAL DIAGNOSES", ""),
+        ]
+        for d in report.get("differentials", []):
+            rows.append(("  •", d))
+
+        confs = report.get("all_confidences", {})
+        if confs:
+            rows.append(("", ""))
+            rows.append(("CONFIDENCE BREAKDOWN", ""))
+            for cls, pct in confs.items():
+                rows.append((cls, f"{pct}%"))
+
+        for i, (k, v) in enumerate(rows, start=3):
+            ws.cell(row=i, column=1, value=k).font = label_font if k.isupper() or k in ("Report ID",) else normal_font
+            ws.cell(row=i, column=2, value=v).font = normal_font
+            for c in range(1, 3):
+                ws.cell(row=i, column=c).border = border
+
+        # Disclaimer
+        disc_row = len(rows) + 5
+        ws.cell(row=disc_row, column=1,
+                value="DISCLAIMER: This is an educational prototype. Not a medical diagnostic device. Consult a qualified physician for clinical decisions.").font = Font(name="Calibri", size=9, italic=True, color="999999")
+
+        ws.column_dimensions["A"].width = 28
+        ws.column_dimensions["B"].width = 60
+
+        buf = io.BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+
+        from flask import send_file
+        return send_file(
+            buf,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name=f"Nova_Respiratory_{report.get('report_id', 'report')}.xlsx",
+        )
+
+    # ---- Vital signs / WHO cardiovascular risk assessment ----
+
+    @application.route("/api/vitals", methods=["POST"])
+    def api_vitals():
+        """WHO-based cardiovascular risk assessment from vital signs.
+
+        Expects JSON: { sys_bp, dia_bp, heart_rate, age, gender, smoker, diabetic }
+        """
+        data = request.get_json(force=True, silent=True) or {}
+        sys_bp = data.get("sys_bp")
+        dia_bp = data.get("dia_bp")
+        heart_rate = data.get("heart_rate")
+        age = data.get("age")
+        gender = data.get("gender", "unknown")
+        smoker = data.get("smoker", False)
+        diabetic = data.get("diabetic", False)
+
+        if sys_bp is None or dia_bp is None:
+            return jsonify({"error": "sys_bp and dia_bp are required"}), 400
+
+        try:
+            sys_bp = int(sys_bp)
+            dia_bp = int(dia_bp)
+            heart_rate = int(heart_rate) if heart_rate else None
+            age = int(age) if age else None
+        except (ValueError, TypeError):
+            return jsonify({"error": "Invalid numeric values"}), 400
+
+        # WHO/ISH simplified risk categories
+        bp_category = "Normal"
+        bp_risk = "LOW"
+        bp_color = "#059669"
+        bp_advice = "Blood pressure within normal range."
+
+        if sys_bp >= 180 or dia_bp >= 120:
+            bp_category = "Hypertensive Crisis"
+            bp_risk = "CRITICAL"
+            bp_color = "#991b1b"
+            bp_advice = "Dangerously high. Seek emergency care immediately."
+        elif sys_bp >= 160 or dia_bp >= 100:
+            bp_category = "Stage 2 Hypertension"
+            bp_risk = "HIGH"
+            bp_color = "#dc2626"
+            bp_advice = "Severe hypertension. Requires immediate medical evaluation and likely medication."
+        elif sys_bp >= 140 or dia_bp >= 90:
+            bp_category = "Stage 1 Hypertension"
+            bp_risk = "MODERATE"
+            bp_color = "#ca8a04"
+            bp_advice = "Elevated blood pressure. Lifestyle changes recommended; consider medication."
+        elif sys_bp >= 130 or dia_bp >= 85:
+            bp_category = "Elevated"
+            bp_risk = "LOW"
+            bp_color = "#2563eb"
+            bp_advice = "Slightly elevated. Monitor regularly; maintain healthy lifestyle."
+        elif sys_bp < 90 or dia_bp < 60:
+            bp_category = "Hypotension"
+            bp_risk = "MODERATE"
+            bp_color = "#ca8a04"
+            bp_advice = "Low blood pressure. Monitor for dizziness/fainting. Hydrate well."
+
+        hr_category = ""
+        hr_advice = ""
+        if heart_rate:
+            if heart_rate > 100:
+                hr_category = "Tachycardia"
+                hr_advice = "Elevated heart rate. Could indicate stress, fever, dehydration, or cardiac issue."
+            elif heart_rate < 60:
+                hr_category = "Bradycardia"
+                hr_advice = "Low heart rate. May be normal for athletes; otherwise evaluate."
+
+        # Overall risk scoring (simplified)
+        risk_score = 0
+        risk_factors = []
+
+        # BP contribution
+        if bp_risk == "CRITICAL":
+            risk_score += 40
+        elif bp_risk == "HIGH":
+            risk_score += 30
+        elif bp_risk == "MODERATE":
+            risk_score += 15
+        elif bp_risk == "LOW" and sys_bp >= 130:
+            risk_score += 5
+
+        # Age contribution
+        if age:
+            if age > 65:
+                risk_score += 15
+                risk_factors.append("Age > 65")
+            elif age > 55:
+                risk_score += 8
+
+        if smoker:
+            risk_score += 15
+            risk_factors.append("Smoker")
+        if diabetic:
+            risk_score += 15
+            risk_factors.append("Diabetic")
+        if heart_rate and heart_rate > 100:
+            risk_score += 5
+            risk_factors.append("Elevated heart rate")
+
+        risk_score = min(risk_score, 100)
+
+        overall_risk = "LOW"
+        if risk_score >= 60:
+            overall_risk = "HIGH"
+        elif risk_score >= 30:
+            overall_risk = "MODERATE"
+
+        return jsonify({
+            "blood_pressure": {
+                "systolic": sys_bp,
+                "diastolic": dia_bp,
+                "category": bp_category,
+                "risk_level": bp_risk,
+                "color": bp_color,
+                "advice": bp_advice,
+            },
+            "heart_rate": {
+                "value": heart_rate,
+                "category": hr_category,
+                "advice": hr_advice,
+            },
+            "risk_score": risk_score,
+            "risk_factors": risk_factors,
+            "overall_risk": overall_risk,
+            "disclaimer": "Simplified WHO-based assessment. Educational prototype only. Consult a physician.",
+        })
 
     # ---- Lab Report Analysis ----
 

@@ -202,7 +202,10 @@ class RespiratoryEngine:
         tensor = torch.from_numpy(spec_rgb.transpose(2, 0, 1)).unsqueeze(0).float()
         return tensor.to(_DEVICE)
 
-    def predict(self, wav_bytes: bytes) -> dict:
+    def predict(self, wav_bytes: bytes, patient_name: str = "", timestamp: str = "") -> dict:
+        """Run triage and return a detailed clinical report."""
+        import datetime as _dt
+
         if self.model is None:
             if not self.load():
                 return {"error": "Respiratory model not available"}
@@ -215,18 +218,74 @@ class RespiratoryEngine:
             label = RESP_CLASS_LABELS[pred_idx]
             confidence = float(probs[pred_idx] * 100)
 
+        risk = RISK_META.get(label, {})
+        risk_level = risk.get("level", "LOW")
+
+        # severity score 0-100
+        severity = 0
+        if risk_level == "MODERATE":
+            severity = 40
+        elif risk_level == "HIGH":
+            severity = 70
+        elif risk_level == "CRITICAL":
+            severity = 95
+
+        # differential diagnoses
+        differentials = {
+            "Normal": ["Clear lung fields", "No adventitious sounds", "Vital capacity within normal range"],
+            "Crackles": ["Pulmonary edema", "Pneumonia", "Pulmonary fibrosis", "Atelectasis", "Cardiogenic fluid overload"],
+            "Wheezes": ["Bronchial asthma", "COPD exacerbation", "Bronchitis", "Anaphylaxis (early)", "Foreign body aspiration"],
+            "Both": ["COPD with pneumonia", "Pulmonary edema + bronchospasm", "Severe asthma with secretions", "ARDS (early stage)"],
+        }
+
+        # triage urgency
+        urgency = {
+            "LOW": "Non-urgent — routine follow-up within 1 week",
+            "MODERATE": "Semi-urgent — clinical evaluation within 24-48 hours",
+            "HIGH": "Urgent — specialist referral within 24 hours",
+            "CRITICAL": "Emergency — immediate specialist consultation required",
+        }
+
+        # medication suggestions (informational only, not prescriptions)
+        medication_notes = {
+            "Normal": "No medication indicated based on breath-sound analysis alone.",
+            "Crackles": "Consider: antibiotics if infection suspected, diuretics if fluid overload. Confirm with chest X-ray.",
+            "Wheezes": "Consider: short-acting bronchodilator (salbutamol), inhaled corticosteroids if persistent.",
+            "Both": "Combined management: bronchodilator + address underlying cause. Chest imaging essential.",
+        }
+
+        # follow-up recommendations
+        followup = {
+            "LOW": "Schedule routine respiratory check in 4-6 weeks. No immediate intervention needed.",
+            "MODERATE": "Schedule clinical review in 1-2 days. Recommend chest X-ray if symptoms persist.",
+            "HIGH": "Refer to pulmonologist or medical officer within 24 hours. Order chest X-ray and CBC.",
+            "CRITICAL": "Immediate referral to emergency department or specialist. Prepare for possible hospitalization.",
+        }
+
+        now = timestamp or _dt.datetime.now(_dt.timezone.utc).isoformat()
+        report_id = f"RESP-{_dt.datetime.now().strftime('%Y%m%d%H%M%S')}"
+
         result = {
+            "report_id": report_id,
             "label": label,
             "confidence_pct": round(confidence, 1),
             "color": STATUS_COLORS.get(label, "#64748b"),
-            "risk_level": RISK_META.get(label, {}).get("level", "LOW"),
-            "risk_label": RISK_META.get(label, {}).get("label", "Low Risk"),
-            "action": RISK_META.get(label, {}).get("action", "Follow-up"),
+            "risk_level": risk_level,
+            "risk_label": risk.get("label", "Low Risk"),
+            "action": risk.get("action", "Follow-up"),
             "advice": CLINICAL_ADVICE.get(label, "Consult physician"),
+            "severity_score": severity,
+            "differentials": differentials.get(label, []),
+            "triage_urgency": urgency.get(risk_level, "Follow up"),
+            "medication_notes": medication_notes.get(label, ""),
+            "followup_recommendation": followup.get(risk_level, ""),
             "all_confidences": {
-                RESP_CLASS_LABELS[i]: float(probs[i] * 100)
+                RESP_CLASS_LABELS[i]: round(float(probs[i] * 100), 1)
                 for i in range(len(RESP_CLASS_LABELS))
             },
+            "patient_name": patient_name,
+            "timestamp": now,
+            "model_version": "nova-resp-v1.0",
             "using_fallback_weights": self.using_fallback,
         }
         return result
