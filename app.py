@@ -602,14 +602,79 @@ def _lab_ocr_image(img: Image.Image) -> str:
 # Common lab test patterns: "Test Name  12.3  g/dL  11.0-15.0"
 # Matches: word chars, spaces, slashes, dots, parens for test names,
 #          then numeric value, optional unit, optional range "low-high" or "<high" or ">low"
-_LAB_TEST_RE = re.compile(
-    r"^([A-Za-z][A-Za-z0-9 /(),.%-]{1,60})\s+"  # test name
-    r"(\d+\.?\d*)\s+"                             # numeric value
-    r"([A-Za-z/%μµ IU.-]{0,20})\s*"              # optional unit
-    r"(?:(\d+\.?\d+)\s*[-–]\s*(\d+\.?\d+)|"      # range: low-high
-    r"[<>≤≥]\s*(\d+\.?\d+))?",                     # or < / > threshold
-    re.MULTILINE,
-)
+# Lab report token parser.
+# Real lab-report OCR (especially table layouts) frequently merges several
+# "Test  value  unit  range" rows onto a single line. A plain line-anchored
+# regex then greedily swallows the whole line and captures only the LAST
+# value. Instead we parse the OCR text as a token stream and reconstruct each
+# test record deterministically, so merged rows and flag columns (H/L) are
+# handled correctly.
+_LAB_NUM = re.compile(r"^\d+[.,]?\d*$")
+_LAB_FLAG = re.compile(r"^[HL]$")  # high / low flag column between value and unit
+_LAB_RANGE_TOK = re.compile(r"^[<>]\d+[.,]?\d*$")  # <140 or >4.0
+_LAB_DASH_RANGE = re.compile(r"^\d+[.,]?\d*[‐–-]\d+[.,]?\d*$")  # 12.0-16.0 (one token)
+
+
+def _lab_token_rows(text: str) -> list[dict]:
+    """Reconstruct lab 'test rows' from OCR text token-by-token.
+
+    Handles multiple tests on one line, flag columns, and dash/space ranges.
+    Returns raw rows: {name, value, unit, refLow, refHigh}.
+    """
+    rows = []
+    for line in text.splitlines():
+        toks = line.split()
+        n = len(toks)
+        i = 0
+        while i < n:
+            # find the first number token -> that starts this record's value
+            j = i
+            while j < n and not _LAB_NUM.match(toks[j]):
+                j += 1
+            if j >= n:
+                break
+            name = " ".join(toks[i:j]).strip()
+            value = toks[j]
+            k = j + 1
+            # skip flag token(s), e.g. 'H' / 'L', between value and unit
+            while k < n and _LAB_FLAG.match(toks[k]):
+                k += 1
+            unit = ""
+            # unit: a single short non-number token followed by a range/end/number
+            if k < n and not _LAB_NUM.match(toks[k]) and not _LAB_RANGE_TOK.match(toks[k]):
+                nxt = (k + 1 >= n
+                       or _LAB_DASH_RANGE.match(toks[k + 1])
+                       or _LAB_RANGE_TOK.match(toks[k + 1])
+                       or _LAB_NUM.match(toks[k + 1])
+                       or _LAB_FLAG.match(toks[k + 1]))
+                if nxt:
+                    unit = toks[k]
+                    k += 1
+            ref_low = ""
+            ref_high = ""
+            if k < n:
+                if _LAB_DASH_RANGE.match(toks[k]):
+                    parts = re.split(r"[‐–-]", toks[k])
+                    ref_low, ref_high = parts[0], parts[1]
+                    k += 1
+                elif _LAB_RANGE_TOK.match(toks[k]):
+                    ref_high = toks[k].lstrip("<>")
+                    k += 1
+                elif k + 1 < n and toks[k + 1] == "-" and k + 2 < n and _LAB_NUM.match(toks[k + 2]):
+                    ref_low, ref_high = toks[k], toks[k + 2]
+                    k += 3
+                elif k + 1 < n and _LAB_NUM.match(toks[k + 1]):
+                    ref_low, ref_high = toks[k], toks[k + 1]
+                    k += 2
+            rows.append({
+                "name": name,
+                "value": value,
+                "unit": unit,
+                "refLow": ref_low,
+                "refHigh": ref_high,
+            })
+            i = k
+    return rows
 
 _LAB_DISCLAIMER = (
     "Educational guidance only. Please confirm important results "
@@ -786,12 +851,12 @@ def _lab_finding_for_test(t: dict) -> dict:
 def _lab_parse_tests(text: str) -> list[dict]:
     """Extract lab test rows from OCR text. Never invent values."""
     tests = []
-    for m in _LAB_TEST_RE.finditer(text):
-        name = m.group(1).strip()
-        value = m.group(2).strip()
-        unit = (m.group(3) or "").strip()
-        ref_low = (m.group(4) or "").strip()
-        ref_high = (m.group(5) or m.group(6) or "").strip()
+    for row in _lab_token_rows(text):
+        name = row["name"]
+        value = row["value"]
+        unit = row["unit"]
+        ref_low = row["refLow"]
+        ref_high = row["refHigh"]
 
         # Skip obvious non-test lines
         lower_name = name.lower()
